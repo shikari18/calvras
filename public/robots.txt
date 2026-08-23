@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://calvras.com/sitemap.xml
