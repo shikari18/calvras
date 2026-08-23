@@ -315,13 +315,14 @@ export const CyChatThreadPage = ({
                     <BrandBurstLogo size={14} />
                   </div>
                 ) : (
-                  <div className="w-6 h-6 rounded-md bg-neutral-900 text-white flex items-center justify-center text-[10px] font-bold shrink-0 overflow-hidden shadow-2xs">
+                  <div className="w-6 h-6 rounded-md bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center text-[10px] font-bold shrink-0 overflow-hidden shadow-2xs">
                     {(msg.avatar || userProfile?.picture) ? (
                       <img 
                         src={msg.avatar || userProfile?.picture} 
+                        referrerPolicy="no-referrer"
                         alt={msg.name}
                         className="w-full h-full object-cover"
-                        onError={(e) => { e.target.style.display = 'none'; }}
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
                       />
                     ) : (
                       <span>{(msg.name || userProfile?.name || 'U').charAt(0).toUpperCase()}</span>

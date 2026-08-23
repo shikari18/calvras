@@ -265,13 +265,18 @@ export const CySidebar = ({
           className="cursor-pointer p-1 rounded-xl hover:bg-neutral-100 transition"
           title={userProfile?.name}
         >
-          <div className="w-7 h-7 rounded-full bg-neutral-900 text-white flex items-center justify-center text-xs font-semibold overflow-hidden shadow-2xs">
-            <img 
-              src={userProfile?.picture || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"} 
-              alt={userProfile?.name}
-              className="w-full h-full object-cover"
-              onError={(e) => { e.target.style.display = 'none'; }}
-            />
+          <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center text-xs font-semibold overflow-hidden shadow-2xs">
+            {userProfile?.picture ? (
+              <img 
+                src={userProfile.picture} 
+                referrerPolicy="no-referrer"
+                alt={userProfile?.name}
+                className="w-full h-full object-cover"
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+              />
+            ) : (
+              <span>{(userProfile?.name || 'U').charAt(0).toUpperCase()}</span>
+            )}
           </div>
         </div>
 
@@ -522,13 +527,18 @@ export const CySidebar = ({
           onClick={() => setShowProfileMenu(!showProfileMenu)}
           className="flex items-center gap-2.5 pt-1 px-1 p-1 rounded-xl hover:bg-neutral-50 transition cursor-pointer"
         >
-          <div className="w-7 h-7 rounded-full bg-neutral-900 text-white flex items-center justify-center text-xs font-semibold shrink-0 overflow-hidden shadow-2xs">
-            <img 
-              src={userProfile?.picture || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"} 
-              alt={userProfile?.name}
-              className="w-full h-full object-cover"
-              onError={(e) => { e.target.style.display = 'none'; }}
-            />
+          <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center text-xs font-semibold shrink-0 overflow-hidden shadow-2xs">
+            {userProfile?.picture ? (
+              <img 
+                src={userProfile.picture} 
+                referrerPolicy="no-referrer"
+                alt={userProfile?.name}
+                className="w-full h-full object-cover"
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+              />
+            ) : (
+              <span>{(userProfile?.name || 'U').charAt(0).toUpperCase()}</span>
+            )}
           </div>
           <div className="min-w-0 flex-1">
             <span className="text-xs font-semibold text-neutral-900 block truncate leading-tight">{userProfile.name}</span>

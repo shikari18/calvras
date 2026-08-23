@@ -81,6 +81,7 @@ function App() {
     }
     try {
       localStorage.setItem('calvras_is_authenticated', 'true');
+      localStorage.setItem('calvras_active_tab', 'new-chat');
     } catch (e) {}
     setIsAuthenticated(true);
   };
