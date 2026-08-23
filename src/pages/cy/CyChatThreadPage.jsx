@@ -169,17 +169,32 @@ export const CyChatThreadPage = ({
       });
 
       let cleanedResponse = cleanAiResponse(response, text);
-      const aiMsgId = `calvras-${Date.now() + 1}`;
+      if (!cleanedResponse || !cleanedResponse.trim()) {
+        cleanedResponse = `I analyzed your marketing request. Tell me more about your specific target audience or product and I will generate the complete strategic blueprint!`;
+      }
       
+      const aiMsgId = `calvras-${Date.now() + 1}`;
+      const aiMsg = {
+        id: aiMsgId,
+        sender: 'ai',
+        name: 'Calvras',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        text: cleanedResponse
+      };
+
+      // Add to store immediately so message is ALWAYS saved & never vanishes
+      addChatMessage(aiMsg);
       setIsWorking(false);
+      isSubmittingRef.current = false;
+
+      // Word stream reveal for smooth reading experience
       setStreamingMsgId(aiMsgId);
       setStreamingText('');
 
-      // Chunk / Word stream typing animation
       const words = cleanedResponse.split(' ');
       let currentIdx = 0;
       let accumulated = '';
-      const intervalSpeed = Math.max(10, Math.min(22, Math.floor(1600 / (words.length || 1))));
+      const intervalSpeed = Math.max(8, Math.min(20, Math.floor(1400 / (words.length || 1))));
 
       const streamTimer = setInterval(() => {
         if (currentIdx < words.length) {
@@ -190,14 +205,6 @@ export const CyChatThreadPage = ({
           clearInterval(streamTimer);
           setStreamingMsgId(null);
           setStreamingText('');
-          addChatMessage({
-            id: aiMsgId,
-            sender: 'ai',
-            name: 'Calvras',
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            text: cleanedResponse
-          });
-          isSubmittingRef.current = false;
         }
       }, intervalSpeed);
 
@@ -363,6 +370,11 @@ export const CyChatThreadPage = ({
             <div className="pl-8 text-[13.5px] text-neutral-800 leading-[1.65] font-normal">
               {msg.sender === 'user' ? (
                 <p className="whitespace-pre-wrap">{msg.text}</p>
+              ) : msg.id === streamingMsgId ? (
+                <div className="chatgpt-stream-chunk">
+                  <MarkdownRenderer content={streamingText} />
+                  <span className="chatgpt-cursor" />
+                </div>
               ) : (
                 <MarkdownRenderer content={msg.text} />
               )}
@@ -386,24 +398,6 @@ export const CyChatThreadPage = ({
               <span className="thinking-glance-text">
                 Thinking...
               </span>
-            </div>
-          </div>
-        )}
-
-        {/* Dynamic ChatGPT-style Stream Typing Bubble with Faint-to-Bright Word Reveal & Pulsing Cursor */}
-        {streamingMsgId && (
-          <div className="space-y-1.5 text-left animate-in fade-in duration-100">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md bg-purple-50 border border-purple-100 flex items-center justify-center shrink-0 shadow-2xs">
-                <BrandBurstLogo size={14} />
-              </div>
-              <span className="text-xs font-bold text-neutral-900">Calvras</span>
-              <span className="text-[10.5px] text-neutral-400 font-normal">Just now</span>
-            </div>
-
-            <div className="pl-8 text-[13.5px] text-neutral-800 leading-[1.65] font-normal chatgpt-stream-chunk">
-              <MarkdownRenderer content={streamingText} />
-              <span className="chatgpt-cursor" />
             </div>
           </div>
         )}
