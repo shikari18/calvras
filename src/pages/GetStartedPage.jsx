@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { BrandBurstLogo } from '../components/cy/CySidebar';
 import { Loader2, AlertCircle } from 'lucide-react';
 
-// Google Client ID from Google Cloud Console
-export const GOOGLE_CLIENT_ID = '63175372775-uf6m52f7db561lipao8pk18nofb6k94b.apps.googleusercontent.com';
+// Google Client ID from Google Cloud Console for calvras.com
+export const GOOGLE_CLIENT_ID = '139207574445-ol2q2cbgf5kqd6dnlnn6b95vdp349h9c.apps.googleusercontent.com';
 
 // Helper to decode Google JWT token
 function parseJwt(token) {
