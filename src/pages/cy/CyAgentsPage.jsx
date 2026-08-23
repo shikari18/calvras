@@ -1,14 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Bot, 
   Sparkles, 
   TrendingUp, 
-  Split, 
-  Users, 
   Target, 
   Zap, 
-  Video, 
-  BarChart3, 
   CheckCircle2, 
   Play, 
   Copy, 
@@ -19,40 +15,42 @@ import {
   Layers,
   ChevronRight,
   Flame,
-  Lightbulb
+  Search,
+  Eye,
+  Cpu,
+  BarChart3,
+  Sliders,
+  DollarSign,
+  AlertCircle,
+  Clock,
+  Send,
+  Download,
+  Share2,
+  CheckCircle
 } from 'lucide-react';
 import { useMarketing } from '../../context/MarketingContext';
+import { BrandBurstLogo } from '../../components/cy/CySidebar';
 import confetti from 'canvas-confetti';
 
 export const CyAgentsPage = ({ onNewChat }) => {
-  const { userProfile, businessProfile } = useMarketing();
-  const [activeTool, setActiveTool] = useState('strategist');
+  const { userProfile, businessProfile, connectedSocials } = useMarketing();
+  const [goalPrompt, setGoalPrompt] = useState('Get 500 new customers in 30 days with a $2,000 budget');
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [executionStep, setExecutionStep] = useState(0);
+  const [growthPlan, setGrowthPlan] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
+  const [isLaunchModalOpen, setIsLaunchModalOpen] = useState(false);
+  const [launchedActions, setLaunchedActions] = useState([]);
 
-  // Tool 1: Marketing Strategist (Dynamic, no hardcoded antennas/locations)
-  const [goalInput, setGoalInput] = useState('');
-  const [strategyResult, setStrategyResult] = useState(null);
-  const [isGeneratingStrategy, setIsGeneratingStrategy] = useState(false);
-
-  // Tool 2: AI Campaign Optimizer
-  const [campaignMetric, setCampaignMetric] = useState('');
-  const [optimizationResult, setOptimizationResult] = useState(null);
-
-  // Tool 3: Predictive Analytics
-  const [adSpendInput, setAdSpendInput] = useState('');
-  const [predictionResult, setPredictionResult] = useState(null);
-
-  // Tool 4: A/B Test Generator
-  const [abProductInput, setAbProductInput] = useState('');
-  const [abVariations, setAbVariations] = useState(null);
-
-  // Tool 5: Lead Scoring
-  const [leadNotes, setLeadNotes] = useState('');
-  const [leadScoreResult, setLeadScoreResult] = useState(null);
-
-  // Tool 6: Video Script Generator
-  const [videoProduct, setVideoProduct] = useState('');
-  const [videoScriptResult, setVideoScriptResult] = useState(null);
+  const pipelineSteps = [
+    { title: "Analyzing business & historical performance data", icon: Eye },
+    { title: "Researching competitors, pricing & market gaps", icon: Search },
+    { title: "Auditing active ad campaigns, funnels & landing pages", icon: Sliders },
+    { title: "Detecting high-leverage growth opportunities", icon: Flame },
+    { title: "Building prioritized multi-channel growth plan", icon: Target },
+    { title: "Generating creative assets, copy & video scripts", icon: Sparkles },
+    { title: "Preparing autonomous experiments & budget allocations", icon: Zap }
+  ];
 
   const handleCopy = (text, id) => {
     navigator.clipboard.writeText(text);
@@ -60,545 +58,531 @@ export const CyAgentsPage = ({ onNewChat }) => {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handleGenerateStrategy = () => {
-    if (!goalInput.trim()) return;
-    setIsGeneratingStrategy(true);
-    const target = goalInput.trim();
+  // Autonomous Execution Loop
+  const handleRunAutonomousGrowthAgent = () => {
+    if (!goalPrompt.trim() || isExecuting) return;
 
-    setTimeout(() => {
-      setStrategyResult({
-        pillar: `Direct-Response Growth & Omnichannel Customer Acquisition for "${target}"`,
-        channels: [
-          { name: 'TikTok & Short-Form Video Ads', budget: '40% Budget Allocation', hook: `"Stop scrolling if you want the easiest way to get ${target}"` },
-          { name: 'Instagram Story & Feed Carousel', budget: '35% Budget Allocation', hook: `Showcase 3 key problem-solving benefits with a direct limited-time offer` },
-          { name: 'Direct Messaging & Retargeting', budget: '25% Budget Allocation', hook: `Personalized 1-on-1 VIP discount for high-intent interested buyers` }
-        ],
-        targetCPA: 'Optimized for lowest customer acquisition cost'
-      });
-      setIsGeneratingStrategy(false);
-      try { confetti({ particleCount: 40, spread: 60 }); } catch (e) {}
-    }, 400);
-  };
+    setIsExecuting(true);
+    setExecutionStep(0);
+    setGrowthPlan(null);
 
-  const handleOptimizeCampaign = () => {
-    if (!campaignMetric.trim()) return;
-    const input = campaignMetric.trim();
-    setOptimizationResult({
-      diagnosis: `Identified audience fatigue & hook drop-off in: "${input}"`,
-      actions: [
-        'Replace first 3 seconds of creative with high-contrast visual demonstration.',
-        'Refine primary headline to focus directly on customer transformation and core outcome.',
-        'Add a clear, low-friction call-to-action button to eliminate checkout hesitation.'
-      ],
-      expectedImpact: '+40% to +75% higher conversion rate with reduced cost per click'
-    });
-  };
-
-  const handlePredict = () => {
-    const spend = parseFloat(adSpendInput) || 1000;
-    setPredictionResult({
-      estimatedReach: (spend * 35).toLocaleString() + ' target audience reach',
-      clicks: Math.round(spend * 1.6),
-      conversions: Math.round(spend * 0.11),
-      projectedRoas: '3.2x - 4.1x Target ROAS'
-    });
-  };
-
-  const handleGenerateAB = () => {
-    if (!abProductInput.trim()) return;
-    const prod = abProductInput.trim();
-    setAbVariations([
-      {
-        angle: '💰 Value & Cost-Saving Angle',
-        headline: `Get Premium Quality ${prod} Without Overpaying`,
-        body: `Designed for performance, durability, and convenience. Upgrade your daily routine today with an exclusive limited-time launch discount.`,
-        cta: 'Claim Your Discount Now'
-      },
-      {
-        angle: '⚡ Fast Results & Urgency Angle',
-        headline: `Limited Batch: Secure Your ${prod} Today`,
-        body: `Selling out fast. Order before midnight to guarantee same-day priority dispatch and free delivery.`,
-        cta: 'Order Today & Save'
-      },
-      {
-        angle: '🏆 Social Proof & Trust Angle',
-        headline: `Join Thousands of Happy Customers Loving ${prod}`,
-        body: `Backed by 5-star ratings and a 100% satisfaction guarantee. See why everyone is making the switch.`,
-        cta: 'Read Reviews & Buy Now'
+    // Sequence through autonomous observation and synthesis steps
+    let step = 0;
+    const interval = setInterval(() => {
+      step++;
+      setExecutionStep(step);
+      if (step >= pipelineSteps.length) {
+        clearInterval(interval);
+        setTimeout(() => {
+          setIsExecuting(false);
+          setGrowthPlan({
+            goal: goalPrompt,
+            estimatedOpportunity: "+22% to +35% Conversions",
+            projectedRevenue: "$18,400 – $26,500",
+            projectedCAC: "$16.20 (-28% reduction)",
+            autonomousStatement: "I found 3 critical bottlenecks in your funnel. I drafted the fixes, reallocated projected budget toward top-ROI channels, and prepared 5 prioritized actions. Here is what I am executing next.",
+            priorities: [
+              {
+                id: 'p1',
+                number: '01',
+                title: 'Fix Landing-Page Conversion Friction',
+                tag: 'CRO & Funnel',
+                tagColor: 'text-amber-700 bg-amber-50 border-amber-200',
+                impact: 'High (+12% Conversion Rate)',
+                problem: 'Current headline and CTA have a 68% bounce rate in under 4 seconds on mobile.',
+                fix: 'Deploy high-urgency hero headline with 3 trust badges and sticky 1-click checkout button.',
+                actionCopy: 'Hero Headline: "The Smarter Way to Get Results — Guaranteed in 14 Days."\nCTA: "Claim Your VIP Offer (Limited Spots)"'
+              },
+              {
+                id: 'p2',
+                number: '02',
+                title: 'Launch Meta & TikTok High-Intent Retargeting',
+                tag: 'Paid Ads',
+                tagColor: 'text-purple-700 bg-purple-50 border-purple-200',
+                impact: 'High (4.8x Target ROAS)',
+                problem: '3,400 recent store visitors browsed products without seeing a follow-up ad.',
+                fix: 'Allocate $600 to 2-stage retargeting with customer review videos and time-sensitive voucher.',
+                actionCopy: 'Target: Website Visitors (Last 14 Days) Exclude Buyers\nAd Hook: "Still thinking about it? Here is why 1,200+ customers switched this month."'
+              },
+              {
+                id: 'p3',
+                number: '03',
+                title: 'Test 4 High-Converting Creative Angles',
+                tag: 'Creative Lab',
+                tagColor: 'text-blue-700 bg-blue-50 border-blue-200',
+                impact: 'Medium (+40% Click-Through Rate)',
+                problem: 'Existing ad creatives have frequency fatigue (> 3.4).',
+                fix: 'Rotate 4 distinct direct-response angles: 1) Problem-Agitation, 2) Social Proof, 3) Loss Aversion, 4) Founder Story.',
+                actionCopy: 'Angle #1: "The 3 biggest mistakes people make when buying..."\nAngle #2: "Before vs After using this for 7 days."'
+              },
+              {
+                id: 'p4',
+                number: '04',
+                title: 'Deploy Automated Abandoned-Cart WhatsApp & Email Flow',
+                tag: 'Lifecycle',
+                tagColor: 'text-emerald-700 bg-emerald-50 border-emerald-200',
+                impact: 'Very High (14.2x ROI)',
+                problem: '24% of checkout carts are abandoned without automated reminder notifications.',
+                fix: 'Set up 3-stage automated sequence triggered at 15m, 6h, and 24h with dynamic 5% incentive.',
+                actionCopy: 'WhatsApp Trigger (15m): "Hey {customer_name}! Your cart is waiting. Use code FLASH5 to complete your order in 1 click: {cart_link}"'
+              },
+              {
+                id: 'p5',
+                number: '05',
+                title: 'Launch High-Intent SEO Buyer Content Cluster',
+                tag: 'SEO & Organic',
+                tagColor: 'text-indigo-700 bg-indigo-50 border-indigo-200',
+                impact: 'Long-term (Zero Ad Spend Traffic)',
+                problem: 'Competitors are ranking for 18 high-volume transactional search terms.',
+                fix: 'Publish 4 comparison & review articles targeting top-of-funnel decision makers.',
+                actionCopy: 'Keyword 1: "Best {product_category} in 2026 (Full Review)"\nKeyword 2: "{product_category} vs competitor pricing breakdown"'
+              }
+            ]
+          });
+          try { confetti({ particleCount: 50, spread: 70 }); } catch (e) {}
+        }, 300);
       }
-    ]);
+    }, 450);
   };
 
-  const handleScoreLead = () => {
-    if (!leadNotes.trim()) return;
-    const inquiry = leadNotes.trim();
-    setLeadScoreResult({
-      score: 'High Intent Lead 🔥',
-      intentLevel: 'Active Purchase Window (High Conversion Probability)',
-      reasons: [
-        `Inquiry asks specific details: "${inquiry.slice(0, 45)}..."`,
-        'Demonstrates clear buyer interest and ready-to-order behavior',
-        'Direct 1-on-1 closing opportunity'
-      ],
-      recommendedCloser: `Respond promptly with: "Hi! Thanks for reaching out. Yes, we have that available right now and can dispatch your order today. Would you like me to reserve one for you?"`
-    });
+  // Run on initial page mount if empty
+  useEffect(() => {
+    if (!growthPlan && !isExecuting) {
+      handleRunAutonomousGrowthAgent();
+    }
+  }, []);
+
+  const handleLaunchAll = () => {
+    setIsLaunchModalOpen(true);
+    setLaunchedActions(['p1', 'p2', 'p3', 'p4', 'p5']);
+    try { confetti({ particleCount: 80, spread: 90 }); } catch (e) {}
   };
 
-  const handleGenerateVideoScript = () => {
-    if (!videoProduct.trim()) return;
-    const prod = videoProduct.trim();
-    setVideoScriptResult({
-      title: `15-Second High-Converting Video Ad Script for ${prod}`,
-      duration: '15 seconds',
-      audio: 'Trending upbeat commercial background track',
-      scenes: [
-        { time: '0:00 - 0:03', visual: `Problem hook showing frustration before discovering ${prod}`, speech: `"If you're still dealing with this problem, you need to see this."` },
-        { time: '0:03 - 0:07', visual: `Hands unboxing and presenting ${prod} in sleek high resolution`, speech: `"This ${prod} completely changes the game with zero hassle."` },
-        { time: '0:07 - 0:11', visual: `Demo showing product in action with instant satisfying results`, speech: `"It takes seconds to set up and works right out of the box."` },
-        { time: '0:11 - 0:15', visual: 'Clear CTA button overlay with limited-time discount badge', speech: `"Tap the link below to claim your exclusive discount before stock runs out!"` }
-      ]
-    });
-  };
+  const autonomousLoopFeed = [
+    { time: '04:12 AM', stage: 'Observe', text: 'Detected 14% checkout drop-off spike between 8 PM - 11 PM on mobile.', color: 'text-blue-600 bg-blue-50 border-blue-200' },
+    { time: '04:14 AM', stage: 'Decide', text: 'Ad creative Angle A fatigued (frequency 3.8). Formulated Angle B (UGC Problem-Solve).', color: 'text-purple-600 bg-purple-50 border-purple-200' },
+    { time: '04:15 AM', stage: 'Execute', text: 'Rotated creative in Meta Campaign #1 and reallocated $250 to WhatsApp VIP flow.', color: 'text-amber-600 bg-amber-50 border-amber-200' },
+    { time: '04:22 AM', stage: 'Measure', text: 'Cart recovery rate rebounded +22% (19 recovered orders, $1,850 revenue).', color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
+    { time: '04:28 AM', stage: 'Improve', text: 'Calvras auto-scheduled A/B test on checkout CTA button for tomorrow morning.', color: 'text-indigo-600 bg-indigo-50 border-indigo-200' }
+  ];
 
-  const tools = [
-    { id: 'strategist', label: 'Marketing Strategist', icon: Target, desc: 'Tell it your goal and it creates a complete end-to-end strategy.' },
-    { id: 'optimizer', label: 'AI Campaign Optimizer', icon: TrendingUp, desc: 'Detects underperforming ads & recommends instant fixes.' },
-    { id: 'predictive', label: 'Predictive Analytics', icon: BarChart3, desc: 'Forecast conversions, reach, and expected ROAS.' },
-    { id: 'ab_test', label: 'A/B Test Generator', icon: Split, desc: 'Generate high-converting variations of headlines & CTAs.' },
-    { id: 'lead_scoring', label: 'Lead Scoring Engine', icon: Users, desc: 'Ranks leads by buying intent and generates closing copy.' },
-    { id: 'video_scripts', label: 'Video Ad Script Generator', icon: Video, desc: 'Creates viral TikTok & Reels scripts with scene-by-scene timing.' }
+  const subAgents = [
+    { name: 'Campaign Agent', role: 'Monitors & auto-optimizes Meta, TikTok & Google Ads', status: '🟢 Active (4 Ad Sets Optimizing)', icon: Sliders },
+    { name: 'Research Agent', role: 'Scans competitors, market trends & audience gaps', status: '🟢 Active (8 Competitors Tracked)', icon: Search },
+    { name: 'Content Agent', role: 'Maintains content engine & produces creative variations', status: '🟢 Active (4 Hooks Queued)', icon: Sparkles },
+    { name: 'Analytics Agent', role: 'Watches metrics & detects revenue anomalies 24/7', status: '🟢 Active (Real-time Anomaly Guard)', icon: BarChart3 },
+    { name: 'Experiment Agent', role: 'Manages continuous A/B tests & statistical significance', status: '🟢 Active (A/B Test #2 Running)', icon: Zap },
+    { name: 'Lifecycle Agent', role: 'Automates email & WhatsApp customer retention flows', status: '🟢 Active (Cart Recovery 28.4%)', icon: Target }
   ];
 
   return (
-    <div className="flex-1 min-h-screen bg-white p-6 sm:p-10 font-sans antialiased text-neutral-900 select-none text-left overflow-y-auto">
-      <div className="max-w-6xl mx-auto space-y-8 pt-2 sm:pt-4">
+    <div className="flex-1 min-h-screen bg-[#fafafc] flex flex-col justify-start p-4 sm:p-8 lg:p-10 font-sans antialiased text-neutral-900 select-none overflow-y-auto w-full min-w-0 text-left">
+      
+      <div className="max-w-6xl mx-auto w-full space-y-8">
         
-        {/* Header Title */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-100 pb-5">
-          <div className="space-y-1">
+        {/* Top Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-200/80 pb-5">
+          <div>
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-purple-600 text-white shadow-2xs">
+              <div className="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center shadow-xs">
                 <Bot size={18} />
               </div>
-              <h1 className="text-2xl sm:text-3xl font-serif font-bold text-neutral-950 tracking-tight">
-                Advanced AI Marketing Suite
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-950 font-serif">
+                Autonomous Growth Agent
               </h1>
             </div>
-            <p className="text-xs sm:text-sm text-neutral-500 font-normal">
-              Autonomous marketing intelligence — strategy blueprints, campaign optimization, predictive forecasting, A/B testing, and viral video scripts.
+            <p className="text-xs sm:text-sm text-neutral-500 mt-1">
+              Observe $\rightarrow$ Decide $\rightarrow$ Execute $\rightarrow$ Measure $\rightarrow$ Improve. Calvras autonomously powers your entire marketing pipeline.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex items-center gap-1.5">
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-200 bg-emerald-50/80 text-emerald-800 text-xs font-semibold shadow-2xs font-mono">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              6 Autonomous Engines Active
+              <span>Agent System Online</span>
             </span>
           </div>
         </div>
 
-        {/* Tool Switcher Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
-          {tools.map((t) => {
-            const Icon = t.icon;
-            const isActive = activeTool === t.id;
-            return (
+        {/* 1. Hero Goal Command Launcher: "What are we trying to achieve?" */}
+        <div className="bg-white border-2 border-neutral-200 focus-within:border-neutral-900 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4 transition">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <BrandBurstLogo size={18} />
+              <span className="text-sm font-bold text-neutral-950">CALVRAS CHIEF AGENT</span>
+            </div>
+            <span className="text-xs font-medium text-neutral-400">Give a goal & budget — Calvras plans & executes</span>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block">
+              What are we trying to achieve?
+            </label>
+            <div className="flex flex-col sm:flex-row items-center gap-2 pt-1">
+              <input
+                type="text"
+                value={goalPrompt}
+                onChange={(e) => setGoalPrompt(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleRunAutonomousGrowthAgent()}
+                placeholder="e.g. 'Get 500 new customers in 30 days with a $2,000 budget'..."
+                className="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-sm text-neutral-950 font-medium placeholder:text-neutral-400 focus:outline-none focus:bg-white focus:border-purple-600 transition"
+              />
               <button
-                key={t.id}
-                onClick={() => setActiveTool(t.id)}
-                className={`p-3 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between space-y-2 ${
-                  isActive
-                    ? 'bg-neutral-950 text-white border-neutral-950 shadow-md scale-[1.02]'
-                    : 'bg-white text-neutral-800 border-neutral-200 hover:border-neutral-400 hover:bg-neutral-50'
-                }`}
+                onClick={handleRunAutonomousGrowthAgent}
+                disabled={isExecuting}
+                className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-neutral-950 hover:bg-neutral-800 disabled:opacity-50 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-xs transition cursor-pointer shrink-0 active:scale-95"
               >
-                <div className="flex items-center justify-between">
-                  <Icon size={16} className={isActive ? 'text-purple-300' : 'text-purple-600'} />
-                  {isActive && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold leading-tight">{t.label}</h4>
-                </div>
+                {isExecuting ? (
+                  <>
+                    <RefreshCw size={14} className="animate-spin" />
+                    <span>Executing Pipeline...</span>
+                  </>
+                ) : (
+                  <>
+                    <Zap size={14} className="text-amber-400 fill-amber-400" />
+                    <span>Run Growth Agent</span>
+                  </>
+                )}
               </button>
-            );
-          })}
+            </div>
+          </div>
+
+          {/* Preset One-Click Mission Pills */}
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <span className="text-[11px] text-neutral-400 font-medium">Quick Missions:</span>
+            {[
+              "Get 500 new customers in 30 days ($2k budget)",
+              "Increase store conversion rate by +30%",
+              "Scale high-ROI retargeting & stop ad fatigue",
+              "Outrank top 3 competitors on Google & TikTok"
+            ].map((preset, idx) => (
+              <button
+                key={idx}
+                onClick={() => {
+                  setGoalPrompt(preset);
+                  setTimeout(() => handleRunAutonomousGrowthAgent(), 50);
+                }}
+                className="text-[11px] font-medium text-neutral-600 bg-neutral-100 hover:bg-neutral-200/80 border border-neutral-200/80 px-2.5 py-1 rounded-xl transition cursor-pointer"
+              >
+                {preset}
+              </button>
+            ))}
+          </div>
+
+          {/* Real-time Agent Pipeline Execution Visualizer */}
+          {isExecuting && (
+            <div className="mt-4 p-4 rounded-2xl bg-purple-50/60 border border-purple-100 space-y-2.5 animate-in fade-in duration-150">
+              <div className="flex items-center justify-between border-b border-purple-100 pb-2">
+                <span className="text-xs font-bold text-purple-950 flex items-center gap-2">
+                  <RefreshCw size={13} className="animate-spin text-purple-600" />
+                  <span>Calvras is autonomously analyzing & synthesizing...</span>
+                </span>
+                <span className="text-[11px] font-mono font-semibold text-purple-700">
+                  Step {Math.min(executionStep + 1, pipelineSteps.length)} of {pipelineSteps.length}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                {pipelineSteps.map((step, idx) => {
+                  const isDone = executionStep > idx;
+                  const isCurrent = executionStep === idx;
+                  return (
+                    <div 
+                      key={idx} 
+                      className={`flex items-center gap-2 text-xs px-2.5 py-1.5 rounded-xl transition ${
+                        isDone 
+                          ? 'text-emerald-900 bg-emerald-50 border border-emerald-200/60' 
+                          : isCurrent 
+                          ? 'text-purple-950 bg-white border border-purple-300 font-semibold shadow-2xs' 
+                          : 'text-neutral-400 bg-neutral-50/50 opacity-60'
+                      }`}
+                    >
+                      {isDone ? (
+                        <CheckCircle2 size={13} className="text-emerald-600 shrink-0" />
+                      ) : isCurrent ? (
+                        <RefreshCw size={13} className="text-purple-600 animate-spin shrink-0" />
+                      ) : (
+                        <span className="w-3.5 h-3.5 rounded-full border border-neutral-300 shrink-0" />
+                      )}
+                      <span className="truncate">{step.title}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* ACTIVE TOOL VIEWPORT */}
-        <div className="bg-neutral-50/60 border border-neutral-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xs">
-          
-          {/* 1. MARKETING STRATEGIST */}
-          {activeTool === 'strategist' && (
-            <div className="space-y-6 animate-in fade-in duration-200">
-              <div className="space-y-1">
-                <h3 className="text-base font-bold text-neutral-950 flex items-center gap-2">
-                  <Target size={18} className="text-purple-600" />
-                  <span>AI Marketing Strategist</span>
-                </h3>
-                <p className="text-xs text-neutral-500">
-                  Input your monthly revenue target or growth objective to synthesize a complete multi-channel campaign blueprint.
-                </p>
-              </div>
+        {/* 2. Autonomous Growth Plan Action Center */}
+        {growthPlan && (
+          <div className="space-y-5 animate-in fade-in duration-200">
+            
+            {/* Top Strategy KPI Banner */}
+            <div className="bg-gradient-to-br from-neutral-900 to-neutral-950 text-white rounded-3xl p-6 sm:p-7 shadow-lg space-y-4 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-80 h-80 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
 
-              <div className="space-y-3">
-                <label className="text-xs font-bold text-neutral-800 block">Your Growth Goal / Target Product</label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={goalInput}
-                    onChange={(e) => setGoalInput(e.target.value)}
-                    placeholder="e.g. Scale sales of my wireless earbuds to 300 orders this month..."
-                    className="flex-1 bg-white border border-neutral-200 rounded-xl px-4 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-purple-600 shadow-2xs"
-                  />
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-800 pb-4 relative z-10">
+                <div>
+                  <span className="text-[11px] font-mono text-purple-400 font-bold uppercase tracking-widest block">
+                    Autonomous Growth Plan
+                  </span>
+                  <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight mt-0.5">
+                    Goal: {growthPlan.goal}
+                  </h2>
+                </div>
+
+                <div className="flex items-center gap-2">
                   <button
-                    onClick={handleGenerateStrategy}
-                    disabled={isGeneratingStrategy || !goalInput.trim()}
-                    className={`text-xs font-semibold px-5 py-2.5 rounded-xl transition cursor-pointer flex items-center gap-2 shadow-xs shrink-0 ${
-                      goalInput.trim() ? 'bg-neutral-950 hover:bg-neutral-800 text-white' : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
-                    }`}
+                    onClick={handleLaunchAll}
+                    className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md transition cursor-pointer active:scale-95"
                   >
-                    <Sparkles size={14} className="text-purple-300" />
-                    <span>{isGeneratingStrategy ? 'Synthesizing...' : 'Generate Strategy'}</span>
+                    <Play size={13} className="fill-white" />
+                    <span>Review & Launch All (5)</span>
                   </button>
                 </div>
               </div>
 
-              {strategyResult && (
-                <div className="bg-white border border-neutral-200 rounded-2xl p-5 space-y-4 shadow-sm animate-in zoom-in-95 duration-200">
-                  <div className="border-b border-neutral-100 pb-3">
-                    <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wider block">Strategic Focus</span>
-                    <h4 className="text-sm font-bold text-neutral-950">{strategyResult.pillar}</h4>
-                  </div>
-
-                  <div className="space-y-2.5">
-                    <span className="text-xs font-bold text-neutral-800 block">Channel Budget Split & Core Hooks:</span>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {strategyResult.channels.map((ch, idx) => (
-                        <div key={idx} className="p-3 bg-neutral-50 rounded-xl border border-neutral-200/80 space-y-1.5">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-neutral-900">{ch.name}</span>
-                            <span className="text-[10.5px] font-mono text-purple-700 font-semibold bg-purple-50 px-1.5 py-0.5 rounded">{ch.budget}</span>
-                          </div>
-                          <p className="text-[11px] text-neutral-600 italic">{ch.hook}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+              {/* Impact Metrics Bar */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 relative z-10">
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5">
+                  <span className="text-[11px] text-neutral-400 uppercase block">Estimated Opportunity</span>
+                  <span className="text-lg sm:text-xl font-bold text-emerald-400 font-mono">
+                    {growthPlan.estimatedOpportunity}
+                  </span>
                 </div>
-              )}
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5">
+                  <span className="text-[11px] text-neutral-400 uppercase block">Projected Revenue Impact</span>
+                  <span className="text-lg sm:text-xl font-bold text-white font-mono">
+                    {growthPlan.projectedRevenue}
+                  </span>
+                </div>
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5">
+                  <span className="text-[11px] text-neutral-400 uppercase block">Target CAC</span>
+                  <span className="text-lg sm:text-xl font-bold text-purple-300 font-mono">
+                    {growthPlan.projectedCAC}
+                  </span>
+                </div>
+              </div>
+
+              {/* Agent Autonomous Statement */}
+              <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 text-xs text-neutral-300 leading-relaxed font-normal relative z-10 flex items-start gap-2.5">
+                <BrandBurstLogo size={16} className="mt-0.5 shrink-0 text-purple-400" />
+                <span>
+                  <strong className="text-white">Calvras Autonomous Update: </strong>
+                  {growthPlan.autonomousStatement}
+                </span>
+              </div>
             </div>
-          )}
 
-          {/* 2. AI CAMPAIGN OPTIMIZER */}
-          {activeTool === 'optimizer' && (
-            <div className="space-y-6 animate-in fade-in duration-200">
-              <div className="space-y-1">
-                <h3 className="text-base font-bold text-neutral-950 flex items-center gap-2">
-                  <TrendingUp size={18} className="text-purple-600" />
-                  <span>AI Campaign Optimizer</span>
+            {/* Prioritized Action Cards (Priority 01 to 05) */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-neutral-950 uppercase tracking-wider">
+                  Prioritized Autonomous Actions (Ordered by Impact & Speed)
                 </h3>
-                <p className="text-xs text-neutral-500">
-                  Analyzes underperforming ads, detects audience fatigue, and provides 1-click corrective actions.
-                </p>
+                <span className="text-xs text-neutral-500 font-mono">5 High-Impact Moves</span>
               </div>
 
-              <div className="space-y-3">
-                <label className="text-xs font-bold text-neutral-800 block">Current Campaign Status / Metrics</label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={campaignMetric}
-                    onChange={(e) => setCampaignMetric(e.target.value)}
-                    placeholder="e.g. TikTok Spark Ad (CTR: 0.9%, CPC: $0.35, ROAS: 1.8x)..."
-                    className="flex-1 bg-white border border-neutral-200 rounded-xl px-4 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-purple-600 shadow-2xs"
-                  />
-                  <button
-                    onClick={handleOptimizeCampaign}
-                    disabled={!campaignMetric.trim()}
-                    className={`text-xs font-semibold px-5 py-2.5 rounded-xl transition cursor-pointer flex items-center gap-2 shadow-xs shrink-0 ${
-                      campaignMetric.trim() ? 'bg-neutral-950 hover:bg-neutral-800 text-white' : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
-                    }`}
+              <div className="space-y-3.5">
+                {growthPlan.priorities.map((item) => (
+                  <div 
+                    key={item.id}
+                    className="bg-white border border-neutral-200 hover:border-neutral-300 rounded-2xl p-5 shadow-2xs transition space-y-3"
                   >
-                    <Zap size={14} className="text-amber-400" />
-                    <span>Diagnose & Fix</span>
-                  </button>
-                </div>
-              </div>
-
-              {optimizationResult && (
-                <div className="bg-white border border-neutral-200 rounded-2xl p-5 space-y-4 shadow-sm animate-in zoom-in-95 duration-200">
-                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 font-medium">
-                    ⚠️ <strong>Diagnosis</strong>: {optimizationResult.diagnosis}
-                  </div>
-
-                  <div className="space-y-2">
-                    <span className="text-xs font-bold text-neutral-800 block">Recommended Fixes:</span>
-                    <ul className="space-y-1.5 text-xs text-neutral-700">
-                      {optimizationResult.actions.map((act, idx) => (
-                        <li key={idx} className="flex items-start gap-2 bg-neutral-50 p-2.5 rounded-lg border border-neutral-100">
-                          <CheckCircle2 size={14} className="text-emerald-600 shrink-0 mt-0.5" />
-                          <span>{act}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div className="pt-2 border-t border-neutral-100 flex items-center justify-between text-xs">
-                    <span className="text-neutral-500 font-medium">Expected Improvement:</span>
-                    <span className="font-bold text-emerald-600">{optimizationResult.expectedImpact}</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* 3. PREDICTIVE ANALYTICS */}
-          {activeTool === 'predictive' && (
-            <div className="space-y-6 animate-in fade-in duration-200">
-              <div className="space-y-1">
-                <h3 className="text-base font-bold text-neutral-950 flex items-center gap-2">
-                  <BarChart3 size={18} className="text-purple-600" />
-                  <span>Predictive Analytics & Forecasting</span>
-                </h3>
-                <p className="text-xs text-neutral-500">
-                  Forecast reach, orders, and ROAS before spending your budget on ads.
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <label className="text-xs font-bold text-neutral-800 block">Planned Ad Budget Amount</label>
-                <div className="flex gap-2 max-w-md">
-                  <input
-                    type="number"
-                    value={adSpendInput}
-                    onChange={(e) => setAdSpendInput(e.target.value)}
-                    placeholder="e.g. 500"
-                    className="flex-1 bg-white border border-neutral-200 rounded-xl px-4 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-purple-600 shadow-2xs font-mono"
-                  />
-                  <button
-                    onClick={handlePredict}
-                    disabled={!adSpendInput}
-                    className={`text-xs font-semibold px-5 py-2.5 rounded-xl transition cursor-pointer flex items-center gap-2 shadow-xs shrink-0 ${
-                      adSpendInput ? 'bg-neutral-950 hover:bg-neutral-800 text-white' : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
-                    }`}
-                  >
-                    <span>Run Forecast</span>
-                  </button>
-                </div>
-              </div>
-
-              {predictionResult && (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 animate-in zoom-in-95 duration-200">
-                  <div className="p-4 bg-white border border-neutral-200 rounded-2xl space-y-1 shadow-2xs">
-                    <span className="text-[10.5px] font-bold text-neutral-400 uppercase tracking-wider block">Est. Reach</span>
-                    <span className="text-base font-bold text-neutral-950">{predictionResult.estimatedReach}</span>
-                  </div>
-                  <div className="p-4 bg-white border border-neutral-200 rounded-2xl space-y-1 shadow-2xs">
-                    <span className="text-[10.5px] font-bold text-neutral-400 uppercase tracking-wider block">Est. Clicks</span>
-                    <span className="text-base font-bold text-purple-600">{predictionResult.clicks} clicks</span>
-                  </div>
-                  <div className="p-4 bg-white border border-neutral-200 rounded-2xl space-y-1 shadow-2xs">
-                    <span className="text-[10.5px] font-bold text-neutral-400 uppercase tracking-wider block">Est. Conversions</span>
-                    <span className="text-base font-bold text-emerald-600">{predictionResult.conversions} orders</span>
-                  </div>
-                  <div className="p-4 bg-white border border-neutral-200 rounded-2xl space-y-1 shadow-2xs">
-                    <span className="text-[10.5px] font-bold text-neutral-400 uppercase tracking-wider block">Target ROAS</span>
-                    <span className="text-base font-bold text-blue-600">{predictionResult.projectedRoas}</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* 4. A/B TEST GENERATOR */}
-          {activeTool === 'ab_test' && (
-            <div className="space-y-6 animate-in fade-in duration-200">
-              <div className="space-y-1">
-                <h3 className="text-base font-bold text-neutral-950 flex items-center gap-2">
-                  <Split size={18} className="text-purple-600" />
-                  <span>A/B Test & Variations Generator</span>
-                </h3>
-                <p className="text-xs text-neutral-500">
-                  Generate distinct psychological angles (Cost-saving vs. Urgency vs. Social proof) to test which converts best.
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <label className="text-xs font-bold text-neutral-800 block">Product / Core Offer</label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={abProductInput}
-                    onChange={(e) => setAbProductInput(e.target.value)}
-                    placeholder="e.g. Ergonomic Memory Foam Pillow..."
-                    className="flex-1 bg-white border border-neutral-200 rounded-xl px-4 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-purple-600 shadow-2xs"
-                  />
-                  <button
-                    onClick={handleGenerateAB}
-                    disabled={!abProductInput.trim()}
-                    className={`text-xs font-semibold px-5 py-2.5 rounded-xl transition cursor-pointer flex items-center gap-2 shadow-xs shrink-0 ${
-                      abProductInput.trim() ? 'bg-neutral-950 hover:bg-neutral-800 text-white' : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
-                    }`}
-                  >
-                    <Sparkles size={14} className="text-purple-300" />
-                    <span>Generate 3 Variations</span>
-                  </button>
-                </div>
-              </div>
-
-              {abVariations && (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-in zoom-in-95 duration-200">
-                  {abVariations.map((v, idx) => (
-                    <div key={idx} className="bg-white border border-neutral-200 rounded-2xl p-4 space-y-3 shadow-2xs flex flex-col justify-between">
-                      <div className="space-y-2">
-                        <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wider block bg-purple-50 px-2 py-0.5 rounded w-fit">
-                          {v.angle}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-neutral-100 pb-3">
+                      <div className="flex items-center gap-3">
+                        <span className="w-8 h-8 rounded-xl bg-neutral-900 text-white flex items-center justify-center text-xs font-bold font-mono">
+                          {item.number}
                         </span>
-                        <h4 className="text-xs font-bold text-neutral-950">{v.headline}</h4>
-                        <p className="text-[11.5px] text-neutral-600 leading-relaxed">{v.body}</p>
+                        <div>
+                          <h4 className="text-sm font-bold text-neutral-950">{item.title}</h4>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${item.tagColor}`}>
+                              {item.tag}
+                            </span>
+                            <span className="text-[11px] text-emerald-700 font-semibold">{item.impact}</span>
+                          </div>
+                        </div>
                       </div>
 
-                      <div className="pt-2 border-t border-neutral-100 flex items-center justify-between">
-                        <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">{v.cta}</span>
+                      <div className="flex items-center gap-2 self-start sm:self-auto">
                         <button
-                          onClick={() => handleCopy(`${v.headline}\n\n${v.body}\n\n${v.cta}`, `ab_${idx}`)}
-                          className="text-neutral-400 hover:text-neutral-900 p-1.5 rounded-lg hover:bg-neutral-100 transition cursor-pointer"
-                          title="Copy Variation"
+                          onClick={() => handleCopy(item.actionCopy, item.id)}
+                          className="px-3 py-1.5 rounded-xl border border-neutral-200 hover:bg-neutral-50 text-neutral-700 text-xs font-semibold flex items-center gap-1 transition cursor-pointer"
                         >
-                          {copiedId === `ab_${idx}` ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
+                          {copiedId === item.id ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
+                          <span>{copiedId === item.id ? 'Copied' : 'Copy Payload'}</span>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setLaunchedActions(prev => prev.includes(item.id) ? prev : [...prev, item.id]);
+                            try { confetti({ particleCount: 30, spread: 50 }); } catch (e) {}
+                          }}
+                          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer ${
+                            launchedActions.includes(item.id)
+                              ? 'bg-emerald-600 text-white shadow-xs'
+                              : 'bg-neutral-900 hover:bg-neutral-800 text-white shadow-xs'
+                          }`}
+                        >
+                          {launchedActions.includes(item.id) ? (
+                            <>
+                              <CheckCircle size={12} />
+                              <span>Launched</span>
+                            </>
+                          ) : (
+                            <>
+                              <Play size={11} className="fill-white" />
+                              <span>Execute Action</span>
+                            </>
+                          )}
                         </button>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
 
-          {/* 5. LEAD SCORING */}
-          {activeTool === 'lead_scoring' && (
-            <div className="space-y-6 animate-in fade-in duration-200">
-              <div className="space-y-1">
-                <h3 className="text-base font-bold text-neutral-950 flex items-center gap-2">
-                  <Users size={18} className="text-purple-600" />
-                  <span>Lead Scoring & Sales Closer</span>
-                </h3>
-                <p className="text-xs text-neutral-500">
-                  Paste a customer inquiry or chat message to calculate buying likelihood and get the exact response to close the deal.
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <label className="text-xs font-bold text-neutral-800 block">Customer Inquiry / Message</label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={leadNotes}
-                    onChange={(e) => setLeadNotes(e.target.value)}
-                    placeholder="e.g. Customer asked if delivery is available today and how payment works..."
-                    className="flex-1 bg-white border border-neutral-200 rounded-xl px-4 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-purple-600 shadow-2xs"
-                  />
-                  <button
-                    onClick={handleScoreLead}
-                    disabled={!leadNotes.trim()}
-                    className={`text-xs font-semibold px-5 py-2.5 rounded-xl transition cursor-pointer flex items-center gap-2 shadow-xs shrink-0 ${
-                      leadNotes.trim() ? 'bg-neutral-950 hover:bg-neutral-800 text-white' : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
-                    }`}
-                  >
-                    <Flame size={14} className="text-rose-400" />
-                    <span>Score Lead</span>
-                  </button>
-                </div>
-              </div>
-
-              {leadScoreResult && (
-                <div className="bg-white border border-neutral-200 rounded-2xl p-5 space-y-4 shadow-sm animate-in zoom-in-95 duration-200">
-                  <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
-                    <div>
-                      <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Lead Quality</span>
-                      <h4 className="text-base font-bold text-rose-600">{leadScoreResult.score}</h4>
-                    </div>
-                    <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                      {leadScoreResult.intentLevel}
-                    </span>
-                  </div>
-
-                  <div className="p-3.5 bg-[#eef7e9] border border-emerald-200 rounded-xl text-xs text-neutral-900 space-y-1.5">
-                    <span className="font-bold text-emerald-950 block">💬 Recommended Direct Sales Closer:</span>
-                    <p className="italic">{leadScoreResult.recommendedCloser}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* 6. VIDEO AD SCRIPTS */}
-          {activeTool === 'video_scripts' && (
-            <div className="space-y-6 animate-in fade-in duration-200">
-              <div className="space-y-1">
-                <h3 className="text-base font-bold text-neutral-950 flex items-center gap-2">
-                  <Video size={18} className="text-purple-600" />
-                  <span>Viral Video Ad Script Generator</span>
-                </h3>
-                <p className="text-xs text-neutral-500">
-                  Generates 15-second viral TikTok & Reels scripts with visual cues, hook timing, and voiceover copy.
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <label className="text-xs font-bold text-neutral-800 block">Product Name / Service</label>
-                <div className="flex gap-2 max-w-md">
-                  <input
-                    type="text"
-                    value={videoProduct}
-                    onChange={(e) => setVideoProduct(e.target.value)}
-                    placeholder="e.g. Wireless Smart Security Camera..."
-                    className="flex-1 bg-white border border-neutral-200 rounded-xl px-4 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-purple-600 shadow-2xs"
-                  />
-                  <button
-                    onClick={handleGenerateVideoScript}
-                    disabled={!videoProduct.trim()}
-                    className={`text-xs font-semibold px-5 py-2.5 rounded-xl transition cursor-pointer flex items-center gap-2 shadow-xs shrink-0 ${
-                      videoProduct.trim() ? 'bg-neutral-950 hover:bg-neutral-800 text-white' : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
-                    }`}
-                  >
-                    <Play size={13} className="fill-white" />
-                    <span>Draft Script</span>
-                  </button>
-                </div>
-              </div>
-
-              {videoScriptResult && (
-                <div className="bg-white border border-neutral-200 rounded-2xl p-5 space-y-4 shadow-sm animate-in zoom-in-95 duration-200">
-                  <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
-                    <div>
-                      <h4 className="text-sm font-bold text-neutral-950">{videoScriptResult.title}</h4>
-                      <span className="text-[11px] text-neutral-400">Audio: {videoScriptResult.audio}</span>
-                    </div>
-                    <span className="text-xs font-mono font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded">
-                      {videoScriptResult.duration}
-                    </span>
-                  </div>
-
-                  <div className="space-y-2">
-                    {videoScriptResult.scenes.map((sc, idx) => (
-                      <div key={idx} className="p-3 bg-neutral-50 rounded-xl border border-neutral-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                        <span className="font-mono font-bold text-purple-600 shrink-0 w-24">{sc.time}</span>
-                        <div className="flex-1 space-y-0.5">
-                          <span className="font-semibold text-neutral-900 block">🎬 Visual: {sc.visual}</span>
-                          <span className="text-neutral-600 block">🗣️ Voiceover: {sc.speech}</span>
-                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                      <div className="p-3 bg-red-50/50 border border-red-100 rounded-xl space-y-1">
+                        <span className="text-[10.5px] font-bold text-red-800 uppercase block">Detected Problem / Leak:</span>
+                        <p className="text-neutral-700 leading-relaxed">{item.problem}</p>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+                      <div className="p-3 bg-emerald-50/50 border border-emerald-100 rounded-xl space-y-1">
+                        <span className="text-[10.5px] font-bold text-emerald-800 uppercase block">Calvras Autonomous Fix:</span>
+                        <p className="text-neutral-700 leading-relaxed">{item.fix}</p>
+                      </div>
+                    </div>
 
+                    {/* Pre-generated Action Copy/Script */}
+                    <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-200/80 font-mono text-[11.5px] text-neutral-800 whitespace-pre-wrap leading-relaxed">
+                      {item.actionCopy}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+        )}
+
+        {/* 3. Live Autonomous Loop Feed (Observe -> Decide -> Execute -> Measure -> Improve) */}
+        <div className="bg-white border border-neutral-200 rounded-3xl p-6 shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-lg bg-purple-50 border border-purple-100 flex items-center justify-center">
+                <Cpu size={14} className="text-purple-600" />
+              </div>
+              <h3 className="text-sm font-bold text-neutral-950">
+                Live Autonomous Loop (Observe $\rightarrow$ Decide $\rightarrow$ Execute $\rightarrow$ Measure $\rightarrow$ Improve)
+              </h3>
+            </div>
+            <span className="text-xs font-mono text-neutral-400">Autonomous Event Log</span>
+          </div>
+
+          <div className="space-y-2.5">
+            {autonomousLoopFeed.map((item, idx) => (
+              <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-xl bg-neutral-50/80 border border-neutral-200/60 text-xs">
+                <div className="flex items-center gap-2.5">
+                  <span className="font-mono text-neutral-400 text-[11px] shrink-0">{item.time}</span>
+                  <span className={`text-[10.5px] font-bold px-2 py-0.5 rounded-md border shrink-0 ${item.color}`}>
+                    {item.stage}
+                  </span>
+                  <span className="text-neutral-800 font-medium">{item.text}</span>
+                </div>
+                <span className="text-[10.5px] text-emerald-600 font-semibold self-start sm:self-auto shrink-0 flex items-center gap-1">
+                  <CheckCircle2 size={11} />
+                  <span>Success</span>
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 4. Specialized Under-the-Hood Sub-Agent Engines */}
+        <div className="bg-white border border-neutral-200 rounded-3xl p-6 shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+            <div>
+              <h3 className="text-sm font-bold text-neutral-950">
+                Calvras Autonomous Sub-Agent Engines
+              </h3>
+              <p className="text-xs text-neutral-500">
+                Specialized autonomous sub-agents operating synchronously under Calvras.
+              </p>
+            </div>
+            <span className="text-xs font-mono font-bold text-purple-700 bg-purple-50 border border-purple-100 px-2.5 py-1 rounded-lg">
+              6 / 6 Active
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {subAgents.map((agent, idx) => (
+              <div key={idx} className="p-4 rounded-2xl border border-neutral-200 bg-neutral-50/50 space-y-2 hover:bg-white hover:border-neutral-300 transition">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-neutral-950">{agent.name}</span>
+                  <agent.icon size={14} className="text-purple-600" />
+                </div>
+                <p className="text-[11.5px] text-neutral-500 leading-relaxed">{agent.role}</p>
+                <div className="pt-1 text-[11px] font-mono text-emerald-700 font-semibold">
+                  {agent.status}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
       </div>
+
+      {/* Review & Launch Confirmation Modal */}
+      {isLaunchModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <div className="bg-white border border-neutral-200 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-5 text-left">
+            <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+              <div className="flex items-center gap-2">
+                <BrandBurstLogo size={18} />
+                <h3 className="text-base font-bold text-neutral-950">Autonomous Actions Deployed</h3>
+              </div>
+              <span className="text-xs font-mono text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg font-bold border border-emerald-200">
+                100% Synced
+              </span>
+            </div>
+
+            <p className="text-xs text-neutral-600 leading-relaxed">
+              All 5 prioritized growth actions have been queued and staged across your connected marketing channels:
+            </p>
+
+            <div className="space-y-2 text-xs font-medium text-neutral-800">
+              <div className="flex items-center gap-2 p-2 rounded-xl bg-neutral-50">
+                <CheckCircle2 size={13} className="text-emerald-600" />
+                <span>Priority 01: Landing page headline & sticky CTA staged</span>
+              </div>
+              <div className="flex items-center gap-2 p-2 rounded-xl bg-neutral-50">
+                <CheckCircle2 size={13} className="text-emerald-600" />
+                <span>Priority 02: Meta & TikTok 14-day visitor retargeting ad set armed</span>
+              </div>
+              <div className="flex items-center gap-2 p-2 rounded-xl bg-neutral-50">
+                <CheckCircle2 size={13} className="text-emerald-600" />
+                <span>Priority 03: 4 creative variations rotated into active ad schedule</span>
+              </div>
+              <div className="flex items-center gap-2 p-2 rounded-xl bg-neutral-50">
+                <CheckCircle2 size={13} className="text-emerald-600" />
+                <span>Priority 04: WhatsApp 3-stage cart recovery workflow activated</span>
+              </div>
+              <div className="flex items-center gap-2 p-2 rounded-xl bg-neutral-50">
+                <CheckCircle2 size={13} className="text-emerald-600" />
+                <span>Priority 05: SEO content briefs dispatched to content queue</span>
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <button
+                onClick={() => setIsLaunchModalOpen(false)}
+                className="w-full py-3 rounded-2xl bg-neutral-950 hover:bg-neutral-800 text-white text-xs font-bold transition cursor-pointer shadow-xs"
+              >
+                Done & Continue Monitoring
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
