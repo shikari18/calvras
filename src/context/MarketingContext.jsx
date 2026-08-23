@@ -295,17 +295,19 @@ export const MarketingProvider = ({ children, currentUserEmail = 'zenithzone18@g
   };
 
   // Create a brand new distinct conversation thread (Creates another item in RECENT)
-  const createNewChatThread = (promptText = '') => {
+  const createNewChatThread = (promptText = '', initialUserMsg = null) => {
     const newThreadId = `thread_${Date.now()}`;
     const shortTitle = promptText ? (promptText.length > 28 ? promptText.slice(0, 28) + '...' : promptText) : 'New Chat';
     
+    const messages = initialUserMsg ? [initialUserMsg] : [];
     const newThread = {
       id: newThreadId,
       title: shortTitle,
       updatedAt: new Date().toLocaleDateString(),
-      messages: []
+      messages: messages
     };
 
+    activeThreadIdRef.current = newThreadId;
     setChatThreads(prev => [newThread, ...prev]);
     setActiveThreadId(newThreadId);
     return newThreadId;
@@ -313,9 +315,8 @@ export const MarketingProvider = ({ children, currentUserEmail = 'zenithzone18@g
 
   // Select/switch active thread from history
   const selectThread = (threadId) => {
-    if (chatThreads.some(t => t.id === threadId)) {
-      setActiveThreadId(threadId);
-    }
+    activeThreadIdRef.current = threadId;
+    setActiveThreadId(threadId);
   };
 
   // Delete a specific thread from history
