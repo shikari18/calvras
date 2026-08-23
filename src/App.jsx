@@ -7,7 +7,14 @@ import { TermsOfServicePage } from './pages/legal/TermsOfServicePage';
 import { PrivacyPolicyPage } from './pages/legal/PrivacyPolicyPage';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    try {
+      const saved = localStorage.getItem('calvras_is_authenticated');
+      return saved === 'true';
+    } catch (e) {
+      return false;
+    }
+  });
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [legalView, setLegalView] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -56,10 +63,13 @@ function App() {
 
   const handleSignOut = () => {
     setIsSigningOut(true);
+    try {
+      localStorage.removeItem('calvras_is_authenticated');
+    } catch (e) {}
     setTimeout(() => {
       setIsSigningOut(false);
       setIsAuthenticated(false);
-    }, 1000);
+    }, 800);
   };
 
   const handleLoginSuccess = (userData) => {
@@ -69,6 +79,9 @@ function App() {
         localStorage.setItem('aim_user_profile', JSON.stringify(userData));
       } catch (e) {}
     }
+    try {
+      localStorage.setItem('calvras_is_authenticated', 'true');
+    } catch (e) {}
     setIsAuthenticated(true);
   };
 
