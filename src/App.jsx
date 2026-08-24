@@ -25,6 +25,7 @@ function App() {
     }
     return false;
   });
+  const [isSigningIn, setIsSigningIn] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [legalView, setLegalView] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -94,12 +95,27 @@ function App() {
       localStorage.setItem('calvras_is_authenticated', 'true');
       localStorage.setItem('calvras_active_tab', 'new-chat');
     } catch (e) {}
-    setIsAuthOpen(false);
-    setIsAuthenticated(true);
+
+    setIsSigningIn(true);
+    setTimeout(() => {
+      setIsSigningIn(false);
+      setIsAuthOpen(false);
+      setIsAuthenticated(true);
+    }, 2000);
   };
 
   return (
     <MarketingProvider currentUserEmail={userProfile.email}>
+      {/* 2-Second Full White Screen Loading Spinner + Signing in text */}
+      {isSigningIn && (
+        <div className="fixed inset-0 bg-white flex flex-col items-center justify-center gap-3.5 z-50 select-none animate-in fade-in duration-150">
+          <div className="w-8 h-8 rounded-full border-2 border-neutral-200 border-t-neutral-950 animate-spin" />
+          <span className="text-xs font-semibold text-neutral-850 tracking-tight animate-pulse">
+            Signing in...
+          </span>
+        </div>
+      )}
+
       {/* 1-Second Full White Screen Loading Spinner + Signing out text */}
       {isSigningOut && (
         <div className="fixed inset-0 bg-white flex flex-col items-center justify-center gap-3 z-50 select-none animate-in fade-in duration-150">
@@ -110,7 +126,7 @@ function App() {
         </div>
       )}
 
-      {!isSigningOut && (
+      {!isSigningIn && !isSigningOut && (
         isAuthenticated ? (
           <CyLayout 
             onSignOut={handleSignOut} 
