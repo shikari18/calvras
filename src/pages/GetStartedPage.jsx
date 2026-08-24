@@ -22,7 +22,7 @@ function parseJwt(token) {
   }
 }
 
-export const GetStartedPage = ({ onNavigate, onLoginSuccess, initialIsSignIn = false }) => {
+export const GetStartedPage = ({ onNavigate, onLoginSuccess, initialIsSignIn = false, onBack }) => {
   const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
   const [appleNotice, setAppleNotice] = useState(false);
   const googleBtnContainerRef = useRef(null);
@@ -119,13 +119,25 @@ export const GetStartedPage = ({ onNavigate, onLoginSuccess, initialIsSignIn = f
     <div className="min-h-screen bg-[#fafafc] flex flex-col justify-between font-sans antialiased text-neutral-900 select-none">
       
       {/* Top Header */}
-      <header className="w-full py-6 px-6 sm:px-12 flex items-center justify-between border-b border-neutral-100 bg-white/80 backdrop-blur-md sticky top-0 z-10">
-        <div className="flex items-center gap-2.5">
+      <header className="w-full py-5 px-6 sm:px-12 flex items-center justify-between border-b border-neutral-100 bg-white/80 backdrop-blur-md sticky top-0 z-10">
+        <button 
+          onClick={() => onBack ? onBack() : onNavigate && onNavigate('home')}
+          className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition"
+        >
           <BrandBurstLogo size={22} className="text-neutral-950" />
           <span className="font-serif font-bold text-neutral-950 text-lg tracking-tight">
             Calvras
           </span>
-        </div>
+        </button>
+
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="text-xs font-semibold text-neutral-600 hover:text-neutral-950 px-3 py-1.5 rounded-xl border border-neutral-200 hover:bg-neutral-50 transition cursor-pointer"
+          >
+            ← Back to Home
+          </button>
+        )}
       </header>
 
       {/* Main Centered Minimalist Auth Card */}

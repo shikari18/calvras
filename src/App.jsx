@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CyLayout } from './pages/cy/CyLayout';
+import { LandingPage } from './pages/LandingPage';
 import { GetStartedPage } from './pages/GetStartedPage';
 import { MarketingProvider } from './context/MarketingContext';
 import { TikTokAuthPopupWindow } from './components/auth/TikTokAuthPopupWindow';
@@ -14,6 +15,15 @@ function App() {
     } catch (e) {
       return false;
     }
+  });
+  const [isAuthOpen, setIsAuthOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash.toLowerCase();
+      if (hash === '#signin' || hash === '#signup' || hash === '#auth' || hash === '#get-started') {
+        return true;
+      }
+    }
+    return false;
   });
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [legalView, setLegalView] = useState(() => {
@@ -63,6 +73,7 @@ function App() {
 
   const handleSignOut = () => {
     setIsSigningOut(true);
+    setIsAuthOpen(false);
     try {
       localStorage.removeItem('calvras_is_authenticated');
     } catch (e) {}
@@ -83,6 +94,7 @@ function App() {
       localStorage.setItem('calvras_is_authenticated', 'true');
       localStorage.setItem('calvras_active_tab', 'new-chat');
     } catch (e) {}
+    setIsAuthOpen(false);
     setIsAuthenticated(true);
   };
 
@@ -106,13 +118,19 @@ function App() {
             userProfile={userProfile}
             onOpenLegal={(view) => setLegalView(view)}
           />
-        ) : (
+        ) : isAuthOpen ? (
           <GetStartedPage 
             onLoginSuccess={handleLoginSuccess}
             onNavigate={(view) => {
-              if (view === 'login') setIsAuthenticated(false);
+              if (view === 'home' || view === 'landing') setIsAuthOpen(false);
             }}
+            onBack={() => setIsAuthOpen(false)}
             initialIsSignIn={false}
+          />
+        ) : (
+          <LandingPage 
+            onGetStarted={() => setIsAuthOpen(true)}
+            onOpenLegal={(view) => setLegalView(view)}
           />
         )
       )}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SparkleIcon } from './SparkleIcon';
+import { BrandBurstLogo } from './cy/CySidebar';
 import { 
   ArrowRight, 
   Send, 
@@ -67,14 +67,14 @@ export const Hero = ({ onNavigate, onSelectCampaign }) => {
         <div className="grid lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           
           <div className="lg:col-span-5 text-left">
-            <div className="inline-flex items-center gap-2 mb-5 px-3 py-1 rounded-full bg-purple-50 border border-purple-100">
-              <Sparkles size={13} className="text-purple-600" />
-              <span className="text-[11px] font-bold tracking-[0.16em] uppercase text-purple-900">
-                AI MARKETING ASSISTANT
+            <div className="inline-flex items-center gap-2 mb-5 px-3.5 py-1.5 rounded-full bg-purple-50 border border-purple-100 shadow-2xs">
+              <BrandBurstLogo size={14} />
+              <span className="text-[11px] font-bold tracking-[0.16em] uppercase text-purple-900 font-mono">
+                AUTONOMOUS MARKETING OS
               </span>
             </div>
 
-            <h1 className="text-[46px] sm:text-[58px] lg:text-[72px] font-bold text-neutral-950 tracking-[-0.04em] leading-[1.02] mb-6">
+            <h1 className="text-[46px] sm:text-[58px] lg:text-[72px] font-bold text-neutral-950 tracking-[-0.04em] leading-[1.02] mb-6 font-serif">
               Meet your<br />
               new marketing<br />
               team.
@@ -86,17 +86,17 @@ export const Hero = ({ onNavigate, onSelectCampaign }) => {
 
             <div className="flex flex-wrap items-center gap-4">
               <button 
-                onClick={() => onNavigate('dashboard')}
-                className="bg-purple-600 hover:bg-purple-700 text-white font-semibold text-[15px] px-8 py-3.5 rounded-full transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md active:scale-95"
+                onClick={() => onNavigate('get-started')}
+                className="bg-neutral-950 hover:bg-neutral-800 text-white font-semibold text-[15px] px-8 py-3.5 rounded-full transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md active:scale-95"
               >
                 Launch Workspace
               </button>
 
               <button 
-                onClick={() => onNavigate('new-campaign')}
+                onClick={() => onNavigate('get-started')}
                 className="group inline-flex items-center gap-2 text-[15px] font-semibold text-neutral-600 hover:text-neutral-950 transition-colors py-2 cursor-pointer"
               >
-                <span>New Campaign Studio</span>
+                <span>Get Started Free</span>
                 <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
               </button>
             </div>
@@ -107,8 +107,8 @@ export const Hero = ({ onNavigate, onSelectCampaign }) => {
               
               <div className="px-5 py-3.5 border-b border-neutral-100 flex items-center justify-between bg-neutral-50/70">
                 <div className="flex items-center gap-2.5">
-                  <SparkleIcon size={16} className="text-purple-600" />
-                  <span className="text-xs font-bold text-neutral-900 tracking-tight">AI Marketing Assistant (OpenRouter Live)</span>
+                  <BrandBurstLogo size={16} />
+                  <span className="text-xs font-bold text-neutral-900 tracking-tight">Calvras Autonomous Copilot</span>
                 </div>
                 <div className="flex items-center gap-3 text-neutral-400">
                   <Bell size={14} className="hover:text-neutral-700 cursor-pointer" />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { SparkleIcon } from './SparkleIcon';
+import { BrandBurstLogo } from './cy/CySidebar';
 import { Menu, X } from 'lucide-react';
 
 export const Navbar = ({ onNavigate }) => {
@@ -33,10 +33,10 @@ export const Navbar = ({ onNavigate }) => {
           className="flex items-center gap-2.5 group cursor-pointer transition-opacity hover:opacity-90"
         >
           <div className="w-7 h-7 rounded-lg bg-purple-50 border border-purple-100 flex items-center justify-center transition-transform duration-300 group-hover:rotate-45">
-            <SparkleIcon size={18} className="text-purple-600" />
+            <BrandBurstLogo size={18} />
           </div>
-          <span className="font-bold text-[15px] tracking-tight text-neutral-950">
-            AI Marketing Assistant
+          <span className="font-bold text-[17px] tracking-tight text-neutral-950 font-serif">
+            Calvras
           </span>
         </button>
 
