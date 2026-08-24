@@ -227,7 +227,7 @@ export const Hero = ({ onNavigate, onSelectCampaign }) => {
                         <div>
                           <div className="flex items-center justify-between mb-1">
                             <span className="text-xs font-bold text-neutral-900">AI Assistant</span>
-                            <SparkleIcon size={12} className="text-purple-600" />
+                            <BrandBurstLogo size={12} />
                           </div>
                           <p className="text-[10px] text-neutral-400 mb-2">Ask anything about your marketing</p>
                           <div className="text-[10.5px] bg-white rounded-lg p-2 border border-neutral-100 mb-2 max-h-20 overflow-y-auto space-y-1">
