@@ -74,91 +74,102 @@ export const Navbar = ({ onNavigate }) => {
         </button>
       </div>
 
-      {/* Modern High-End Mobile Menu Drawer */}
+      {/* Full-Screen Luxury Mobile Menu Overlay */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-x-0 top-[61px] bg-white/95 backdrop-blur-2xl border-b border-neutral-200/90 shadow-2xl p-6 space-y-6 text-left animate-in slide-in-from-top-3 fade-in duration-200 z-50 max-h-[calc(100vh-65px)] overflow-y-auto">
+        <div className="md:hidden fixed inset-0 z-[100] bg-white/98 backdrop-blur-3xl flex flex-col justify-between p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200">
           
-          {/* Navigation Section */}
-          <div className="space-y-2">
-            <span className="text-[10.5px] font-bold uppercase tracking-wider text-neutral-400 px-1 block">
-              Navigation
-            </span>
-            
-            <div className="space-y-1.5">
-              <button 
-                onClick={() => scrollToSection('hero')} 
-                className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-neutral-50 active:bg-neutral-100 transition group cursor-pointer"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-purple-50 border border-purple-100/80 flex items-center justify-center text-purple-600 shrink-0">
-                    <Sparkles size={16} />
-                  </div>
-                  <div>
-                    <span className="text-[14px] font-bold text-neutral-900 block group-hover:text-purple-600 transition">Product</span>
-                    <span className="text-[11px] text-neutral-400 font-normal">Autonomous AI growth features</span>
-                  </div>
-                </div>
-                <ArrowRight size={15} className="text-neutral-300 group-hover:text-neutral-600 transition group-hover:translate-x-0.5" />
-              </button>
-
-              <button 
-                onClick={() => scrollToSection('how-it-works')} 
-                className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-neutral-50 active:bg-neutral-100 transition group cursor-pointer"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-100/80 flex items-center justify-center text-indigo-600 shrink-0">
-                    <Workflow size={16} />
-                  </div>
-                  <div>
-                    <span className="text-[14px] font-bold text-neutral-900 block group-hover:text-indigo-600 transition">How it works</span>
-                    <span className="text-[11px] text-neutral-400 font-normal">Observe, Decide, Execute loop</span>
-                  </div>
-                </div>
-                <ArrowRight size={15} className="text-neutral-300 group-hover:text-neutral-600 transition group-hover:translate-x-0.5" />
-              </button>
-
-              <button 
-                onClick={() => scrollToSection('pricing')} 
-                className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-neutral-50 active:bg-neutral-100 transition group cursor-pointer"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100/80 flex items-center justify-center text-emerald-600 shrink-0">
-                    <CreditCard size={16} />
-                  </div>
-                  <div>
-                    <span className="text-[14px] font-bold text-neutral-900 block group-hover:text-emerald-600 transition">Pricing</span>
-                    <span className="text-[11px] text-neutral-400 font-normal">Transparent tiers & credits</span>
-                  </div>
-                </div>
-                <ArrowRight size={15} className="text-neutral-300 group-hover:text-neutral-600 transition group-hover:translate-x-0.5" />
-              </button>
+          {/* Top Bar with Logo & Close Button */}
+          <div className="flex items-center justify-between pb-6 border-b border-neutral-100">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center shadow-2xs">
+                <BrandBurstLogo size={18} />
+              </div>
+              <span className="font-bold text-lg tracking-tight text-neutral-950 font-serif">
+                Calvras
+              </span>
             </div>
+
+            <button 
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-10 h-10 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-800 flex items-center justify-center transition cursor-pointer active:scale-95 shadow-2xs"
+              aria-label="Close navigation menu"
+            >
+              <X size={18} />
+            </button>
           </div>
 
-          {/* Action CTAs */}
-          <div className="pt-2 border-t border-neutral-100 space-y-2.5">
+          {/* Center Navigation Links */}
+          <div className="flex-1 flex flex-col justify-center py-8 space-y-3">
+            <button 
+              onClick={() => scrollToSection('hero')} 
+              className="w-full flex items-center justify-between p-4 rounded-2xl bg-neutral-50/70 hover:bg-neutral-100/80 active:bg-neutral-100 border border-neutral-100 transition group cursor-pointer text-left"
+            >
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-purple-100/70 text-purple-700 flex items-center justify-center shrink-0 shadow-2xs">
+                  <Sparkles size={18} />
+                </div>
+                <div>
+                  <span className="text-base font-bold text-neutral-950 block group-hover:text-purple-600 transition">Product</span>
+                  <span className="text-xs text-neutral-500 font-normal">Autonomous AI growth features</span>
+                </div>
+              </div>
+              <ArrowRight size={18} className="text-neutral-400 group-hover:text-neutral-900 group-hover:translate-x-1 transition duration-200" />
+            </button>
+
+            <button 
+              onClick={() => scrollToSection('how-it-works')} 
+              className="w-full flex items-center justify-between p-4 rounded-2xl bg-neutral-50/70 hover:bg-neutral-100/80 active:bg-neutral-100 border border-neutral-100 transition group cursor-pointer text-left"
+            >
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-indigo-100/70 text-indigo-700 flex items-center justify-center shrink-0 shadow-2xs">
+                  <Workflow size={18} />
+                </div>
+                <div>
+                  <span className="text-base font-bold text-neutral-950 block group-hover:text-indigo-600 transition">How it works</span>
+                  <span className="text-xs text-neutral-500 font-normal">Observe, Decide, Execute loop</span>
+                </div>
+              </div>
+              <ArrowRight size={18} className="text-neutral-400 group-hover:text-neutral-900 group-hover:translate-x-1 transition duration-200" />
+            </button>
+
+            <button 
+              onClick={() => scrollToSection('pricing')} 
+              className="w-full flex items-center justify-between p-4 rounded-2xl bg-neutral-50/70 hover:bg-neutral-100/80 active:bg-neutral-100 border border-neutral-100 transition group cursor-pointer text-left"
+            >
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100/70 text-emerald-700 flex items-center justify-center shrink-0 shadow-2xs">
+                  <CreditCard size={18} />
+                </div>
+                <div>
+                  <span className="text-base font-bold text-neutral-950 block group-hover:text-emerald-600 transition">Pricing</span>
+                  <span className="text-xs text-neutral-500 font-normal">Transparent tiers & credits</span>
+                </div>
+              </div>
+              <ArrowRight size={18} className="text-neutral-400 group-hover:text-neutral-900 group-hover:translate-x-1 transition duration-200" />
+            </button>
+          </div>
+
+          {/* Bottom Action CTAs */}
+          <div className="pt-4 border-t border-neutral-100 space-y-3">
+            <button 
+              onClick={() => { setMobileMenuOpen(false); onNavigate('get-started'); }} 
+              className="w-full py-4 px-5 bg-neutral-950 hover:bg-neutral-900 text-white font-bold text-sm sm:text-base rounded-2xl transition shadow-lg active:scale-[0.98] flex items-center justify-center gap-2.5 cursor-pointer"
+            >
+              <span>Get Started Free</span>
+              <ArrowRight size={16} />
+            </button>
+
             <button 
               onClick={() => { setMobileMenuOpen(false); onNavigate('signin'); }} 
-              className="w-full py-3 px-4 rounded-2xl border border-neutral-200/90 hover:border-neutral-900 bg-white hover:bg-neutral-50 text-neutral-900 text-xs sm:text-[13px] font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-2xs active:scale-[0.99]"
+              className="w-full py-3.5 px-5 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200/90 text-neutral-900 font-bold text-xs sm:text-sm rounded-2xl transition flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
             >
               <LogIn size={15} className="text-neutral-700" />
               <span>Sign In</span>
             </button>
 
-            <button 
-              onClick={() => { setMobileMenuOpen(false); onNavigate('get-started'); }} 
-              className="w-full py-3.5 px-4 bg-neutral-950 hover:bg-neutral-850 text-white text-xs sm:text-[13px] font-bold rounded-2xl transition shadow-sm active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span>Get Started Free</span>
-              <ArrowRight size={14} />
-            </button>
-          </div>
-
-          {/* Micro Footer Notice */}
-          <div className="text-center pt-1">
-            <span className="text-[10px] text-neutral-400">
-              Calvras Autonomous AI Marketing OS
-            </span>
+            <p className="text-[11px] text-neutral-400 text-center pt-2">
+              Calvras Autonomous AI Marketing & Growth OS
+            </p>
           </div>
 
         </div>
