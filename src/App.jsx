@@ -27,6 +27,15 @@ function App() {
   });
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(true);
+
+  // Initial page refresh / load transition
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsRefreshing(false);
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, []);
   const [legalView, setLegalView] = useState(() => {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash.toLowerCase();
@@ -106,6 +115,16 @@ function App() {
 
   return (
     <MarketingProvider currentUserEmail={userProfile.email}>
+      {/* Initial Page Refresh / Load Spinner with 'Refreshing...' text */}
+      {isRefreshing && (
+        <div className="fixed inset-0 bg-white flex flex-col items-center justify-center gap-3.5 z-50 select-none animate-in fade-in duration-150">
+          <div className="w-8 h-8 rounded-full border-2 border-neutral-200 border-t-neutral-950 animate-spin" />
+          <span className="text-xs font-semibold text-neutral-850 tracking-tight animate-pulse">
+            Refreshing...
+          </span>
+        </div>
+      )}
+
       {/* 2-Second Full White Screen Loading Spinner + Signing in text */}
       {isSigningIn && (
         <div className="fixed inset-0 bg-white flex flex-col items-center justify-center gap-3.5 z-50 select-none animate-in fade-in duration-150">
@@ -126,7 +145,7 @@ function App() {
         </div>
       )}
 
-      {!isSigningIn && !isSigningOut && (
+      {!isRefreshing && !isSigningIn && !isSigningOut && (
         isAuthenticated ? (
           <CyLayout 
             onSignOut={handleSignOut} 
