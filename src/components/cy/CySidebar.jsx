@@ -31,11 +31,12 @@ import {
 } from 'lucide-react';
 
 import { useMarketing } from '../../context/MarketingContext';
+import calvrasLogo from '../../assets/calvras-logo.png';
 
 // Official Calvras Image Logo
 export const BrandBurstLogo = ({ size = 20, className = "" }) => (
   <img 
-    src="/calvras.png" 
+    src={calvrasLogo} 
     alt="Calvras" 
     className={`shrink-0 object-contain rounded-md select-none ${className}`}
     style={{ width: size, height: size }}
