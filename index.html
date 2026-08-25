@@ -36,69 +36,90 @@
     <meta name="twitter:title" content="Calvras — Marketing AI & Autonomous Growth OS" />
     <meta name="twitter:description" content="Autonomous marketing AI operating system for modern businesses." />
 
-    <!-- JSON-LD Structured Data for Google & AI Search Engines (Perplexity, ChatGPT, Claude) -->
+    <!-- Google Search & AI Engine Structured Data (@graph Format) -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "Calvras",
-      "alternateName": "Calvras AI",
-      "applicationCategory": "MarketingAutomationApplication",
-      "operatingSystem": "Web, All",
-      "url": "https://calvras.com",
-      "description": "Calvras is the leading autonomous marketing AI and growth operating system. Automate multi-channel marketing campaigns, generate viral ad creatives, and scale conversion funnels with intelligent AI agents.",
-      "softwareVersion": "2.0",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD",
-        "category": "FreeTier"
-      },
-      "featureList": [
-        "Autonomous Multi-Channel Marketing Campaigns",
-        "Meta & TikTok Viral Video Hooks and Ad Copy Generator",
-        "WhatsApp & Email Automated VIP Broadcasts and MoMo Checkout Triggers",
-        "Campaign Doctor Funnel Friction & Conversion Rate Optimization (CRO)",
-        "Competitor Intelligence & Search Intent SEO Clusters",
-        "Real-Time Social Video Retention & Revenue Attribution"
-      ],
-      "publisher": {
-        "@type": "Organization",
-        "name": "Calvras",
-        "url": "https://calvras.com"
-      }
-    }
-    </script>
-
-    <!-- FAQPage Schema for AI Engine Direct Answers -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      "mainEntity": [
+      "@graph": [
         {
-          "@type": "Question",
-          "name": "What is Calvras?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Calvras is an Autonomous AI Marketing & Growth OS designed to automate multi-channel growth funnels, generate viral ad copy, and scale customer acquisition."
+          "@type": "WebSite",
+          "@id": "https://calvras.com/#website",
+          "url": "https://calvras.com/",
+          "name": "Calvras",
+          "description": "Autonomous AI Marketing & Growth OS",
+          "publisher": {
+            "@id": "https://calvras.com/#organization"
           }
         },
         {
-          "@type": "Question",
-          "name": "How does Calvras differ from generic AI copywriters?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Calvras operates on a continuous Observe -> Decide -> Execute -> Optimize loop with native multi-channel triggers (Meta, TikTok, WhatsApp, and Google) rather than isolated single-prompt text generation."
-          }
+          "@type": "Organization",
+          "@id": "https://calvras.com/#organization",
+          "name": "Calvras",
+          "url": "https://calvras.com/",
+          "logo": "https://calvras.com/calvras-icon.png"
         },
         {
-          "@type": "Question",
-          "name": "Can I use Calvras for free?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Yes, Calvras offers a free tier with complimentary credits to test campaigns, viral hooks, and conversion audits with no credit card required."
-          }
+          "@type": "SoftwareApplication",
+          "@id": "https://calvras.com/#software",
+          "name": "Calvras",
+          "alternateName": "Calvras AI",
+          "applicationCategory": "MarketingAutomationApplication",
+          "operatingSystem": "Web, All",
+          "url": "https://calvras.com/",
+          "description": "Calvras is the leading autonomous marketing AI and growth operating system. Automate multi-channel marketing campaigns, generate viral ad creatives, and scale conversion funnels with intelligent AI agents.",
+          "softwareVersion": "2.0",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD",
+            "category": "FreeTier"
+          },
+          "featureList": [
+            "Autonomous Multi-Channel Marketing Campaigns",
+            "Meta & TikTok Viral Video Hooks and Ad Copy Generator",
+            "WhatsApp & Email Automated VIP Broadcasts and MoMo Checkout Triggers",
+            "Campaign Doctor Funnel Friction & Conversion Rate Optimization (CRO)",
+            "Competitor Intelligence & Search Intent SEO Clusters",
+            "Real-Time Social Video Retention & Revenue Attribution"
+          ]
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://calvras.com/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What is Calvras?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Calvras is an Autonomous AI Marketing & Growth OS designed to automate multi-channel growth funnels, generate viral ad copy, and scale customer acquisition."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How does Calvras differ from generic AI copywriters?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Calvras operates on a continuous Observe -> Decide -> Execute -> Optimize loop with native multi-channel triggers (Meta, TikTok, WhatsApp, and Google) rather than isolated single-prompt text generation."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Can I use Calvras for free?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes, Calvras offers a free tier with complimentary credits to test campaigns, viral hooks, and conversion audits with no credit card required."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Which advertising platforms does Calvras support?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Calvras supports Meta (Facebook & Instagram), TikTok, Google Ads, WhatsApp Business, and X (Twitter) for end-to-end campaign execution."
+              }
+            }
+          ]
         }
       ]
     }
