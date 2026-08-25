@@ -4,7 +4,9 @@ import { Hero } from '../components/Hero';
 import { IdeaToEverywhere } from '../components/IdeaToEverywhere';
 import { BusinessChanges } from '../components/BusinessChanges';
 import { BuiltAroundBusiness } from '../components/BuiltAroundBusiness';
+import { ComparisonSection } from '../components/ComparisonSection';
 import { PricingSection } from '../components/PricingSection';
+import { FAQSection } from '../components/FAQSection';
 import { FinalCTA } from '../components/FinalCTA';
 import { Footer } from '../components/Footer';
 
@@ -32,7 +34,9 @@ export const LandingPage = ({ onGetStarted, onOpenLegal }) => {
         <BusinessChanges />
         <BuiltAroundBusiness />
       </div>
+      <ComparisonSection onNavigate={handleNavigate} />
       <PricingSection onNavigate={handleNavigate} />
+      <FAQSection />
       <FinalCTA onNavigate={handleNavigate} />
       <Footer onOpenLegal={onOpenLegal} />
     </div>
