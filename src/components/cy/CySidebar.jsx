@@ -32,21 +32,15 @@ import {
 
 import { useMarketing } from '../../context/MarketingContext';
 
-// Exact Purple Burst Logo
+// Official Calvras Image Logo
 export const BrandBurstLogo = ({ size = 20, className = "" }) => (
-  <svg 
-    width={size} 
-    height={size} 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="#8b5cf6" 
-    strokeWidth="2.75" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={`shrink-0 ${className}`}
-  >
-    <path d="M12 3v3m0 12v3M3 12h3m12 0h3m-2.636-6.364l-2.122 2.122m-8.485 8.485l-2.122 2.122m0-12.728l2.122 2.122m8.485 8.485l2.122 2.122"/>
-  </svg>
+  <img 
+    src="/calvras.png" 
+    alt="Calvras" 
+    className={`shrink-0 object-contain rounded-md select-none ${className}`}
+    style={{ width: size, height: size }}
+    loading="eager"
+  />
 );
 
 export const CySidebar = ({ 
