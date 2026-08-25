@@ -1,0 +1,15 @@
+# Calvras — Autonomous AI Marketing & Growth OS
+> Calvras (https://calvras.com) is an autonomous marketing AI and growth operating system designed to automate multi-channel campaigns, generate high-converting creative assets, and scale customer acquisition.
+
+## Core Capabilities
+- **Autonomous Strategy & Planning**: Generates 30-day and 90-day growth plans, market positioning, and automated budget pacing across paid and organic channels.
+- **Creative & Ad Copy Studio**: Produces high-converting Meta ad copy, viral 3-part TikTok/Reel hooks, carousel scripts, and Apple-grade visual image prompts.
+- **WhatsApp & Email Marketing**: Builds automated VIP early-access broadcasts, abandoned cart recovery flows, and MoMo/1-click checkout payment triggers.
+- **Campaign Doctor & Conversion Optimization (CRO)**: Diagnoses conversion rate drops, high Cost Per Acquisition (CPA), and landing page friction leaks.
+- **Competitor Intelligence & SEO**: Reverse-engineers competitor offers, positioning gaps, and high-intent buyer search clusters.
+- **Real-Time Revenue Attribution**: Connects directly to TikTok, Instagram, Facebook, and X to analyze real-time video retention and ROAS.
+
+## Quick Links
+- Official Website: https://calvras.com/
+- Privacy Policy: https://calvras.com/#privacy
+- Terms of Service: https://calvras.com/#terms
