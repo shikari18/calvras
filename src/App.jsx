@@ -33,7 +33,7 @@ function App() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsRefreshing(false);
-    }, 1200);
+    }, 1600);
     return () => clearTimeout(timer);
   }, []);
   const [legalView, setLegalView] = useState(() => {
@@ -117,9 +117,15 @@ function App() {
     <MarketingProvider currentUserEmail={userProfile.email}>
       {/* Initial Page Refresh / Load Spinner with 'Refreshing...' text */}
       {isRefreshing && (
-        <div className="fixed inset-0 bg-white flex flex-col items-center justify-center gap-3.5 z-50 select-none animate-in fade-in duration-150">
-          <div className="w-8 h-8 rounded-full border-2 border-neutral-200 border-t-neutral-950 animate-spin" />
-          <span className="text-xs font-semibold text-neutral-850 tracking-tight animate-pulse">
+        <div 
+          style={{ zIndex: 99999999 }}
+          className="fixed inset-0 bg-white flex flex-col items-center justify-center gap-4 select-none animate-in fade-in duration-200"
+        >
+          <div className="relative flex items-center justify-center">
+            <div className="w-9 h-9 rounded-full border-[2.5px] border-neutral-200 border-t-neutral-950 animate-spin" />
+            <div className="absolute w-2 h-2 rounded-full bg-neutral-900 animate-ping" />
+          </div>
+          <span className="text-xs font-semibold text-neutral-900 tracking-tight animate-pulse">
             Refreshing...
           </span>
         </div>
