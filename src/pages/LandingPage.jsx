@@ -26,10 +26,10 @@ export const LandingPage = ({ onGetStarted, onOpenLegal }) => {
   };
 
   return (
-    <div className="min-h-screen bg-white text-neutral-900 font-sans antialiased selection:bg-purple-100 selection:text-purple-900 overflow-x-hidden text-left">
+    <div className="min-h-screen bg-[#0d0e0c] text-[#f4f4ee] font-sans antialiased selection:bg-white/20 selection:text-white overflow-x-hidden text-left">
       <Navbar onNavigate={handleNavigate} />
       <Hero onNavigate={handleNavigate} />
-      <div id="how-it-works">
+      <div id="how-it-works" className="space-y-0">
         <IdeaToEverywhere />
         <BusinessChanges />
         <BuiltAroundBusiness />

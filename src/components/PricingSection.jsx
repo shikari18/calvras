@@ -1,43 +1,144 @@
 import React, { useState } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Check } from 'lucide-react';
 
 export const PricingSection = ({ onNavigate }) => {
-  const [currency, setCurrency] = useState('GHS');
-  const rates = { GHS: { free: '0', starter: '99', growth: '249', pro: '499', symbol: 'GHS ' }, USD: { free: '0', starter: '29', growth: '69', pro: '149', symbol: '$' }, EUR: { free: '0', starter: '27', growth: '65', pro: '139', symbol: '€' } };
-  const currentRate = rates[currency] || rates.GHS;
+  const [isAnnual, setIsAnnual] = useState(false);
+
   const tiers = [
-    { name: 'Free', price: currentRate.free, description: 'For getting started with AI marketing.', isRecommended: false, cta: 'Get started' },
-    { name: 'Starter', price: currentRate.starter, period: '/ month', description: 'Everything you need to get moving.', isRecommended: false, cta: 'Get started' },
-    { name: 'Growth', price: currentRate.growth, period: '/ month', description: 'Advanced tools for growing businesses.', isRecommended: true, cta: 'Get started' },
-    { name: 'Pro', price: currentRate.pro, period: '/ month', description: 'For teams that want maximum impact.', isRecommended: false, cta: 'Get started' }
+    {
+      name: 'Free',
+      price: '$0',
+      period: '',
+      description: 'For exploring AI marketing features at a basic level.',
+      isRecommended: false,
+      cta: 'Get started',
+      features: ['3 generations daily', 'Standard response speed', 'Core copywriting frameworks']
+    },
+    {
+      name: 'Basic',
+      price: isAnnual ? '$8' : '$10',
+      period: '/ month',
+      subtext: isAnnual ? 'billed annually $96' : '',
+      description: 'For individual creators with core marketing needs.',
+      isRecommended: false,
+      cta: 'Get started',
+      features: ['1,000 credits per month', 'Unlimited ad copy & hooks', 'Email & SMS funnels', 'Commercial rights']
+    },
+    {
+      name: 'Pro',
+      price: isAnnual ? '$13' : '$16',
+      period: '/ month',
+      subtext: isAnnual ? 'billed annually $156' : '',
+      description: 'For professional marketers who need scale and video generation.',
+      isRecommended: true,
+      cta: 'Upgrade to Pro',
+      features: ['2,000 credits per month', 'Video generation prompt directing', 'Sora, Kling & Runway workflows', 'Priority neural compute']
+    }
   ];
 
   return (
-    <section id="pricing" className="py-24 md:py-32 border-t border-neutral-100 bg-[#fafafc] text-neutral-950">
-      <div className="max-w-7xl mx-auto px-6 md:px-12">
-        <div className="grid lg:grid-cols-12 gap-12 items-start">
-          <div className="lg:col-span-3 text-left">
-            <h2 className="text-[38px] sm:text-[46px] lg:text-[54px] font-bold text-neutral-950 tracking-[-0.035em] leading-[1.08] mb-6">Simple<br />pricing.<br />Serious<br />impact.</h2>
-            <div className="inline-flex items-center gap-1 bg-neutral-100 p-1 rounded-xl mt-2 border border-neutral-200/80">
-              {['GHS', 'USD', 'EUR'].map((cur) => (
-                <button key={cur} onClick={() => setCurrency(cur)} className={`text-xs font-bold px-3 py-1 rounded-lg transition cursor-pointer ${currency === cur ? 'bg-white text-neutral-950 shadow-xs' : 'text-neutral-500 hover:text-neutral-900'}`}>{cur}</button>
-              ))}
+    <section id="pricing" className="py-24 md:py-36 border-t border-white/10 bg-[#0d0e0c] text-white">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 space-y-12">
+        
+        {/* Header */}
+        <div className="text-center space-y-4 max-w-2xl mx-auto">
+          <p className="text-xs font-mono font-semibold tracking-[0.2em] uppercase text-neutral-400">
+            TRANSPARENT PRICING
+          </p>
+          <h2 className="text-3xl sm:text-5xl font-serif text-white tracking-tight">
+            Flexible plans for creators & teams
+          </h2>
+          <p className="text-xs sm:text-sm text-neutral-400">
+            Choose the plan that fits your growth pace. Cancel anytime.
+          </p>
+
+          {/* Toggle */}
+          <div className="pt-3 flex items-center justify-center gap-3">
+            <span className={`text-xs ${!isAnnual ? 'text-white font-semibold' : 'text-neutral-400'}`}>
+              Monthly
+            </span>
+            <button
+              type="button"
+              onClick={() => setIsAnnual(!isAnnual)}
+              className={`w-11 h-6 rounded-full transition-colors cursor-pointer p-0.5 flex items-center ${
+                isAnnual ? 'bg-white' : 'bg-neutral-800'
+              }`}
+            >
+              <div
+                className={`w-5 h-5 rounded-full transition-transform ${
+                  isAnnual ? 'translate-x-5 bg-black' : 'translate-x-0 bg-white'
+                }`}
+              />
+            </button>
+            <div className="flex items-center gap-1.5">
+              <span className={`text-xs ${isAnnual ? 'text-white font-semibold' : 'text-neutral-400'}`}>
+                Annual
+              </span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full border border-emerald-400/20">
+                Save 20%
+              </span>
             </div>
           </div>
-          <div className="lg:col-span-9 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
-            {tiers.map((tier, idx) => (
-              <div key={idx} className={`relative rounded-2xl p-6 flex flex-col justify-between transition-all duration-300 ${tier.isRecommended ? 'bg-white border-2 border-purple-600 shadow-xl ring-2 ring-purple-100' : 'bg-white border border-neutral-200/80 shadow-2xs hover:border-neutral-300'}`}>
-                {tier.isRecommended && <div className="absolute -top-3.5 left-1/2 -translate-x-1/2"><span className="bg-purple-600 text-white text-[11px] font-bold px-3 py-0.5 rounded-full shadow-sm">Recommended</span></div>}
-                <div>
-                  <h3 className="text-base font-bold text-neutral-950 tracking-tight mb-4">{tier.name}</h3>
-                  <div className="mb-4"><div className="flex items-baseline gap-1"><span className="text-2xl font-bold text-neutral-950">{currentRate.symbol}{tier.price}</span>{tier.period && <span className="text-xs text-neutral-500 font-normal">{tier.period}</span>}</div></div>
-                  <p className="text-[13px] text-neutral-500 font-normal leading-relaxed mb-6 min-h-[40px]">{tier.description}</p>
-                </div>
-                <div>{tier.isRecommended ? <button onClick={() => onNavigate('get-started', tier.name)} className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold py-3 rounded-full transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"><span>{tier.cta}</span><ArrowRight size={13} /></button> : <button onClick={() => onNavigate('get-started', tier.name)} className="w-full text-left text-xs font-semibold text-neutral-600 hover:text-neutral-950 flex items-center gap-1 py-1 transition group cursor-pointer"><span>{tier.cta}</span><span className="transition-transform group-hover:translate-x-1">→</span></button>}</div>
-              </div>
-            ))}
-          </div>
         </div>
+
+        {/* 3 Dark Luxury Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto text-left">
+          {tiers.map((tier, idx) => (
+            <div
+              key={idx}
+              className={`relative rounded-3xl p-7 flex flex-col justify-between transition-all duration-300 ${
+                tier.isRecommended
+                  ? 'bg-[#181915] border-2 border-white/30 shadow-[0_0_50px_rgba(255,255,255,0.08)]'
+                  : 'bg-[#131411] border border-white/10 hover:border-white/20'
+              }`}
+            >
+              {tier.isRecommended && (
+                <div className="absolute -top-3 right-6 bg-white text-neutral-950 text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full shadow-md">
+                  Recommended
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-bold text-white tracking-tight">{tier.name}</h3>
+                  <p className="text-xs text-neutral-400 mt-1 min-h-[32px]">{tier.description}</p>
+                </div>
+
+                <div className="pt-2">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-3xl font-extrabold text-white">{tier.price}</span>
+                    {tier.period && <span className="text-xs text-neutral-400 font-normal">{tier.period}</span>}
+                  </div>
+                  {tier.subtext && <p className="text-[11px] text-neutral-500 mt-0.5">{tier.subtext}</p>}
+                </div>
+
+                <div className="pt-2 text-xs text-neutral-300 space-y-2.5 border-t border-white/10">
+                  {tier.features.map((feat, i) => (
+                    <div key={i} className="flex items-start gap-2">
+                      <Check size={13} className="text-neutral-400 shrink-0 mt-0.5" />
+                      <span>{feat}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-6">
+                <button
+                  onClick={() => onNavigate('get-started', tier.name)}
+                  className={`w-full py-3 px-4 rounded-xl text-xs font-bold transition cursor-pointer flex items-center justify-center gap-2 active:scale-95 shadow-md ${
+                    tier.isRecommended
+                      ? 'bg-white hover:bg-neutral-200 text-neutral-950'
+                      : 'bg-[#22241e] hover:bg-[#2c2f27] text-white border border-white/10'
+                  }`}
+                >
+                  <span>{tier.cta}</span>
+                  <ArrowRight size={13} />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
       </div>
     </section>
   );

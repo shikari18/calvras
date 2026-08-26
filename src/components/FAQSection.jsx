@@ -7,27 +7,23 @@ export const FAQSection = () => {
   const faqs = [
     {
       q: "What is Calvras?",
-      a: "Calvras is an Autonomous AI Marketing & Growth OS. Unlike basic copy generators, Calvras operates as an autonomous growth engine that generates multi-channel marketing roadmaps, produces viral ad creatives and 3-part video hooks, builds automated WhatsApp VIP broadcasts with payment triggers, and continuously diagnoses conversion rate leaks."
+      a: "Calvras is an Autonomous AI Marketing & Growth Partner. Unlike basic copy generators, Calvras operates as a full-stack marketing system that generates multi-channel brand strategies, high-converting ad copy, 3-part video scripts, email funnels, and real-time conversion diagnostics."
     },
     {
-      q: "How does Calvras differ from generic AI tools like Jasper or ChatGPT?",
-      a: "Generic tools require you to provide exact prompts and manually assemble your marketing puzzle piece-by-piece. Calvras operates on a continuous Observe ➔ Decide ➔ Execute ➔ Optimize loop. It understands your business metrics, dynamically plans 30-day budget allocations, writes platform-native ad copy, and diagnoses why your traffic isn't converting."
+      q: "How does Calvras differ from generic tools like ChatGPT?",
+      a: "Generic AI requires endless manual prompting. Calvras is purpose-trained with over 300+ practitioner marketing frameworks, live direct-response copy teardowns, and media buying blueprints that output production-ready assets instantly formatted in copyable template blocks."
     },
     {
-      q: "Which advertising and social platforms does Calvras support?",
-      a: "Calvras provides native optimization for Meta (Facebook & Instagram), TikTok (organic viral hooks & Spark Ads), Google Ads, WhatsApp Business (automated VIP drops with Mobile Money & card checkout), and X (Twitter)."
+      q: "Which advertising and video platforms are supported?",
+      a: "Calvras generates platform-native assets for Meta (Facebook & Instagram), TikTok (organic hooks & Spark Ads), Google Ads (Search & PMax), LinkedIn Document Ads, as well as cinematic AI Video Generation prompts for tools like Sora, Runway Gen-3, Kling AI, and Midjourney."
     },
     {
-      q: "What is the Campaign Doctor feature?",
-      a: "Campaign Doctor is an autonomous conversion diagnostic system. When your ad cost (CPA) is high or website visitors aren't buying, Campaign Doctor audits your funnel to identify the root cause—such as ad-to-page message mismatches, mobile checkout friction, or slow load speeds—and provides actionable 3-step solutions to fix it."
+      q: "What is the Campaign Doctor?",
+      a: "Campaign Doctor is an autonomous diagnostic engine. When your ad costs spike or conversion rate drops, it audits your funnel, uncovers message mismatches or checkout friction, and delivers an exact 3-step recovery playbook."
     },
     {
-      q: "Can I use Calvras for free?",
-      a: "Yes! Calvras offers a generous Free tier that includes complimentary credits upon signup, access to the multi-channel marketing workspace, viral hook generators, and campaign diagnostics without requiring a credit card upfront."
-    },
-    {
-      q: "Which payment methods are supported for pro subscriptions?",
-      a: "Calvras supports secure global payments via Stripe (Credit/Debit Cards, Apple Pay, Google Pay) as well as localized payments across Africa via Paystack (Mobile Money / MoMo, Bank Transfers, and Cards in GHS, NGN, KES, and USD)."
+      q: "Can I get started for free?",
+      a: "Yes! Calvras offers a generous Free tier that includes complimentary credits, access to our marketing copilot workspace, and core campaign frameworks without requiring a credit card upfront."
     }
   ];
 
@@ -36,44 +32,47 @@ export const FAQSection = () => {
   };
 
   return (
-    <section id="faq" className="py-20 sm:py-28 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto border-t border-neutral-100">
+    <section id="faq" className="py-24 sm:py-32 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto border-t border-white/10 text-white">
       <div className="text-center max-w-2xl mx-auto mb-14 space-y-3.5">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-50 border border-purple-100 text-purple-700 text-xs font-semibold">
-          <HelpCircle size={13} className="text-purple-600" />
-          <span>Frequently Asked Questions</span>
-        </div>
-        <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-neutral-950 font-serif">
-          Everything you need to know about Calvras
+        <p className="text-xs font-mono font-semibold tracking-[0.2em] uppercase text-neutral-400">
+          QUESTIONS & ANSWERS
+        </p>
+        <h2 className="text-3xl sm:text-5xl font-serif font-normal text-white tracking-tight">
+          Frequently asked questions
         </h2>
-        <p className="text-base text-neutral-600">
-          Direct answers to common questions about our autonomous marketing platform, capabilities, and pricing.
+        <p className="text-xs sm:text-sm text-neutral-400">
+          Direct answers to common questions about our platform and workflows.
         </p>
       </div>
 
-      <div className="space-y-3.5">
+      <div className="space-y-3">
         {faqs.map((faq, idx) => {
           const isOpen = openIndex === idx;
           return (
             <div
               key={idx}
               className={`border rounded-2xl transition-all duration-200 overflow-hidden ${
-                isOpen ? 'bg-white border-neutral-300 shadow-sm' : 'bg-neutral-50/70 hover:bg-neutral-50 border-neutral-200/80'
+                isOpen ? 'bg-[#161714] border-white/20 shadow-lg' : 'bg-[#121310] hover:bg-[#161714] border-white/10'
               }`}
             >
               <button
+                type="button"
                 onClick={() => toggleFAQ(idx)}
-                className="w-full flex items-center justify-between p-5 text-left font-semibold text-neutral-950 text-base cursor-pointer select-none"
+                className="w-full py-4.5 px-6 text-left flex items-center justify-between gap-4 cursor-pointer"
               >
-                <span>{faq.q}</span>
+                <span className="font-semibold text-sm sm:text-base text-white">
+                  {faq.q}
+                </span>
                 <ChevronDown
-                  size={18}
-                  className={`text-neutral-500 transition-transform duration-200 shrink-0 ml-3 ${
-                    isOpen ? 'rotate-180 text-neutral-950' : ''
+                  size={16}
+                  className={`text-neutral-400 shrink-0 transition-transform duration-200 ${
+                    isOpen ? 'rotate-180 text-white' : ''
                   }`}
                 />
               </button>
+
               {isOpen && (
-                <div className="px-5 pb-5 text-sm sm:text-base text-neutral-600 leading-relaxed animate-in fade-in duration-200 border-t border-neutral-100 pt-3">
+                <div className="px-6 pb-5 pt-1 text-xs sm:text-sm text-neutral-300 leading-relaxed border-t border-white/5 animate-in fade-in duration-150">
                   {faq.a}
                 </div>
               )}

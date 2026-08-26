@@ -1,20 +1,26 @@
 import React from 'react';
-import { BrandBurstLogo } from './cy/CySidebar';
 
 export const Footer = ({ onOpenLegal }) => {
   return (
-    <footer className="border-t border-neutral-200/60 bg-white py-12">
+    <footer className="border-t border-white/10 bg-[#0d0e0c] py-12 text-white">
       <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="flex items-center gap-2">
-          <BrandBurstLogo size={18} />
-          <span className="text-sm font-bold text-neutral-950 font-serif tracking-tight">Calvras</span>
+        <div className="flex items-center gap-2.5">
+          <img 
+            src="/calvras.png" 
+            alt="Calvras" 
+            className="w-6 h-6 rounded-lg bg-white p-0.5 object-contain" 
+          />
+          <span className="text-sm font-bold text-white font-sans tracking-tight">Calvras</span>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-xs font-medium text-neutral-500">
-          <a href="#hero" className="hover:text-neutral-950 transition">Product</a>
-          <a href="#how-it-works" className="hover:text-neutral-950 transition">How it works</a>
-          <a href="#pricing" className="hover:text-neutral-950 transition">Pricing</a>
-          <button onClick={() => onOpenLegal && onOpenLegal('privacy')} className="hover:text-neutral-950 transition cursor-pointer">Privacy</button>
-          <button onClick={() => onOpenLegal && onOpenLegal('terms')} className="hover:text-neutral-950 transition cursor-pointer">Terms</button>
+        <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-xs font-medium text-neutral-400">
+          <a href="#hero" className="hover:text-white transition">Home</a>
+          <a href="#how-it-works" className="hover:text-white transition">Solutions</a>
+          <a href="#pricing" className="hover:text-white transition">Pricing</a>
+          <a href="https://www.recraft.ai/privacy" target="_blank" rel="noreferrer" className="hover:text-white transition">Privacy</a>
+          <a href="https://www.recraft.ai/terms" target="_blank" rel="noreferrer" className="hover:text-white transition">Terms</a>
+        </div>
+        <div className="text-xs text-neutral-500">
+          © {new Date().getFullYear()} Calvras. All rights reserved.
         </div>
       </div>
     </footer>

@@ -1,270 +1,284 @@
 import React, { useState } from 'react';
-import { BrandBurstLogo } from './cy/CySidebar';
-import { 
-  ArrowRight, 
-  Send, 
-  Bell, 
-  MoreHorizontal, 
-  LayoutDashboard, 
-  Megaphone, 
-  FileText, 
-  Bot, 
-  BarChart2, 
-  ChevronDown,
-  Sparkles,
-  Loader2
-} from 'lucide-react';
-import { chatWithMarketingCopilot, DEFAULT_BUSINESS_PROFILE } from '../services/aiService';
+import { ChevronDown, Sparkles, Check, ArrowRight, Layers, Layout, Globe, Search, RefreshCw } from 'lucide-react';
 
-export const Hero = ({ onNavigate, onSelectCampaign }) => {
-  const [activeTab, setActiveTab] = useState('Overview');
-  const [chatInput, setChatInput] = useState('');
-  const [chatResponses, setChatResponses] = useState([
-    { sender: 'ai', text: 'Footwear audience identified in Accra. Ready to deploy a 3-day weekend boost with 4.2x predicted ROI.' }
-  ]);
-  const [isTyping, setIsTyping] = useState(false);
-
-  const handlePromptClick = (promptText) => {
-    setChatInput(promptText);
-    triggerAiResponse(promptText);
-  };
-
-  const handleSendChat = (e) => {
-    if (e) e.preventDefault();
-    if (!chatInput.trim() || isTyping) return;
-    triggerAiResponse(chatInput);
-  };
-
-  const triggerAiResponse = async (query) => {
-    const userMessage = query || chatInput;
-    setIsTyping(true);
-    setChatResponses(prev => [...prev, { sender: 'user', text: userMessage }]);
-    setChatInput('');
-
-    try {
-      const aiReply = await chatWithMarketingCopilot({
-        userMessage: userMessage,
-        businessProfile: DEFAULT_BUSINESS_PROFILE
-      });
-      setChatResponses(prev => [...prev, { sender: 'ai', text: aiReply.slice(0, 160) + '...' }]);
-    } catch (err) {
-      console.warn('AI copilot fallback:', err);
-      let reply = '';
-      if (userMessage.toLowerCase().includes('weekend') || userMessage.toLowerCase().includes('sneaker')) {
-        reply = 'Generated "Sneaker Weekend Flash Promo": 3 Instagram reels, 1 WhatsApp broadcast to 1,240 contacts, and TikTok ads targeting 18–34 sneakerheads.';
-      } else {
-        reply = "Strategy compiled for " + userMessage + ". Generated tailored assets, schedule, and optimized target persona.";
-      }
-      setChatResponses(prev => [...prev, { sender: 'ai', text: reply }]);
-    } finally {
-      setIsTyping(false);
+export const Hero = ({ onNavigate }) => {
+  // Preset scenarios to let user cycle through the Lovart interactive headline
+  const scenarios = [
+    {
+      action: "Design a",
+      deliverable: "Brand System",
+      connector: "for a",
+      client: "Local Coffee Shop",
+      prompt: "Develop a complete visual & marketing identity for a neighborhood artisan coffee shop, covering in-store menu boards, packaging cups, and Instagram reels.",
+      canvasImages: [
+        { url: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=800&auto=format&fit=crop", label: "Hero Atmosphere", dims: "540 × 720" },
+        { url: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=800&auto=format&fit=crop", label: "Packaging Concept", dims: "400 × 400" },
+        { url: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=800&auto=format&fit=crop", label: "Menu Typography", dims: "600 × 400" }
+      ]
+    },
+    {
+      action: "Launch a",
+      deliverable: "Growth Engine",
+      connector: "for a",
+      client: "DTC Skincare Brand",
+      prompt: "Generate a complete multi-channel marketing sprint: 3 Meta video ad scripts, 1 high-converting PDP landing page, and a 4-part Klaviyo welcome sequence.",
+      canvasImages: [
+        { url: "https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=800&auto=format&fit=crop", label: "Botanical Serum", dims: "540 × 720" },
+        { url: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=800&auto=format&fit=crop", label: "UGC Video Hook", dims: "400 × 400" },
+        { url: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=800&auto=format&fit=crop", label: "Offer Matrix", dims: "600 × 400" }
+      ]
+    },
+    {
+      action: "Scale an",
+      deliverable: "Ad Campaign",
+      connector: "for a",
+      client: "B2B SaaS Platform",
+      prompt: "Build an account-based LinkedIn sponsored document ad sequence, high-ticket executive briefing memo, and automated churn deflection architecture.",
+      canvasImages: [
+        { url: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?q=80&w=800&auto=format&fit=crop", label: "Executive Dashboard", dims: "540 × 720" },
+        { url: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=800&auto=format&fit=crop", label: "Telemetry Telemetry", dims: "400 × 400" },
+        { url: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop", label: "Enterprise Flow", dims: "600 × 400" }
+      ]
     }
+  ];
+
+  const [activeScenarioIndex, setActiveScenarioIndex] = useState(0);
+  const activeScenario = scenarios[activeScenarioIndex];
+
+  const cycleScenario = () => {
+    setActiveScenarioIndex((prev) => (prev + 1) % scenarios.length);
   };
 
   return (
-    <section id="hero" className="relative pt-28 pb-20 md:pt-36 md:pb-28 overflow-hidden bg-white text-neutral-950">
-      <div className="max-w-7xl mx-auto px-6 md:px-12">
-        <div className="grid lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-          
-          <div className="lg:col-span-5 text-left">
-            <div className="inline-flex items-center gap-2 mb-5 px-3.5 py-1.5 rounded-full bg-purple-50 border border-purple-100 shadow-2xs">
-              <BrandBurstLogo size={14} />
-              <span className="text-[11px] font-bold tracking-[0.16em] uppercase text-purple-900 font-mono">
-                AUTONOMOUS MARKETING OS
-              </span>
-            </div>
+    <section id="hero" className="relative pt-32 pb-24 md:pt-40 md:pb-36 bg-[#0d0e0c] text-white overflow-hidden text-center select-none">
+      
+      {/* Background Subtle Radial Glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-white/[0.02] rounded-full blur-3xl pointer-events-none" />
 
-            <h1 className="text-[46px] sm:text-[58px] lg:text-[72px] font-bold text-neutral-950 tracking-[-0.04em] leading-[1.02] mb-6 font-serif">
-              Meet your<br />
-              new marketing<br />
-              team.
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 relative z-10 space-y-8">
+        
+        {/* Eyebrow Label matching Lovart Screenshot */}
+        <div className="space-y-4">
+          <p className="text-[11px] sm:text-xs font-mono font-medium tracking-[0.24em] uppercase text-neutral-400">
+            YOUR AI MARKETING PARTNER
+          </p>
+
+          {/* Luxury Serif Interactive Headline */}
+          <div className="max-w-4xl mx-auto">
+            <h1 className="text-4xl sm:text-6xl md:text-7xl font-serif font-normal text-[#f4f4ee] tracking-tight leading-[1.12]">
+              {activeScenario.action}{' '}
+              <button 
+                onClick={cycleScenario}
+                title="Click to change scenario"
+                className="underline decoration-neutral-500 underline-offset-8 hover:decoration-white transition cursor-pointer"
+              >
+                {activeScenario.deliverable}
+              </button>
+              <sup className="text-xs sm:text-sm font-sans text-neutral-500 font-normal ml-1">
+                ({activeScenarioIndex + 1})
+              </sup>
+              <br className="hidden sm:inline" />
+              {' '}{activeScenario.connector}{' '}
+              <button 
+                onClick={cycleScenario}
+                title="Click to change scenario"
+                className="underline decoration-neutral-500 underline-offset-8 hover:decoration-white transition cursor-pointer"
+              >
+                {activeScenario.client}
+              </button>
             </h1>
-
-            <p className="text-[17px] sm:text-[19px] text-neutral-500 font-normal leading-relaxed mb-9 max-w-[480px]">
-              One intelligent workspace that creates campaigns, publishes content, understands your customers, and helps your business grow.
-            </p>
-
-            <div className="flex flex-wrap items-center gap-4">
-              <button 
-                onClick={() => onNavigate('get-started')}
-                className="bg-neutral-950 hover:bg-neutral-800 text-white font-semibold text-[15px] px-8 py-3.5 rounded-full transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md active:scale-95"
-              >
-                Launch Workspace
-              </button>
-
-              <button 
-                onClick={() => onNavigate('get-started')}
-                className="group inline-flex items-center gap-2 text-[15px] font-semibold text-neutral-600 hover:text-neutral-950 transition-colors py-2 cursor-pointer"
-              >
-                <span>Get Started Free</span>
-                <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
-              </button>
-            </div>
           </div>
+        </div>
 
-          <div className="lg:col-span-7 perspective-1000">
-            <div className="perspective-mockup bg-white rounded-[24px] sm:rounded-[30px] border border-neutral-200/80 shadow-2xl overflow-hidden transition-all duration-500 text-neutral-950">
+        {/* Action Button matching Lovart Pill */}
+        <div className="pt-2 flex items-center justify-center gap-4">
+          <button 
+            onClick={() => onNavigate('get-started')}
+            className="bg-white hover:bg-neutral-100 text-neutral-950 font-bold text-sm sm:text-[15px] px-8 py-3.5 rounded-full transition-all duration-200 cursor-pointer shadow-lg hover:shadow-2xl active:scale-95 flex items-center gap-2"
+          >
+            <span>Create now</span>
+            <ArrowRight size={15} />
+          </button>
+        </div>
+
+        {/* Hero Showcase Canvas Mockup (Matching Lovart Screenshot Board) */}
+        <div className="pt-8 sm:pt-12 max-w-6xl mx-auto text-left">
+          
+          {/* Outer Canvas Backdrop with Earthy Texture */}
+          <div className="p-3 sm:p-5 md:p-7 rounded-[32px] sm:rounded-[40px] bg-gradient-to-b from-[#8a9179] via-[#7d856d] to-[#6d755e] shadow-[0_30px_100px_rgba(0,0,0,0.8)] border border-white/15 relative overflow-hidden">
+            
+            {/* Inner Studio Workstation Window */}
+            <div className="w-full bg-[#121310] rounded-2xl sm:rounded-3xl border border-white/10 overflow-hidden shadow-2xl">
               
-              <div className="px-5 py-3.5 border-b border-neutral-100 flex items-center justify-between bg-neutral-50/70">
-                <div className="flex items-center gap-2.5">
-                  <BrandBurstLogo size={16} />
-                  <span className="text-xs font-bold text-neutral-900 tracking-tight">Calvras Autonomous Copilot</span>
-                </div>
-                <div className="flex items-center gap-3 text-neutral-400">
-                  <Bell size={14} className="hover:text-neutral-700 cursor-pointer" />
-                  <div className="w-6 h-6 rounded-full bg-purple-600 text-white text-[10px] font-bold flex items-center justify-center">
-                    SP
+              {/* Workspace Top Toolbar */}
+              <div className="px-5 py-3.5 bg-[#171815] border-b border-white/10 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-xs text-white">
+                    ☕
                   </div>
-                  <MoreHorizontal size={14} className="hover:text-neutral-700 cursor-pointer" />
+                  <span className="text-xs sm:text-sm font-medium text-white flex items-center gap-1.5 cursor-pointer hover:text-neutral-200">
+                    <span>{activeScenario.client} {activeScenario.deliverable}</span>
+                    <ChevronDown size={14} className="text-neutral-400" />
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={cycleScenario}
+                    className="text-[11px] font-semibold text-neutral-400 hover:text-white px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 transition flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <RefreshCw size={11} />
+                    <span>Swap Scenario</span>
+                  </button>
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
                 </div>
               </div>
 
-              <div className="flex min-h-[380px] sm:min-h-[420px] text-left">
-                <div className="w-32 sm:w-40 border-r border-neutral-100 p-3 flex flex-col justify-between bg-neutral-50/40">
-                  <div className="space-y-1">
-                    {[
-                      { name: 'Overview', icon: LayoutDashboard },
-                      { name: 'Campaigns', icon: Megaphone },
-                      { name: 'Content', icon: FileText },
-                      { name: 'AI Assistant', icon: Bot },
-                      { name: 'Analytics', icon: BarChart2 }
-                    ].map((item) => {
-                      const Icon = item.icon;
-                      const isActive = activeTab === item.name;
-                      return (
-                        <button
-                          key={item.name}
-                          onClick={() => setActiveTab(item.name)}
-                          className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                            isActive 
-                              ? 'bg-purple-50 text-purple-700 font-bold border border-purple-100' 
-                              : 'text-neutral-600 hover:bg-neutral-100/70'
-                          }`}
-                        >
-                          <Icon size={13} className={isActive ? 'text-purple-600' : 'text-neutral-400'} />
-                          <span>{item.name}</span>
-                        </button>
-                      );
-                    })}
+              {/* Workspace Split Layout: Artboard Canvas (Left) + AI Studio Chat (Right) */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[460px]">
+                
+                {/* Left: Interactive Multi-Asset Canvas Artboard */}
+                <div className="lg:col-span-8 p-6 sm:p-8 bg-[#10110e] relative overflow-hidden flex flex-col justify-between">
+                  
+                  {/* Subtle Grid Dots */}
+                  <div className="absolute inset-0 bg-[radial-gradient(#ffffff08_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none" />
+
+                  {/* Asset Selection Mockup Card */}
+                  <div className="relative z-10 grid grid-cols-1 sm:grid-cols-12 gap-5 items-start">
+                    
+                    {/* Main Selected Asset with Blue Transform Bounding Box (Like Lovart) */}
+                    <div className="sm:col-span-6 relative group">
+                      <div className="relative rounded-xl overflow-hidden border-2 border-[#3b82f6] shadow-xl bg-black">
+                        
+                        {/* Transform Tag */}
+                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-[#3b82f6] text-[10px] font-bold text-white z-20 flex items-center gap-1">
+                          <Layout size={10} />
+                          <span>Image</span>
+                        </div>
+                        <div className="absolute top-2 right-2 px-2 py-0.5 rounded bg-black/60 backdrop-blur-md text-[10px] font-mono text-neutral-300 z-20">
+                          {activeScenario.canvasImages[0].dims}
+                        </div>
+
+                        <img 
+                          src={activeScenario.canvasImages[0].url} 
+                          alt={activeScenario.canvasImages[0].label}
+                          className="w-full h-64 object-cover object-center transform group-hover:scale-105 transition duration-500"
+                        />
+
+                        {/* 4 Corner Blue Anchors */}
+                        <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-[#3b82f6] rounded-xs" />
+                        <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-[#3b82f6] rounded-xs" />
+                        <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-[#3b82f6] rounded-xs" />
+                        <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-[#3b82f6] rounded-xs" />
+                      </div>
+                      <p className="text-[11px] text-neutral-400 mt-2 font-mono">
+                        Primary Key Visual • 8k Photorealistic
+                      </p>
+                    </div>
+
+                    {/* Secondary Asset Cards */}
+                    <div className="sm:col-span-6 space-y-4">
+                      <div className="rounded-xl overflow-hidden border border-white/10 bg-neutral-900/60 p-1 relative shadow-md">
+                        <img 
+                          src={activeScenario.canvasImages[1].url} 
+                          alt={activeScenario.canvasImages[1].label}
+                          className="w-full h-28 object-cover rounded-lg"
+                        />
+                        <div className="p-2 flex items-center justify-between text-[11px] text-neutral-300">
+                          <span>{activeScenario.canvasImages[1].label}</span>
+                          <span className="text-neutral-500 font-mono">{activeScenario.canvasImages[1].dims}</span>
+                        </div>
+                      </div>
+
+                      <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 text-xs text-neutral-300 space-y-1.5">
+                        <div className="flex items-center gap-2 text-white font-semibold">
+                          <Layers size={13} className="text-emerald-400" />
+                          <span>Full Identity Asset Deck</span>
+                        </div>
+                        <p className="text-[11px] text-neutral-400 leading-relaxed">
+                          12 Vector icons, high-converting social copy, and direct ad variations generated in parallel.
+                        </p>
+                      </div>
+                    </div>
+
                   </div>
 
-                  <div className="pt-3 border-t border-neutral-100">
-                    <button 
-                      onClick={() => handlePromptClick('Analyze audience engagement patterns')}
-                      className="w-full flex items-center justify-center py-1.5 px-2 rounded-lg bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-100 transition text-[11px] font-semibold gap-1.5 cursor-pointer"
+                  {/* Bottom Canvas Coordinates Bar */}
+                  <div className="pt-6 flex items-center justify-between text-[10px] font-mono text-neutral-500 border-t border-white/5">
+                    <span>X: 1040 Y: 420 • SCALE 100%</span>
+                    <span className="text-emerald-400">● LIVE AGENT SYNCED</span>
+                  </div>
+
+                </div>
+
+                {/* Right: Lovart Style AI Chat & Thinking Panel */}
+                <div className="lg:col-span-4 p-5 sm:p-6 bg-[#161714] border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col justify-between space-y-4">
+                  
+                  <div className="space-y-4">
+                    
+                    {/* Header */}
+                    <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                      <span className="text-xs font-semibold text-neutral-300">New Chat</span>
+                      <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">GPT-4o + FLUX</span>
+                    </div>
+
+                    {/* User Prompt Message Bubble */}
+                    <div className="p-3.5 rounded-2xl bg-[#20221c] border border-white/10 text-xs text-neutral-200 leading-relaxed">
+                      "{activeScenario.prompt}"
+                    </div>
+
+                    {/* AI Chain-of-Thought Trajectory (Matching Lovart Screenshot) */}
+                    <div className="space-y-2 text-xs text-neutral-300 pl-1">
+                      <div className="flex items-center gap-2 text-neutral-300">
+                        <Search size={13} className="text-neutral-400" />
+                        <span>Analyzed user intent</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-neutral-300">
+                        <Globe size={13} className="text-neutral-400" />
+                        <span>Explored visual trends</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-neutral-300">
+                        <Sparkles size={13} className="text-neutral-400" />
+                        <span>Collected references</span>
+                      </div>
+                    </div>
+
+                    {/* Assistant Direct Output */}
+                    <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-xs text-neutral-300 space-y-1.5">
+                      <div className="flex items-center gap-1.5 text-emerald-400 font-bold text-[11px] uppercase tracking-wider">
+                        <Check size={12} strokeWidth={3} />
+                        <span>Complete Asset Suite Ready</span>
+                      </div>
+                      <p className="text-[11px] text-neutral-300 leading-relaxed">
+                        I've generated the brand system for {activeScenario.client}, including packaging renders, ad angles, and social hooks.
+                      </p>
+                    </div>
+
+                  </div>
+
+                  {/* Input Prompt Box */}
+                  <div className="pt-2">
+                    <button
+                      onClick={() => onNavigate('get-started')}
+                      className="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-neutral-100 text-neutral-950 font-bold text-xs transition cursor-pointer active:scale-95 shadow-md flex items-center justify-center gap-2"
                     >
-                      <Sparkles size={13} className="text-purple-600" />
-                      <span>AI Copilot</span>
+                      <span>Open Workspace</span>
+                      <ArrowRight size={13} />
                     </button>
                   </div>
-                </div>
 
-                <div className="flex-1 p-4 sm:p-5 overflow-hidden flex flex-col justify-between bg-white">
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-sm font-bold text-neutral-900 tracking-tight">Overview</h3>
-                      <button className="flex items-center gap-1.5 text-[11px] font-medium text-neutral-500 hover:text-neutral-900 bg-neutral-100 px-2.5 py-1 rounded-md transition">
-                        <span>This month</span>
-                        <ChevronDown size={11} />
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-5">
-                      {[
-                        { label: 'Active campaigns', value: '12', wave: 'M0,15 Q20,5 40,12 T80,8' },
-                        { label: 'Content created', value: '242', wave: 'M0,18 Q20,10 40,16 T80,6' },
-                        { label: 'Audience reach', value: '68.3K', wave: 'M0,14 Q20,16 40,8 T80,4' },
-                        { label: 'Engagement rate', value: '9.7%', wave: 'M0,16 Q20,8 40,14 T80,6' },
-                      ].map((stat, i) => (
-                        <div key={i} className="bg-neutral-50/70 rounded-xl p-2.5 border border-neutral-100 flex flex-col justify-between">
-                          <div>
-                            <span className="text-[10px] text-neutral-500 font-medium block leading-tight">{stat.label}</span>
-                            <span className="text-sm sm:text-base font-bold text-neutral-900 mt-0.5 block">{stat.value}</span>
-                          </div>
-                          <div className="h-6 w-full mt-1.5 flex items-end">
-                            <svg className="w-full h-5 stroke-purple-600 fill-none" viewBox="0 0 80 20">
-                              <path d={stat.wave} strokeWidth="2" strokeLinecap="round" />
-                            </svg>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="grid sm:grid-cols-2 gap-3.5">
-                      <div className="bg-neutral-50/70 rounded-xl p-3 border border-neutral-100 flex flex-col justify-between">
-                        <div>
-                          <span className="text-xs font-bold text-neutral-900 block mb-2">Recent campaigns</span>
-                          <div className="space-y-2">
-                            {[
-                              { title: 'Summer Collection Drop', date: 'Jul 12 - Aug 12', status: 'Live', isLive: true, img: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?w=200&auto=format&fit=crop&q=80' },
-                              { title: 'Sneaker Weekend Promo', date: 'Jul 10 - Jul 12', status: 'Live', isLive: true, img: 'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=200&auto=format&fit=crop&q=80' },
-                              { title: 'Back to School Drive', date: 'Jul 5 - Jul 20', status: 'Draft', isLive: false, img: 'https://images.unsplash.com/photo-1588117305388-c2631a279f82?w=200&auto=format&fit=crop&q=80' }
-                            ].map((c, idx) => (
-                              <div key={idx} onClick={() => onSelectCampaign(c)} className="flex items-center justify-between text-left p-1.5 rounded-lg hover:bg-white transition cursor-pointer">
-                                <div className="flex items-center gap-2">
-                                  <img src={c.img} alt="" className="w-7 h-7 rounded-md object-cover" />
-                                  <div>
-                                    <p className="text-[11px] font-bold text-neutral-900 truncate max-w-[110px]">{c.title}</p>
-                                    <p className="text-[9.5px] text-neutral-400">{c.date}</p>
-                                  </div>
-                                </div>
-                                <span className={`text-[9.5px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 ${
-                                  c.isLive ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-neutral-100 text-neutral-600'
-                                }`}>
-                                  {c.isLive && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
-                                  {c.status}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                        <button onClick={() => onNavigate('dashboard')} className="text-[11px] font-semibold text-purple-600 hover:text-purple-700 flex items-center gap-1 mt-2.5 pt-2 border-t border-neutral-100 cursor-pointer">
-                          <span>View all campaigns</span><span>→</span>
-                        </button>
-                      </div>
-
-                      <div className="bg-neutral-50/70 rounded-xl p-3 border border-neutral-100 flex flex-col justify-between">
-                        <div>
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-bold text-neutral-900">AI Assistant</span>
-                            <BrandBurstLogo size={12} />
-                          </div>
-                          <p className="text-[10px] text-neutral-400 mb-2">Ask anything about your marketing</p>
-                          <div className="text-[10.5px] bg-white rounded-lg p-2 border border-neutral-100 mb-2 max-h-20 overflow-y-auto space-y-1">
-                            {chatResponses.slice(-2).map((msg, i) => (
-                              <div key={i} className={`${msg.sender === 'user' ? 'text-neutral-900 font-medium' : 'text-purple-700 font-medium'}`}>
-                                {msg.sender === 'user' ? '› ' : '✦ '}{msg.text}
-                              </div>
-                            ))}
-                            {isTyping && (
-                              <div className="text-purple-600 text-[10px] font-semibold flex items-center gap-1.5">
-                                <Loader2 size={11} className="animate-spin" />
-                                <span>AI strategist generating plan...</span>
-                              </div>
-                            )}
-                          </div>
-                          <form onSubmit={handleSendChat} className="relative mb-2">
-                            <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} placeholder="Type your question..." className="w-full text-[10.5px] bg-white border border-neutral-200 rounded-lg pl-2.5 pr-7 py-1.5 text-neutral-950 placeholder-neutral-400 focus:outline-none focus:border-purple-600 transition" />
-                            <button type="submit" disabled={isTyping} className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center bg-purple-600 text-white rounded-md hover:bg-purple-700 transition cursor-pointer"><Send size={10} /></button>
-                          </form>
-                        </div>
-                        <div className="space-y-1">
-                          {["Plan a weekend campaign", "Create content for new arrivals", "Analyze last week's performance"].map((prompt, pIdx) => (
-                            <button key={pIdx} onClick={() => handlePromptClick(prompt)} className="w-full text-left text-[10px] text-neutral-600 bg-white hover:bg-purple-50 hover:text-purple-700 px-2 py-1 rounded-md border border-neutral-100 hover:border-purple-100 transition truncate block cursor-pointer">{prompt}</button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                 </div>
 
               </div>
 
             </div>
+
           </div>
 
         </div>
+
       </div>
+
     </section>
   );
 };
