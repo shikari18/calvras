@@ -27,17 +27,19 @@ function App() {
     }
     return false;
   });
+
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(true);
 
-  // Initial page refresh / load transition
+  // Initial page refresh transition
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsRefreshing(false);
-    }, 1600);
+    }, 1200);
     return () => clearTimeout(timer);
   }, []);
+
   const [legalView, setLegalView] = useState(() => {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash.toLowerCase();
@@ -60,30 +62,45 @@ function App() {
 
   const [isOnboarding, setIsOnboarding] = useState(() => {
     try {
-      if (typeof window !== 'undefined' && window.location.hash.toLowerCase() === '#onboarding') {
-        return true;
-      }
       const savedAuth = localStorage.getItem('calvras_is_authenticated');
       const savedProfile = localStorage.getItem('aim_user_profile');
       const userEmail = savedProfile ? JSON.parse(savedProfile)?.email : 'default';
       const savedOnboarding = localStorage.getItem(`calvras_onboarding_completed_${userEmail}`);
+
+      if (typeof window !== 'undefined') {
+        const hash = window.location.hash.toLowerCase();
+        if (hash.startsWith('#onboarding') || (savedAuth === 'true' && hash === '#pricing')) {
+          return true;
+        }
+      }
+
       return savedAuth === 'true' && savedOnboarding !== 'true';
     } catch (e) {
       return false;
     }
   });
 
+  // Handle URL hash changes across the entire app
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.toLowerCase();
-      if (hash === '#terms') setLegalView('terms');
-      else if (hash === '#privacy') setLegalView('privacy');
-      else if (hash === '#onboarding') setIsOnboarding(true);
-      else setLegalView(null);
+      if (hash === '#terms') {
+        setLegalView('terms');
+      } else if (hash === '#privacy') {
+        setLegalView('privacy');
+      } else if (hash === '#signin' || hash === '#signup' || hash === '#auth' || hash === '#get-started') {
+        setLegalView(null);
+        setIsAuthOpen(true);
+      } else if (hash.startsWith('#onboarding') || (isAuthenticated && (hash === '#pricing' || hash === '#plans'))) {
+        setLegalView(null);
+        setIsOnboarding(true);
+      } else {
+        setLegalView(null);
+      }
     };
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
+  }, [isAuthenticated]);
 
   // Check if current window is an OAuth Popup
   const isPopup = typeof window !== 'undefined' && window.location.search.includes('popup=tiktok_auth');
@@ -91,7 +108,7 @@ function App() {
     return <TikTokAuthPopupWindow />;
   }
 
-  // Legal views (for TikTok developer verification & user navigation)
+  // Legal views (Terms of Service / Privacy Policy)
   if (legalView === 'terms') {
     return <TermsOfServicePage onBack={() => { window.location.hash = ''; setLegalView(null); }} />;
   }
@@ -109,6 +126,9 @@ function App() {
     setTimeout(() => {
       setIsSigningOut(false);
       setIsAuthenticated(false);
+      if (typeof window !== 'undefined') {
+        window.location.hash = '';
+      }
     }, 800);
   };
 
@@ -134,7 +154,7 @@ function App() {
       // Check if onboarding needs to be shown for THIS specific user account
       const onboarded = localStorage.getItem(`calvras_onboarding_completed_${userEmail}`) === 'true';
       setIsOnboarding(!onboarded);
-    }, 1200);
+    }, 1000);
   };
 
   const handleOnboardingComplete = (planData, answers) => {
@@ -146,6 +166,9 @@ function App() {
       localStorage.setItem('calvras_active_tab', 'new-chat');
     } catch (e) {}
     setIsOnboarding(false);
+    if (typeof window !== 'undefined') {
+      window.location.hash = '';
+    }
   };
 
   return (
@@ -203,15 +226,27 @@ function App() {
           <GetStartedPage 
             onLoginSuccess={handleLoginSuccess}
             onNavigate={(view) => {
-              if (view === 'home' || view === 'landing') setIsAuthOpen(false);
+              if (view === 'home' || view === 'landing') {
+                setIsAuthOpen(false);
+                window.location.hash = '';
+              }
             }}
-            onBack={() => setIsAuthOpen(false)}
+            onBack={() => {
+              setIsAuthOpen(false);
+              window.location.hash = '';
+            }}
             initialIsSignIn={false}
           />
         ) : (
           <LandingPage 
-            onGetStarted={() => setIsAuthOpen(true)}
-            onOpenLegal={(view) => setLegalView(view)}
+            onGetStarted={() => {
+              setIsAuthOpen(true);
+              window.location.hash = '#get-started';
+            }}
+            onOpenLegal={(view) => {
+              setLegalView(view);
+              window.location.hash = `#${view}`;
+            }}
           />
         )
       )}

@@ -1,33 +1,119 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Check, Sparkles, Loader2, CheckCircle2 } from 'lucide-react';
 
 export const OnboardingFlow = ({ onComplete, userProfile }) => {
-  const [currentStep, setCurrentStep] = useState(1); // 1 to 5
+  const userEmail = userProfile?.email || 'default';
+
+  // Determine initial step from URL hash or localStorage so refreshing stays on the exact page
+  const getInitialStep = () => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash.toLowerCase();
+      if (hash === '#pricing' || hash === '#plans' || hash === '#onboarding-pricing' || hash === '#onboarding-step-5') {
+        return 5;
+      }
+      if (hash === '#onboarding-step-4' || hash === '#discovery') return 4;
+      if (hash === '#onboarding-step-3' || hash === '#goals') return 3;
+      if (hash === '#onboarding-step-2' || hash === '#role') return 2;
+      if (hash === '#onboarding-step-1' || hash === '#onboarding') return 1;
+    }
+    try {
+      const savedStep = localStorage.getItem(`calvras_onboarding_step_${userEmail}`);
+      if (savedStep) {
+        const parsed = parseInt(savedStep, 10);
+        if (parsed >= 1 && parsed <= 5) return parsed;
+      }
+    } catch (e) {}
+    return 1;
+  };
+
+  // Determine initial answers from localStorage
+  const getInitialAnswers = () => {
+    try {
+      const saved = localStorage.getItem(`calvras_onboarding_answers_${userEmail}`);
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {}
+    return {
+      useCase: '',
+      workRole: '',
+      creationGoals: [],
+      source: ''
+    };
+  };
+
+  const [currentStep, setCurrentStep] = useState(getInitialStep);
   const [isAnnual, setIsAnnual] = useState(false);
   const [selectedProCredits, setSelectedProCredits] = useState('2k');
   const [activatingPlan, setActivatingPlan] = useState(null);
   const [isCompletedSuccess, setIsCompletedSuccess] = useState(false);
+  const [answers, setAnswers] = useState(getInitialAnswers);
 
-  // User answers state (initially empty so user makes fresh selection)
-  const [answers, setAnswers] = useState({
-    useCase: '',
-    workRole: '',
-    creationGoals: [],
-    source: ''
-  });
+  // Sync step changes to URL hash & localStorage so refresh never loses position
+  const syncStepToUrlAndStorage = (step) => {
+    try {
+      localStorage.setItem(`calvras_onboarding_step_${userEmail}`, step.toString());
+    } catch (e) {}
+    if (typeof window !== 'undefined') {
+      const stepHashes = {
+        1: '#onboarding-step-1',
+        2: '#onboarding-step-2',
+        3: '#onboarding-step-3',
+        4: '#onboarding-step-4',
+        5: '#pricing'
+      };
+      const targetHash = stepHashes[step] || '#onboarding';
+      if (window.location.hash !== targetHash) {
+        window.history.replaceState(null, '', targetHash);
+      }
+    }
+  };
+
+  useEffect(() => {
+    syncStepToUrlAndStorage(currentStep);
+  }, [currentStep, userEmail]);
+
+  // Listen to browser back/forward buttons or hash change
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.toLowerCase();
+      if (hash === '#pricing' || hash === '#plans' || hash === '#onboarding-pricing' || hash === '#onboarding-step-5') {
+        setCurrentStep(5);
+      } else if (hash === '#onboarding-step-4' || hash === '#discovery') {
+        setCurrentStep(4);
+      } else if (hash === '#onboarding-step-3' || hash === '#goals') {
+        setCurrentStep(3);
+      } else if (hash === '#onboarding-step-2' || hash === '#role') {
+        setCurrentStep(2);
+      } else if (hash === '#onboarding-step-1' || hash === '#onboarding') {
+        setCurrentStep(1);
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   const handleSingleSelect = (key, value) => {
-    setAnswers(prev => ({ ...prev, [key]: value }));
+    setAnswers(prev => {
+      const updated = { ...prev, [key]: value };
+      try {
+        localStorage.setItem(`calvras_onboarding_answers_${userEmail}`, JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
   };
 
   const handleMultiSelect = (key, value) => {
     setAnswers(prev => {
       const currentList = prev[key] || [];
-      if (currentList.includes(value)) {
-        return { ...prev, [key]: currentList.filter(item => item !== value) };
-      } else {
-        return { ...prev, [key]: [...currentList, value] };
-      }
+      const updatedList = currentList.includes(value)
+        ? currentList.filter(item => item !== value)
+        : [...currentList, value];
+      const updated = { ...prev, [key]: updatedList };
+      try {
+        localStorage.setItem(`calvras_onboarding_answers_${userEmail}`, JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
     });
   };
 
@@ -469,7 +555,7 @@ export const OnboardingFlow = ({ onComplete, userProfile }) => {
                 <div>
                   <h3 className="text-base font-bold text-white">Free</h3>
                   <p className="text-[11px] text-neutral-400 mt-0.5 min-h-[28px]">
-                    For exploring AI features at a basic level. Personal use only.
+                    For exploring AI marketing features at a basic level.
                   </p>
                 </div>
 
@@ -484,7 +570,7 @@ export const OnboardingFlow = ({ onComplete, userProfile }) => {
                   </div>
                   <div className="flex items-start gap-1.5">
                     <Check size={12} className="text-neutral-400 shrink-0 mt-0.5" />
-                    <span>3 ad & copy generations daily</span>
+                    <span>3 ad copy & campaign generations daily</span>
                   </div>
                   <div className="flex items-start gap-1.5">
                     <Check size={12} className="text-neutral-400 shrink-0 mt-0.5" />
@@ -492,7 +578,7 @@ export const OnboardingFlow = ({ onComplete, userProfile }) => {
                   </div>
                   <div className="flex items-start gap-1.5">
                     <Check size={12} className="text-neutral-400 shrink-0 mt-0.5" />
-                    <span>Core marketing playbooks</span>
+                    <span>Core direct-response frameworks</span>
                   </div>
                 </div>
               </div>
