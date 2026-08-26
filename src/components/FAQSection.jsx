@@ -22,8 +22,8 @@ export const FAQSection = () => {
       a: "Campaign Doctor is an autonomous diagnostic engine. When your ad costs spike or conversion rate drops, it audits your funnel, uncovers message mismatches or checkout friction, and delivers an exact 3-step recovery playbook."
     },
     {
-      q: "Can I get started for free?",
-      a: "Yes! Calvras offers a generous Free tier that includes complimentary credits, access to our marketing copilot workspace, and core campaign frameworks without requiring a credit card upfront."
+      q: "How do subscriptions and billing work?",
+      a: "Calvras plans start at just $10/month ($8/month billed annually). Every plan includes immediate access to our autonomous marketing copilot, direct-response copy teardowns, and multi-channel campaign roadmaps. You can upgrade, downgrade, or cancel anytime directly in your account settings."
     }
   ];
 
