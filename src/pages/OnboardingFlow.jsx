@@ -546,39 +546,45 @@ export const OnboardingFlow = ({ onComplete, userProfile }) => {
             </div>
           </div>
 
-          {/* 3 Plan Cards Grid */}
+          {/* 3 Luxury Plan Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-5xl mx-auto w-full my-auto py-2">
             
             {/* 1. FREE PLAN */}
-            <div className="bg-[#242424] hover:bg-[#282828] rounded-3xl border border-neutral-800 p-5 sm:p-6 flex flex-col justify-between space-y-4 transition hover:border-neutral-700">
-              <div className="space-y-3">
-                <div>
-                  <h3 className="text-base font-bold text-white">Free</h3>
-                  <p className="text-[11px] text-neutral-400 mt-0.5 min-h-[28px]">
-                    For exploring AI marketing features at a basic level.
-                  </p>
-                </div>
-
-                <div>
-                  <span className="text-2xl sm:text-3xl font-extrabold text-white">$0</span>
-                </div>
-
-                <div className="pt-1 text-[11px] text-neutral-300 space-y-2 border-t border-neutral-700/60">
-                  <div className="flex items-center gap-1.5 text-neutral-400 font-medium">
-                    <span>✧</span>
-                    <span>Limited free marketing credits</span>
+            <div className="bg-[#181916] hover:bg-[#1e1f1b] rounded-3xl border border-white/10 p-6 flex flex-col justify-between space-y-4 transition-all duration-200 hover:border-white/20 shadow-xl">
+              <div className="space-y-3.5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-base font-bold text-white tracking-tight">Free</h3>
+                    <p className="text-[11px] text-neutral-400 mt-0.5 min-h-[26px]">
+                      For exploring AI marketing features & frameworks.
+                    </p>
                   </div>
-                  <div className="flex items-start gap-1.5">
-                    <Check size={12} className="text-neutral-400 shrink-0 mt-0.5" />
+                  <span className="text-[9px] font-mono font-semibold uppercase tracking-wider text-neutral-400 bg-white/5 px-2 py-0.5 rounded-full border border-white/10">
+                    Starter
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-3xl font-extrabold text-white">$0</span>
+                  <span className="text-xs text-neutral-500 ml-1.5 font-mono">/ forever</span>
+                </div>
+
+                <div className="pt-2 text-[11px] text-neutral-300 space-y-2 border-t border-white/10">
+                  <div className="flex items-center gap-1.5 text-neutral-300 font-semibold">
+                    <span className="text-neutral-400">✧</span>
+                    <span>Free starter marketing credits</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Check size={13} className="text-emerald-400 shrink-0 mt-0.5" />
                     <span>3 ad copy & campaign generations daily</span>
                   </div>
-                  <div className="flex items-start gap-1.5">
-                    <Check size={12} className="text-neutral-400 shrink-0 mt-0.5" />
-                    <span>Standard response speed</span>
+                  <div className="flex items-start gap-2">
+                    <Check size={13} className="text-emerald-400 shrink-0 mt-0.5" />
+                    <span>30-day multi-channel roadmap builder</span>
                   </div>
-                  <div className="flex items-start gap-1.5">
-                    <Check size={12} className="text-neutral-400 shrink-0 mt-0.5" />
-                    <span>Core direct-response frameworks</span>
+                  <div className="flex items-start gap-2">
+                    <Check size={13} className="text-emerald-400 shrink-0 mt-0.5" />
+                    <span>Core copywriting & direct-response templates</span>
                   </div>
                 </div>
               </div>
@@ -587,7 +593,7 @@ export const OnboardingFlow = ({ onComplete, userProfile }) => {
                 type="button"
                 disabled={activatingPlan !== null}
                 onClick={() => handlePlanSelect('free', 'Free Plan', 0)}
-                className="w-full py-2.5 px-3 rounded-xl bg-[#323232] hover:bg-[#3d3d3d] text-white text-xs font-bold transition cursor-pointer active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-2.5 px-3 rounded-xl bg-[#282924] hover:bg-[#343630] border border-white/10 text-white text-xs font-bold transition cursor-pointer active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {activatingPlan === 'free' ? (
                   <>
@@ -595,52 +601,61 @@ export const OnboardingFlow = ({ onComplete, userProfile }) => {
                     <span>Activating...</span>
                   </>
                 ) : (
-                  <span>Get started</span>
+                  <span>Get started free</span>
                 )}
               </button>
             </div>
 
             {/* 2. BASIC PLAN */}
-            <div className="bg-[#242424] hover:bg-[#282828] rounded-3xl border border-neutral-800 p-5 sm:p-6 flex flex-col justify-between space-y-4 transition hover:border-neutral-700">
-              <div className="space-y-3">
-                <div>
-                  <h3 className="text-base font-bold text-white">Basic</h3>
-                  <p className="text-[11px] text-neutral-400 mt-0.5 min-h-[28px]">
-                    For growing brands & creators with core marketing needs.
-                  </p>
+            <div className="bg-[#1a1b17] hover:bg-[#20221c] rounded-3xl border border-white/15 p-6 flex flex-col justify-between space-y-4 transition-all duration-200 hover:border-white/30 shadow-xl relative">
+              <div className="space-y-3.5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-base font-bold text-white tracking-tight">Basic</h3>
+                    <p className="text-[11px] text-neutral-400 mt-0.5 min-h-[26px]">
+                      For growing brands & creators scaling traffic.
+                    </p>
+                  </div>
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#ff5e28] bg-[#ff5e28]/10 px-2 py-0.5 rounded-full border border-[#ff5e28]/30">
+                    Popular
+                  </span>
                 </div>
 
                 <div>
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-2xl sm:text-3xl font-extrabold text-white">
+                    <span className="text-3xl font-extrabold text-white">
                       ${isAnnual ? '8' : '10'}
                     </span>
                     <span className="text-xs text-neutral-400 font-normal">
-                      / mo
+                      / month
                     </span>
                   </div>
                   {isAnnual && (
-                    <p className="text-[10px] text-neutral-500">
+                    <p className="text-[10px] text-neutral-500 font-mono">
                       billed annually $96
                     </p>
                   )}
                 </div>
 
-                <div className="pt-1 text-[11px] text-neutral-300 space-y-2 border-t border-neutral-700/60">
+                <div className="pt-2 text-[11px] text-neutral-300 space-y-2 border-t border-white/10">
                   <div className="flex items-center gap-1.5 text-[#ff5e28] font-semibold">
                     <span>✦</span>
                     <span>1,000 marketing credits per month</span>
                   </div>
-                  <div className="flex items-start gap-1.5">
-                    <Check size={12} className="text-[#ff5e28] shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-2">
+                    <Check size={13} className="text-[#ff5e28] shrink-0 mt-0.5" />
                     <span>Unlimited ad copy variations & angles</span>
                   </div>
-                  <div className="flex items-start gap-1.5">
-                    <Check size={12} className="text-[#ff5e28] shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-2">
+                    <Check size={13} className="text-[#ff5e28] shrink-0 mt-0.5" />
+                    <span>Advantage+ (ASC+) & Meta 3:2:2 ad testing</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Check size={13} className="text-[#ff5e28] shrink-0 mt-0.5" />
                     <span>Full email & SMS funnel automations</span>
                   </div>
-                  <div className="flex items-start gap-1.5">
-                    <Check size={12} className="text-[#ff5e28] shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-2">
+                    <Check size={13} className="text-[#ff5e28] shrink-0 mt-0.5" />
                     <span>Landing page teardowns & CRO playbooks</span>
                   </div>
                 </div>
@@ -650,7 +665,7 @@ export const OnboardingFlow = ({ onComplete, userProfile }) => {
                 type="button"
                 disabled={activatingPlan !== null}
                 onClick={() => handlePlanSelect('basic', 'Basic Plan', isAnnual ? 8 : 10)}
-                className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-neutral-100 text-neutral-950 text-xs font-bold transition cursor-pointer active:scale-95 shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-neutral-100 text-neutral-950 text-xs font-bold transition cursor-pointer active:scale-95 shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {activatingPlan === 'basic' ? (
                   <>
@@ -664,48 +679,55 @@ export const OnboardingFlow = ({ onComplete, userProfile }) => {
             </div>
 
             {/* 3. PRO PLAN (RECOMMENDED) */}
-            <div className="bg-[#242424] rounded-3xl border-2 border-[#8057ff] p-5 sm:p-6 flex flex-col justify-between space-y-4 relative shadow-[0_0_30px_rgba(128,87,255,0.15)]">
+            <div className="bg-[#1b1a24] rounded-3xl border-2 border-[#8057ff] p-6 flex flex-col justify-between space-y-4 relative shadow-[0_0_40px_rgba(128,87,255,0.18)]">
               
               {/* Recommended Badge */}
-              <div className="absolute -top-3 right-6 bg-[#8057ff] text-white text-[9px] font-bold uppercase tracking-wider px-3 py-0.5 rounded-full shadow-md">
+              <div className="absolute -top-3 right-6 bg-[#8057ff] text-white text-[9px] font-bold uppercase tracking-wider px-3 py-0.5 rounded-full shadow-lg">
                 Recommended
               </div>
 
-              <div className="space-y-3">
-                <div>
-                  <h3 className="text-base font-bold text-white flex items-center gap-1.5">
-                    <span>Pro</span>
-                    <Sparkles size={14} className="text-[#8057ff]" />
-                  </h3>
-                  <p className="text-[11px] text-neutral-400 mt-0.5 min-h-[28px]">
-                    For high-growth brands & agencies scaling revenue and ROAS.
-                  </p>
+              <div className="space-y-3.5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-base font-bold text-white flex items-center gap-1.5 tracking-tight">
+                      <span>Pro</span>
+                      <Sparkles size={14} className="text-[#8057ff]" />
+                    </h3>
+                    <p className="text-[11px] text-neutral-400 mt-0.5 min-h-[26px]">
+                      For scaling brands & agencies maximizing ROAS.
+                    </p>
+                  </div>
                 </div>
 
                 <div>
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-2xl sm:text-3xl font-extrabold text-white">
-                      ${isAnnual ? '13' : '16'}
+                    <span className="text-3xl font-extrabold text-white">
+                      ${
+                        selectedProCredits === '2k' ? (isAnnual ? '13' : '16') :
+                        selectedProCredits === '4k' ? (isAnnual ? '22' : '28') :
+                        selectedProCredits === '8k' ? (isAnnual ? '42' : '52') :
+                        (isAnnual ? '76' : '96')
+                      }
                     </span>
                     <span className="text-xs text-neutral-400 font-normal">
-                      / mo
+                      / month
                     </span>
                   </div>
                   {isAnnual && (
-                    <p className="text-[10px] text-neutral-500">
-                      billed annually $156
+                    <p className="text-[10px] text-neutral-500 font-mono">
+                      billed annually 20% off
                     </p>
                   )}
                 </div>
 
                 {/* Credit Tier Selector */}
-                <div className="grid grid-cols-4 gap-1 bg-[#1b1b1b] p-1 rounded-xl border border-neutral-700/60">
+                <div className="grid grid-cols-4 gap-1 bg-[#13121a] p-1 rounded-xl border border-[#8057ff]/30">
                   {['2k', '4k', '8k', '16k'].map((tier) => (
                     <button
                       key={tier}
                       type="button"
                       onClick={() => setSelectedProCredits(tier)}
-                      className={`py-0.5 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+                      className={`py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
                         selectedProCredits === tier
                           ? 'bg-[#8057ff] text-white shadow-sm'
                           : 'text-neutral-400 hover:text-white'
@@ -716,22 +738,26 @@ export const OnboardingFlow = ({ onComplete, userProfile }) => {
                   ))}
                 </div>
 
-                <div className="pt-1 text-[11px] text-neutral-300 space-y-1.5 border-t border-neutral-700/60">
+                <div className="pt-2 text-[11px] text-neutral-300 space-y-1.5 border-t border-white/10">
                   <div className="flex items-center gap-1.5 text-[#a88aff] font-semibold">
                     <span>✦</span>
-                    <span>{selectedProCredits === '2k' ? '2,000' : selectedProCredits === '4k' ? '4,000' : selectedProCredits === '8k' ? '8,000' : '16,000'} credits/mo</span>
+                    <span>{selectedProCredits === '2k' ? '2,000' : selectedProCredits === '4k' ? '4,000' : selectedProCredits === '8k' ? '8,000' : '16,000'} marketing credits/mo</span>
                   </div>
-                  <div className="flex items-start gap-1.5">
-                    <Check size={12} className="text-[#a88aff] shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-2">
+                    <Check size={13} className="text-[#a88aff] shrink-0 mt-0.5" />
                     <span>Autonomous media buying & ad scaling</span>
                   </div>
-                  <div className="flex items-start gap-1.5">
-                    <Check size={12} className="text-[#a88aff] shrink-0 mt-0.5" />
-                    <span>Campaign Doctor diagnostics & ROAS audits</span>
+                  <div className="flex items-start gap-2">
+                    <Check size={13} className="text-[#a88aff] shrink-0 mt-0.5" />
+                    <span>Campaign Doctor diagnostics & live ROAS audits</span>
                   </div>
-                  <div className="flex items-start gap-1.5">
-                    <Check size={12} className="text-[#a88aff] shrink-0 mt-0.5" />
-                    <span>Priority neural compute & 24/7 support</span>
+                  <div className="flex items-start gap-2">
+                    <Check size={13} className="text-[#a88aff] shrink-0 mt-0.5" />
+                    <span>Multi-channel roadmaps (Meta, TikTok, Google)</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Check size={13} className="text-[#a88aff] shrink-0 mt-0.5" />
+                    <span>Priority neural compute & 24/7 strategic support</span>
                   </div>
                 </div>
               </div>
@@ -740,7 +766,7 @@ export const OnboardingFlow = ({ onComplete, userProfile }) => {
                 type="button"
                 disabled={activatingPlan !== null}
                 onClick={() => handlePlanSelect('pro', 'Pro Plan', isAnnual ? 13 : 16)}
-                className="w-full py-2.5 px-3 rounded-xl bg-[#8057ff] hover:bg-[#7245ff] text-white text-xs font-bold transition cursor-pointer active:scale-95 shadow-[0_4px_20px_rgba(128,87,255,0.4)] disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#8057ff] to-[#6d28d9] hover:from-[#7245ff] hover:to-[#5b21b6] text-white text-xs font-bold transition cursor-pointer active:scale-95 shadow-[0_4px_20px_rgba(128,87,255,0.4)] disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {activatingPlan === 'pro' ? (
                   <>
