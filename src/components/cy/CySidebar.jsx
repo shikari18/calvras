@@ -28,7 +28,8 @@ import {
   ChevronRight,
   Code2,
   BarChart3,
-  Lock
+  Lock,
+  Sparkles
 } from 'lucide-react';
 
 import { useMarketing } from '../../context/MarketingContext';
@@ -87,8 +88,8 @@ export const CySidebar = ({
     { id: 'recent', label: 'Recent Chats', icon: Clock, isRecentFlyout: true },
     { id: 'overview', label: 'Overview', icon: LayoutGrid },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-    { id: 'contents', label: 'Contents', icon: Layers },
-    { id: 'agents', label: 'Agents', icon: Bot },
+    { id: 'contents', label: 'Campaigns', icon: Layers },
+    { id: 'agents', label: 'AI Agents', icon: Bot },
     { id: 'flows', label: 'Flows', icon: GitFork },
     { id: 'signals', label: 'Signals', icon: Radio },
     { id: 'artifacts', label: 'Artifacts', icon: Hash },
@@ -107,7 +108,7 @@ export const CySidebar = ({
   // Collapsed Rail View (Dark Mode)
   if (isCollapsed) {
     return (
-      <aside className="w-14 bg-[#121310] border-r border-white/10 flex flex-col justify-between h-screen shrink-0 text-left select-none text-[13px] font-sans antialiased py-3 items-center transition-all duration-300 relative z-30 overflow-visible text-white">
+      <aside className="w-14 bg-[#0e0f0d] border-r border-white/10 flex flex-col justify-between h-screen shrink-0 text-left select-none text-[13px] font-sans antialiased py-3 items-center transition-all duration-300 relative z-30 overflow-visible text-white">
         
         {/* Top Logo & Expand Button */}
         <div className="space-y-4 flex flex-col items-center">
@@ -149,8 +150,8 @@ export const CySidebar = ({
               onClick={() => onSelectTab('threads')}
               className={`p-2 rounded-xl transition cursor-pointer ${
                 activeTab === 'threads' 
-                  ? 'bg-white/15 text-white shadow-2xs font-semibold' 
-                  : 'text-neutral-400 hover:bg-white/10 hover:text-white'
+                  ? 'bg-white/10 text-white shadow-2xs font-semibold' 
+                  : 'text-neutral-400 hover:bg-white/5 hover:text-white'
               }`}
               title="Chat"
             >
@@ -167,8 +168,8 @@ export const CySidebar = ({
                 onClick={() => onSelectTab('threads')}
                 className={`p-2 rounded-xl transition cursor-pointer ${
                   isRecentHovered
-                    ? 'bg-white/15 text-white shadow-2xs font-semibold' 
-                    : 'text-neutral-400 hover:bg-white/10 hover:text-white'
+                    ? 'bg-white/10 text-white shadow-2xs font-semibold' 
+                    : 'text-neutral-400 hover:bg-white/5 hover:text-white'
                 }`}
                 title="Recent Chats"
               >
@@ -178,7 +179,7 @@ export const CySidebar = ({
               {/* Flyout Dropout to the Right */}
               {isRecentHovered && (
                 <div 
-                  className="absolute left-full top-0 ml-2 w-64 bg-[#181915] border border-white/15 rounded-2xl shadow-2xl p-2.5 z-50 animate-in fade-in slide-in-from-left-2 duration-150 space-y-1.5 text-white"
+                  className="absolute left-full top-0 ml-2 w-64 bg-[#161714] border border-white/15 rounded-2xl shadow-2xl p-2.5 z-50 animate-in fade-in slide-in-from-left-2 duration-150 space-y-1.5 text-white"
                   onMouseEnter={handleMouseEnterRecent}
                   onMouseLeave={handleMouseLeaveRecent}
                 >
@@ -203,8 +204,8 @@ export const CySidebar = ({
                             key={t.id}
                             className={`group flex items-center justify-between px-2 py-1.5 rounded-xl text-xs transition cursor-pointer ${
                               isCurrent 
-                                ? 'bg-white/15 text-white font-semibold shadow-2xs' 
-                                : 'text-neutral-400 hover:bg-white/10 hover:text-white'
+                                ? 'bg-white/10 text-white font-semibold shadow-2xs' 
+                                : 'text-neutral-400 hover:bg-white/5 hover:text-white'
                             }`}
                             onClick={() => {
                               if (onSelectThread) onSelectThread(t.id);
@@ -213,7 +214,7 @@ export const CySidebar = ({
                             }}
                           >
                             <div className="flex items-center gap-2 truncate mr-1">
-                              <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${isCurrent ? 'bg-white' : 'bg-neutral-500'}`} />
+                              <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${isCurrent ? 'bg-emerald-400' : 'bg-neutral-500'}`} />
                               <span className="truncate">{t.title}</span>
                             </div>
 
@@ -252,8 +253,8 @@ export const CySidebar = ({
                   onClick={() => onSelectTab(item.id)}
                   className={`p-2 rounded-xl transition cursor-pointer ${
                     isActive 
-                      ? 'bg-white/15 text-white shadow-2xs font-semibold' 
-                      : 'text-neutral-400 hover:bg-white/10 hover:text-white'
+                      ? 'bg-white/10 text-white shadow-2xs font-semibold' 
+                      : 'text-neutral-400 hover:bg-white/5 hover:text-white'
                   }`}
                   title={item.label}
                 >
@@ -270,7 +271,7 @@ export const CySidebar = ({
           className="cursor-pointer p-1 rounded-xl hover:bg-white/10 transition"
           title={userProfile?.name}
         >
-          <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-neutral-700 to-neutral-800 border border-white/20 text-white flex items-center justify-center text-xs font-semibold overflow-hidden shadow-2xs">
+          <div className="w-7 h-7 rounded-full bg-neutral-800 border border-white/20 text-white flex items-center justify-center text-xs font-semibold overflow-hidden shadow-2xs">
             {userProfile?.picture ? (
               <img 
                 src={userProfile.picture} 
@@ -291,7 +292,7 @@ export const CySidebar = ({
 
   // Expanded Sidebar View (Dark Luxury Theme)
   return (
-    <aside className="w-60 bg-[#121310] border-r border-white/10 flex flex-col justify-between h-screen shrink-0 text-left select-none text-[13px] font-sans antialiased relative transition-all duration-300 z-40 overflow-visible text-white">
+    <aside className="w-60 bg-[#0e0f0d] border-r border-white/10 flex flex-col justify-between h-screen shrink-0 text-left select-none text-[13px] font-sans antialiased relative transition-all duration-300 z-40 overflow-visible text-white">
       
       {/* Top Section */}
       <div className="p-3 space-y-2 flex-1 overflow-visible">
@@ -325,7 +326,7 @@ export const CySidebar = ({
 
         {/* Notifications Dropdown Modal */}
         {showNotifications && (
-          <div className="absolute top-12 left-3 right-3 bg-[#181915] border border-white/15 rounded-2xl shadow-2xl p-5 z-50 text-left space-y-4 animate-in slide-in-from-top-2 duration-150">
+          <div className="absolute top-12 left-3 right-3 bg-[#161714] border border-white/15 rounded-2xl shadow-2xl p-5 z-50 text-left space-y-4 animate-in slide-in-from-top-2 duration-150">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold text-white">Notifications</h3>
               <button 
@@ -337,7 +338,7 @@ export const CySidebar = ({
             </div>
 
             <div className="flex flex-col items-center justify-center py-6 text-center space-y-2">
-              <div className="w-10 h-10 rounded-full bg-[#121310] border border-white/10 flex items-center justify-center text-neutral-400 relative">
+              <div className="w-10 h-10 rounded-full bg-[#10110e] border border-white/10 flex items-center justify-center text-neutral-400 relative">
                 <Bell size={18} />
                 <span className="absolute -top-1 -right-1 text-[9px] font-bold text-emerald-400">zZ</span>
               </div>
@@ -349,22 +350,25 @@ export const CySidebar = ({
           </div>
         )}
 
-        {/* New Chat Button (High-Contrast White Button) */}
+        {/* New Chat Button (Sleek Dark Luxury Button) */}
         <button
           onClick={onNewChat}
-          className="w-full flex items-center justify-center gap-1.5 bg-white hover:bg-neutral-200 text-neutral-950 font-bold py-2 px-3 rounded-xl transition shadow-md cursor-pointer text-xs active:scale-95"
+          className="w-full flex items-center justify-between bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-white font-medium py-2 px-3 rounded-xl transition cursor-pointer text-xs active:scale-98 shadow-sm"
         >
-          <Plus size={14} className="text-neutral-950 stroke-[3]" />
-          <span>New Chat</span>
+          <div className="flex items-center gap-2">
+            <Plus size={14} className="text-emerald-400" />
+            <span>New Chat</span>
+          </div>
+          <span className="text-[10px] font-mono text-neutral-400 bg-white/5 px-1.5 py-0.5 rounded">⌘N</span>
         </button>
 
         {/* Search Bar */}
-        <div className="flex items-center justify-between px-2.5 py-1.5 text-neutral-400 bg-[#161714] border border-white/5 hover:border-white/15 rounded-xl cursor-pointer transition">
+        <div className="flex items-center justify-between px-2.5 py-1.5 text-neutral-400 bg-white/[0.02] border border-white/5 hover:border-white/15 rounded-xl cursor-pointer transition">
           <div className="flex items-center gap-2">
             <Search size={13} />
             <span className="text-xs text-neutral-400 font-normal">Search</span>
           </div>
-          <span className="text-[10px] bg-white/10 text-neutral-300 px-1.5 py-0.5 rounded font-mono">Ctrl K</span>
+          <span className="text-[10px] bg-white/5 text-neutral-400 px-1.5 py-0.5 rounded font-mono">Ctrl K</span>
         </div>
 
         {/* Main Navigation Menu */}
@@ -385,8 +389,8 @@ export const CySidebar = ({
                     onClick={() => onSelectTab('threads')}
                     className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer ${
                       isRecentHovered
-                        ? 'bg-white/15 text-white font-semibold shadow-2xs' 
-                        : 'text-neutral-400 hover:bg-white/10 hover:text-white'
+                        ? 'bg-white/[0.08] text-white font-semibold shadow-2xs' 
+                        : 'text-neutral-400 hover:bg-white/[0.05] hover:text-white'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
@@ -399,7 +403,7 @@ export const CySidebar = ({
                   {/* Dropout Flyout Card to the Right of Sidebar */}
                   {isRecentHovered && (
                     <div 
-                      className="absolute left-full top-0 ml-2 w-64 bg-[#181915] border border-white/15 rounded-2xl shadow-2xl p-2.5 z-50 animate-in fade-in slide-in-from-left-2 duration-150 space-y-1.5 text-white"
+                      className="absolute left-full top-0 ml-2 w-64 bg-[#161714] border border-white/15 rounded-2xl shadow-2xl p-2.5 z-50 animate-in fade-in slide-in-from-left-2 duration-150 space-y-1.5 text-white"
                       onMouseEnter={handleMouseEnterRecent}
                       onMouseLeave={handleMouseLeaveRecent}
                     >
@@ -424,8 +428,8 @@ export const CySidebar = ({
                                 key={t.id}
                                 className={`group flex items-center justify-between px-2 py-1.5 rounded-xl text-xs transition cursor-pointer ${
                                   isCurrent 
-                                  ? 'bg-white/15 text-white font-semibold shadow-2xs' 
-                                  : 'text-neutral-400 hover:bg-white/10 hover:text-white'
+                                  ? 'bg-white/[0.08] text-white font-semibold shadow-2xs' 
+                                  : 'text-neutral-400 hover:bg-white/[0.05] hover:text-white'
                                 }`}
                                 onClick={() => {
                                   if (onSelectThread) onSelectThread(t.id);
@@ -434,7 +438,7 @@ export const CySidebar = ({
                                 }}
                               >
                                 <div className="flex items-center gap-2 truncate mr-1">
-                                  <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${isCurrent ? 'bg-white' : 'bg-neutral-500'}`} />
+                                  <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${isCurrent ? 'bg-emerald-400' : 'bg-neutral-500'}`} />
                                   <span className="truncate">{t.title}</span>
                                 </div>
 
@@ -471,8 +475,8 @@ export const CySidebar = ({
                 onClick={() => onSelectTab(item.id)}
                 className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer ${
                   isActive 
-                    ? 'bg-white/15 text-white font-semibold shadow-2xs' 
-                    : 'text-neutral-400 hover:bg-white/10 hover:text-white'
+                    ? 'bg-white/[0.08] text-white font-semibold shadow-2xs' 
+                    : 'text-neutral-400 hover:bg-white/[0.05] hover:text-white'
                 }`}
               >
                 <Icon size={14} className={isActive ? 'text-white' : 'text-neutral-400'} />
@@ -495,8 +499,8 @@ export const CySidebar = ({
                 onClick={() => onSelectTab(item.id)}
                 className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer ${
                   isActive 
-                    ? 'bg-white/15 text-white font-semibold shadow-2xs' 
-                    : 'text-neutral-400 hover:bg-white/10 hover:text-white'
+                    ? 'bg-white/[0.08] text-white font-semibold shadow-2xs' 
+                    : 'text-neutral-400 hover:bg-white/[0.05] hover:text-white'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
@@ -516,27 +520,29 @@ export const CySidebar = ({
 
       </div>
 
-      {/* Bottom User & Credits Section (Dark Mode) */}
-      <div className="p-3 border-t border-white/10 space-y-2.5 bg-[#10110e] relative">
+      {/* Bottom User & Credits Section (Sleek Dark Mode) */}
+      <div className="p-3 border-t border-white/10 space-y-2.5 bg-[#0c0c0a] relative">
         
-        {/* Credits Remaining */}
-        <div className="px-1 flex items-center justify-between text-[11px]">
-          <span className="text-neutral-400">Credits remaining</span>
-          <span className="text-white font-bold font-mono">{credits?.remaining ?? 1000} credits</span>
-        </div>
+        {/* Credits Remaining Card */}
+        <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/5 space-y-1.5">
+          <div className="flex items-center justify-between text-[11px]">
+            <span className="text-neutral-400">Credits Remaining</span>
+            <span className="text-white font-bold font-mono text-xs">{credits?.remaining ?? 1000}</span>
+          </div>
 
-        {/* Upgrade Plan Button */}
-        <button 
-          onClick={() => onSelectTab('billing')}
-          className="w-full bg-white hover:bg-neutral-200 text-neutral-950 text-xs font-bold py-2 rounded-xl transition cursor-pointer shadow-sm active:scale-95"
-        >
-          Upgrade Plan
-        </button>
+          <button 
+            onClick={() => onSelectTab('billing')}
+            className="w-full bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-white text-[11px] font-semibold py-1.5 rounded-lg transition cursor-pointer flex items-center justify-center gap-1.5"
+          >
+            <Sparkles size={11} className="text-emerald-400" />
+            <span>Manage Plan</span>
+          </button>
+        </div>
 
         {/* User Profile Bar */}
         <div 
           onClick={() => setShowProfileMenu(!showProfileMenu)}
-          className="flex items-center gap-2.5 pt-1 px-1 p-1 rounded-xl hover:bg-white/5 transition cursor-pointer"
+          className="flex items-center gap-2.5 px-1 p-1 rounded-xl hover:bg-white/5 transition cursor-pointer"
         >
           <div className="w-7 h-7 rounded-full bg-neutral-800 border border-white/20 text-white flex items-center justify-center text-xs font-semibold shrink-0 overflow-hidden shadow-2xs">
             {userProfile?.picture ? (
@@ -559,7 +565,7 @@ export const CySidebar = ({
 
         {/* Profile Popup Menu */}
         {showProfileMenu && (
-          <div className="absolute bottom-16 left-3 right-3 bg-[#181915] border border-white/15 rounded-2xl shadow-2xl p-2 z-50 text-xs space-y-2 animate-in slide-in-from-bottom-2 duration-150 text-white">
+          <div className="absolute bottom-16 left-3 right-3 bg-[#161714] border border-white/15 rounded-2xl shadow-2xl p-2 z-50 text-xs space-y-1.5 animate-in slide-in-from-bottom-2 duration-150 text-white">
             <div className="px-2 py-1 border-b border-white/10 pb-2">
               <span className="font-bold text-white block">{userProfile.name}</span>
               <span className="text-[10px] text-neutral-400 block">{userProfile.email}</span>
