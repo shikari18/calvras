@@ -18,19 +18,6 @@ function App() {
     }
   });
 
-  const [isOnboarding, setIsOnboarding] = useState(() => {
-    try {
-      if (typeof window !== 'undefined' && window.location.hash.toLowerCase() === '#onboarding') {
-        return true;
-      }
-      const savedAuth = localStorage.getItem('calvras_is_authenticated');
-      const savedOnboarding = localStorage.getItem('calvras_onboarding_completed');
-      return savedAuth === 'true' && savedOnboarding !== 'true';
-    } catch (e) {
-      return false;
-    }
-  });
-
   const [isAuthOpen, setIsAuthOpen] = useState(() => {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash.toLowerCase();
@@ -68,6 +55,21 @@ function App() {
       return saved ? JSON.parse(saved) : { name: 'SHIKARI Ogar', email: 'zenithzone18@gmail.com' };
     } catch (e) {
       return { name: 'SHIKARI Ogar', email: 'zenithzone18@gmail.com' };
+    }
+  });
+
+  const [isOnboarding, setIsOnboarding] = useState(() => {
+    try {
+      if (typeof window !== 'undefined' && window.location.hash.toLowerCase() === '#onboarding') {
+        return true;
+      }
+      const savedAuth = localStorage.getItem('calvras_is_authenticated');
+      const savedProfile = localStorage.getItem('aim_user_profile');
+      const userEmail = savedProfile ? JSON.parse(savedProfile)?.email : 'default';
+      const savedOnboarding = localStorage.getItem(`calvras_onboarding_completed_${userEmail}`);
+      return savedAuth === 'true' && savedOnboarding !== 'true';
+    } catch (e) {
+      return false;
     }
   });
 
@@ -111,6 +113,7 @@ function App() {
   };
 
   const handleLoginSuccess = (userData) => {
+    const userEmail = userData?.email || userProfile.email || 'default';
     if (userData && userData.name) {
       setUserProfile(userData);
       try {
@@ -128,17 +131,18 @@ function App() {
       setIsAuthOpen(false);
       setIsAuthenticated(true);
       
-      // Check if onboarding needs to be shown
-      const onboarded = localStorage.getItem('calvras_onboarding_completed') === 'true';
+      // Check if onboarding needs to be shown for THIS specific user account
+      const onboarded = localStorage.getItem(`calvras_onboarding_completed_${userEmail}`) === 'true';
       setIsOnboarding(!onboarded);
-    }, 1600);
+    }, 1200);
   };
 
   const handleOnboardingComplete = (planData, answers) => {
+    const currentEmail = userProfile?.email || 'default';
     try {
-      localStorage.setItem('calvras_onboarding_completed', 'true');
-      localStorage.setItem('calvras_user_plan', JSON.stringify(planData));
-      localStorage.setItem('calvras_onboarding_answers', JSON.stringify(answers));
+      localStorage.setItem(`calvras_onboarding_completed_${currentEmail}`, 'true');
+      localStorage.setItem(`calvras_user_plan_${currentEmail}`, JSON.stringify(planData));
+      localStorage.setItem(`calvras_onboarding_answers_${currentEmail}`, JSON.stringify(answers));
       localStorage.setItem('calvras_active_tab', 'new-chat');
     } catch (e) {}
     setIsOnboarding(false);
@@ -146,37 +150,37 @@ function App() {
 
   return (
     <MarketingProvider currentUserEmail={userProfile.email}>
-      {/* Initial Page Refresh / Load Spinner with 'Refreshing...' text */}
+      {/* Initial Page Refresh / Load Spinner with Dark Aesthetic */}
       {isRefreshing && (
         <div 
           style={{ zIndex: 99999999 }}
-          className="fixed inset-0 bg-white flex flex-col items-center justify-center gap-4 select-none animate-in fade-in duration-200"
+          className="fixed inset-0 bg-[#141414] text-white flex flex-col items-center justify-center gap-4 select-none animate-in fade-in duration-200"
         >
           <div className="relative flex items-center justify-center">
-            <div className="w-9 h-9 rounded-full border-[2.5px] border-neutral-200 border-t-neutral-950 animate-spin" />
-            <div className="absolute w-2 h-2 rounded-full bg-neutral-900 animate-ping" />
+            <div className="w-9 h-9 rounded-full border-[2.5px] border-neutral-800 border-t-[#ff5e28] animate-spin" />
+            <div className="absolute w-2 h-2 rounded-full bg-[#ff5e28] animate-ping" />
           </div>
-          <span className="text-xs font-semibold text-neutral-900 tracking-tight animate-pulse">
-            Refreshing...
+          <span className="text-xs font-semibold text-neutral-300 tracking-tight animate-pulse">
+            Loading Calvras...
           </span>
         </div>
       )}
 
-      {/* Full Screen Loading Spinner + Signing in text */}
+      {/* Dark Full Screen Loading Spinner + Signing in text */}
       {isSigningIn && (
-        <div className="fixed inset-0 bg-white flex flex-col items-center justify-center gap-3.5 z-50 select-none animate-in fade-in duration-150">
-          <div className="w-8 h-8 rounded-full border-2 border-neutral-200 border-t-neutral-950 animate-spin" />
-          <span className="text-xs font-semibold text-neutral-850 tracking-tight animate-pulse">
+        <div className="fixed inset-0 bg-[#141414] text-white flex flex-col items-center justify-center gap-3.5 z-50 select-none animate-in fade-in duration-150">
+          <div className="w-8 h-8 rounded-full border-2 border-neutral-800 border-t-[#ff5e28] animate-spin" />
+          <span className="text-xs font-semibold text-neutral-200 tracking-tight animate-pulse">
             Signing in...
           </span>
         </div>
       )}
 
-      {/* Full Screen Loading Spinner + Signing out text */}
+      {/* Dark Full Screen Loading Spinner + Signing out text */}
       {isSigningOut && (
-        <div className="fixed inset-0 bg-white flex flex-col items-center justify-center gap-3 z-50 select-none animate-in fade-in duration-150">
-          <div className="w-7 h-7 rounded-full border-2 border-neutral-200 border-t-neutral-950 animate-spin" />
-          <span className="text-xs font-semibold text-neutral-600 tracking-tight animate-pulse">
+        <div className="fixed inset-0 bg-[#141414] text-white flex flex-col items-center justify-center gap-3 z-50 select-none animate-in fade-in duration-150">
+          <div className="w-7 h-7 rounded-full border-2 border-neutral-800 border-t-neutral-400 animate-spin" />
+          <span className="text-xs font-semibold text-neutral-400 tracking-tight animate-pulse">
             Signing out...
           </span>
         </div>
