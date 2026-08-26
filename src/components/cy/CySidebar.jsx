@@ -86,14 +86,9 @@ export const CySidebar = ({
   const navItems = [
     { id: 'threads', label: 'Chat', icon: MessageSquare },
     { id: 'recent', label: 'Recent Chats', icon: Clock, isRecentFlyout: true },
-    { id: 'overview', label: 'Overview', icon: LayoutGrid },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-    { id: 'contents', label: 'Campaigns', icon: Layers },
-    { id: 'agents', label: 'AI Agents', icon: Bot },
     { id: 'flows', label: 'Flows', icon: GitFork },
-    { id: 'signals', label: 'Signals', icon: Radio },
     { id: 'artifacts', label: 'Artifacts', icon: Hash },
-    { id: 'skills', label: 'Skills', icon: Zap },
     { id: 'runs', label: 'Runs', icon: Activity },
     { id: 'usage', label: 'Usage', icon: Gauge },
   ];

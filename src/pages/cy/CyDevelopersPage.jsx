@@ -157,27 +157,27 @@ print(f"Campaign ID: {campaign.id}")`
   };
 
   return (
-    <div className="flex-1 min-h-screen bg-white p-6 sm:p-10 font-sans antialiased text-neutral-900 select-none text-left overflow-y-auto">
+    <div className="flex-1 min-h-screen bg-[#1c1c1c] p-6 sm:p-10 font-sans antialiased text-white select-none text-left overflow-y-auto">
       <div className="max-w-5xl mx-auto space-y-8 pt-2 sm:pt-4">
         
         {/* Header Title */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-100 pb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-neutral-950 text-white shadow-2xs">
+              <div className="p-1.5 rounded-lg bg-white text-neutral-950 shadow-2xs">
                 <Code2 size={18} />
               </div>
-              <h1 className="text-2xl sm:text-3xl font-serif font-bold text-neutral-950 tracking-tight">
+              <h1 className="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight">
                 Developer Platform
               </h1>
             </div>
-            <p className="text-xs sm:text-sm text-neutral-500 font-normal">
+            <p className="text-xs sm:text-sm text-neutral-400 font-normal">
               Integrate Calvras AI into your SaaS apps, e-commerce stores, backend workflows, and embeddable copilots.
             </p>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-mono font-medium px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex items-center gap-1.5">
+            <span className="text-[11px] font-mono font-medium px-2.5 py-1 rounded-full bg-white/5 text-emerald-400 border border-white/10 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               API v1.4 • Live
             </span>
