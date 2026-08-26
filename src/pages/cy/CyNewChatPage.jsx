@@ -15,7 +15,10 @@ import {
   PenTool,
   Video,
   Activity,
-  ChevronDown
+  Layers,
+  TrendingUp,
+  Zap,
+  Bot
 } from 'lucide-react';
 import { useMarketing } from '../../context/MarketingContext';
 import { 
@@ -32,12 +35,12 @@ export const CyNewChatPage = ({
   onToggleSidebar, 
   onNewChat 
 }) => {
-  const { connectedSocials, connectSocialAccount, disconnectSocialAccount, userProfile } = useMarketing();
+  const { connectedSocials, connectSocialAccount, userProfile } = useMarketing();
   const [promptText, setPromptText] = useState('');
   const [authModalChannel, setAuthModalChannel] = useState(null);
   const [attachedImage, setAttachedImage] = useState(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [activeMode, setActiveMode] = useState('campaign'); // 'campaign' | 'copy' | 'hooks' | 'cro'
+  const [selectedIntent, setSelectedIntent] = useState('campaign');
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
 
@@ -47,7 +50,11 @@ export const CyNewChatPage = ({
   const userPlan = userPlanRaw ? JSON.parse(userPlanRaw)?.planKey : 'basic';
   const hasConnectorsAccess = userPlan === 'pro' || userPlan === 'agency';
 
-  // Auto-expand textarea as user types longer text
+  // Dynamic user first name
+  const rawName = userProfile?.name || userName || 'SHIKARI';
+  const displayFirstName = rawName.split(' ')[0];
+
+  // Auto-expand textarea
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -58,15 +65,11 @@ export const CyNewChatPage = ({
     }
   }, [promptText]);
 
-  // Dynamic user first name from Google / profile
-  const rawName = userProfile?.name || userName || 'SHIKARI';
-  const displayFirstName = rawName.split(' ')[0];
-
   const socialPlatforms = [
-    { id: 'Instagram', name: 'Instagram', renderIcon: () => <InstagramLogo size={15} /> },
-    { id: 'TikTok', name: 'TikTok', renderIcon: () => <TikTokLogo size={14} className="text-white" /> },
-    { id: 'Twitter', name: 'X / Twitter', renderIcon: () => <XTwitterLogo size={13} className="text-white" /> },
-    { id: 'Facebook', name: 'Facebook', renderIcon: () => <FacebookLogo size={15} /> }
+    { id: 'Instagram', name: 'Instagram', renderIcon: () => <InstagramLogo size={16} /> },
+    { id: 'TikTok', name: 'TikTok', renderIcon: () => <TikTokLogo size={15} className="text-white" /> },
+    { id: 'Twitter', name: 'X / Twitter', renderIcon: () => <XTwitterLogo size={14} className="text-white" /> },
+    { id: 'Facebook', name: 'Facebook', renderIcon: () => <FacebookLogo size={16} /> }
   ];
 
   const handleKeyDown = (e) => {
@@ -97,20 +100,41 @@ export const CyNewChatPage = ({
     setAuthModalChannel(platId);
   };
 
-  const modes = [
-    { id: 'campaign', label: 'Full Campaign', icon: Target, placeholder: 'Describe your product or goal to generate a 30-day multi-channel roadmap...' },
-    { id: 'copy', label: 'Ad Copy', icon: PenTool, placeholder: 'What are you selling? I will write 5 direct-response Meta, Google & TikTok copy angles...' },
-    { id: 'hooks', label: 'Video Hooks', icon: Video, placeholder: 'Enter your offer for 3-part viral hook scripts with visual cues...' },
-    { id: 'cro', label: 'CRO Doctor', icon: Activity, placeholder: 'Describe your drop in conversions or paste landing page URL for a diagnostic teardown...' }
+  const intents = [
+    { 
+      id: 'campaign', 
+      label: '30-Day Campaign', 
+      icon: Target,
+      placeholder: 'E.g. Launch a $1,500 weekend sale for a luxury apparel brand targeting US buyers...'
+    },
+    { 
+      id: 'copy', 
+      label: 'Direct-Response Copy', 
+      icon: PenTool,
+      placeholder: 'E.g. Write 5 high-converting Meta ASC+ ad angles and headlines for a skincare product...'
+    },
+    { 
+      id: 'hooks', 
+      label: 'Viral TikTok Hooks', 
+      icon: Video,
+      placeholder: 'E.g. Generate 3 viral TikTok & Reel hook scripts with visual staging cues...'
+    },
+    { 
+      id: 'cro', 
+      label: 'Funnel CRO Audit', 
+      icon: Activity,
+      placeholder: 'E.g. Our checkout drop-off jumped by 28%. Diagnose friction points and give me a recovery plan...'
+    }
   ];
 
-  const currentPlaceholder = modes.find(m => m.id === activeMode)?.placeholder || 'Ask anything or describe what you want to market...';
+  const currentPlaceholder = intents.find(i => i.id === selectedIntent)?.placeholder;
 
   return (
-    <div className="flex-1 min-h-screen bg-[#0d0e0c] flex flex-col justify-between items-center p-4 sm:p-8 lg:p-12 font-sans antialiased text-[#f4f4ee] select-none overflow-y-auto w-full min-w-0 relative">
+    <div className="flex-1 min-h-screen bg-[#0a0b09] flex flex-col justify-between items-center p-4 sm:p-8 lg:p-10 font-sans antialiased text-[#f4f4ee] select-none overflow-y-auto w-full min-w-0 relative">
       
-      {/* Subtle Ambient Radial Glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-[500px] bg-gradient-to-b from-white/[0.02] via-emerald-500/[0.01] to-transparent blur-3xl pointer-events-none -z-10" />
+      {/* Ambient Gradient Glow Lighting */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[450px] bg-gradient-to-b from-[#ff5e28]/[0.04] via-[#8057ff]/[0.03] to-transparent blur-3xl pointer-events-none -z-10" />
+      <div className="absolute top-20 left-1/2 -translate-x-1/2 w-96 h-96 bg-white/[0.015] rounded-full blur-2xl pointer-events-none -z-10" />
 
       {/* Hidden File Input */}
       <input 
@@ -131,10 +155,10 @@ export const CyNewChatPage = ({
         />
       )}
 
-      {/* Feature Gating Upgrade Modal */}
+      {/* Feature Gating Upgrade Modal for $10 Basic Users */}
       {showUpgradeModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-[#161714] border border-white/20 rounded-3xl p-6 sm:p-8 max-w-md w-full text-center space-y-5 shadow-2xl relative">
+          <div className="bg-[#141512] border border-white/20 rounded-3xl p-6 sm:p-8 max-w-md w-full text-center space-y-5 shadow-2xl relative">
             <button
               onClick={() => setShowUpgradeModal(false)}
               className="absolute top-4 right-4 text-neutral-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition cursor-pointer"
@@ -159,18 +183,18 @@ export const CyNewChatPage = ({
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-[#10110e] border border-white/10 text-left text-xs text-neutral-300 space-y-2">
-              <div className="flex items-center gap-2 text-neutral-200">
-                <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
+            <div className="p-3.5 rounded-2xl bg-[#0d0e0c] border border-white/10 text-left text-xs text-neutral-300 space-y-2">
+              <div className="flex items-center gap-2 text-white font-semibold">
+                <CheckCircle2 size={13} className="text-emerald-400" />
                 <span>Sync live TikTok & Instagram analytics</span>
               </div>
-              <div className="flex items-center gap-2 text-neutral-200">
-                <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
-                <span>Autonomous 24/7 ROAS pacing & CPA protection</span>
+              <div className="flex items-center gap-2 text-white font-semibold">
+                <CheckCircle2 size={13} className="text-emerald-400" />
+                <span>Autonomous 24/7 ROAS pacing & CPA guards</span>
               </div>
-              <div className="flex items-center gap-2 text-neutral-200">
-                <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
-                <span>3,500+ marketing credits per month</span>
+              <div className="flex items-center gap-2 text-white font-semibold">
+                <CheckCircle2 size={13} className="text-emerald-400" />
+                <span>3,500+ credits/mo for scaling campaigns</span>
               </div>
             </div>
 
@@ -188,66 +212,66 @@ export const CyNewChatPage = ({
         </div>
       )}
 
-      {/* Top Bar Status Pill & Mobile Actions */}
-      <div className="w-full max-w-2xl mx-auto flex items-center justify-between pb-4">
-        
-        {/* Mobile Header (Hidden on Desktop) */}
-        <div className="flex md:hidden items-center justify-between w-full">
-          <div className="flex items-center gap-2.5">
-            <img 
-              src="/calvras.png" 
-              alt="Calvras Logo" 
-              className="w-7 h-7 rounded-lg object-contain"
-            />
-            <span className="font-serif font-bold text-white text-lg tracking-tight">
-              Calvras
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={onToggleSidebar}
-              className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-neutral-300 hover:text-white"
-            >
-              <Menu size={15} />
-            </button>
-            <button 
-              onClick={onNewChat}
-              className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-neutral-300 hover:text-white"
-            >
-              <SquarePen size={15} />
-            </button>
-          </div>
+      {/* Top Mobile Brand Bar */}
+      <div className="w-full max-w-2xl mx-auto flex md:hidden items-center justify-between pb-3">
+        <div className="flex items-center gap-2.5">
+          <img 
+            src="/calvras.png" 
+            alt="Calvras" 
+            className="w-7 h-7 rounded-lg object-contain"
+          />
+          <span className="font-serif font-bold text-white text-lg tracking-tight">
+            Calvras
+          </span>
         </div>
 
-        {/* Desktop Engine Status Tag */}
-        <div className="hidden md:inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-[11px] font-mono text-neutral-400">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span>Calvras Marketing Copilot v4.2 • Ready</span>
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={onToggleSidebar}
+            className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-neutral-300 hover:text-white"
+          >
+            <Menu size={15} />
+          </button>
+          <button 
+            onClick={onNewChat}
+            className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-neutral-300 hover:text-white"
+          >
+            <SquarePen size={15} />
+          </button>
         </div>
-
       </div>
 
       {/* Main Studio Core Content */}
-      <div className="max-w-2xl mx-auto w-full text-center space-y-8 my-auto py-4">
+      <div className="max-w-2xl mx-auto w-full text-center space-y-7 my-auto py-2">
         
-        {/* Headline */}
-        <div className="space-y-3 px-2">
-          <h1 className="text-3xl sm:text-5xl lg:text-[52px] font-serif font-normal text-[#f4f4ee] tracking-tight leading-[1.08]">
+        {/* Luxury Hero Header */}
+        <div className="space-y-3.5 px-2 animate-in fade-in duration-500">
+          
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-[11px] font-mono text-neutral-300 shadow-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="font-medium tracking-wide">Calvras Autonomous Marketing OS</span>
+          </div>
+
+          {/* Heading */}
+          <h1 className="text-3xl sm:text-5xl lg:text-[50px] font-serif font-normal text-[#f4f4ee] tracking-tight leading-[1.12]">
             What are we scaling today,<br />
-            <span className="italic text-neutral-300">{displayFirstName}</span>?
+            <span className="italic text-transparent bg-clip-text bg-gradient-to-r from-[#f4f4ee] via-neutral-200 to-neutral-400">
+              {displayFirstName}
+            </span>?
           </h1>
+
           <p className="text-xs sm:text-sm text-neutral-400 font-normal max-w-md mx-auto leading-relaxed">
-            Formulate campaigns, generate high-converting ad copy, and scale revenue.
+            Formulate campaigns, generate direct-response ad copy, and scale ROAS.
           </p>
         </div>
 
-        {/* Luxury Studio Prompt Box */}
-        <div className="space-y-3 w-full text-left">
+        {/* Studio Prompt Cockpit Card */}
+        <div className="bg-[#121310]/95 backdrop-blur-xl border border-white/12 hover:border-white/20 focus-within:border-white/35 rounded-3xl p-4 sm:p-5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all duration-300 text-left space-y-3 relative">
           
-          {/* Attached Image Thumbnail */}
+          {/* Image Attachment Preview */}
           {attachedImage && (
-            <div className="relative inline-block border border-white/15 rounded-2xl overflow-hidden bg-[#161714] p-1.5 mb-1 shadow-lg">
+            <div className="relative inline-block border border-white/20 rounded-2xl overflow-hidden bg-black/40 p-1 mb-1">
               <img src={attachedImage} alt="Attachment" className="max-h-24 max-w-xs object-cover rounded-xl" />
               <button
                 onClick={() => setAttachedImage(null)}
@@ -258,86 +282,81 @@ export const CyNewChatPage = ({
             </div>
           )}
 
-          {/* Prompt Container */}
-          <div className="bg-[#141512] border border-white/15 hover:border-white/25 focus-within:border-white/40 rounded-3xl p-4 sm:p-5 shadow-2xl transition-all duration-300 relative space-y-3">
-            
-            {/* Mode Switcher Buttons */}
-            <div className="flex items-center gap-1.5 flex-wrap pb-2 border-b border-white/10">
-              {modes.map((m) => {
-                const Icon = m.icon;
-                const isSelected = activeMode === m.id;
-                return (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={() => setActiveMode(m.id)}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition cursor-pointer ${
-                      isSelected
-                        ? 'bg-white text-neutral-950 font-bold shadow-sm'
-                        : 'bg-white/[0.04] hover:bg-white/[0.08] text-neutral-400 hover:text-white border border-white/5'
-                    }`}
-                  >
-                    <Icon size={12} className={isSelected ? 'text-neutral-950' : 'text-neutral-400'} />
-                    <span>{m.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Input Textarea */}
-            <textarea
-              ref={textareaRef}
-              rows="1"
-              value={promptText}
-              onChange={(e) => setPromptText(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={currentPlaceholder}
-              className="w-full bg-transparent resize-none focus:outline-none text-xs sm:text-[14px] text-white placeholder:text-neutral-500 leading-relaxed min-h-[50px] max-h-60 overflow-y-auto py-1 font-normal"
-            />
-
-            {/* Bottom Actions Row */}
-            <div className="flex items-center justify-between pt-2 border-t border-white/10">
-              <div className="flex items-center gap-2">
-                <button 
-                  type="button" 
-                  onClick={() => fileInputRef.current?.click()}
-                  className="hover:text-white text-neutral-400 p-2 rounded-xl hover:bg-white/10 transition cursor-pointer" 
-                  title="Attach file or creative screenshot"
+          {/* Intent Mode Selector Pills */}
+          <div className="flex items-center gap-1.5 flex-wrap pb-2.5 border-b border-white/10">
+            {intents.map((intent) => {
+              const Icon = intent.icon;
+              const isSelected = selectedIntent === intent.id;
+              return (
+                <button
+                  key={intent.id}
+                  type="button"
+                  onClick={() => setSelectedIntent(intent.id)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition cursor-pointer active:scale-95 ${
+                    isSelected
+                      ? 'bg-white text-neutral-950 font-bold shadow-sm'
+                      : 'bg-white/[0.04] hover:bg-white/[0.08] text-neutral-400 hover:text-white border border-white/5'
+                  }`}
                 >
-                  <Paperclip size={16} />
+                  <Icon size={12} className={isSelected ? 'text-neutral-950' : 'text-neutral-400'} />
+                  <span>{intent.label}</span>
                 </button>
+              );
+            })}
+          </div>
 
-                <button 
-                  type="button" 
-                  className="hover:text-white text-neutral-400 p-2 rounded-xl hover:bg-white/10 transition cursor-pointer" 
-                  title="Global Web Research"
-                >
-                  <Globe size={16} />
-                </button>
-              </div>
+          {/* Prompt Textarea */}
+          <textarea
+            ref={textareaRef}
+            rows="1"
+            value={promptText}
+            onChange={(e) => setPromptText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={currentPlaceholder}
+            className="w-full bg-transparent resize-none focus:outline-none text-xs sm:text-[14px] text-white placeholder:text-neutral-500 leading-relaxed font-normal min-h-[52px] max-h-60 overflow-y-auto py-1 transition-all"
+          />
 
-              <button
-                type="button"
-                onClick={() => (promptText.trim() || attachedImage) && onSendMessage(promptText, attachedImage)}
-                disabled={!promptText.trim() && !attachedImage}
-                className="w-9 h-9 rounded-full bg-white hover:bg-neutral-200 disabled:opacity-30 text-neutral-950 font-bold flex items-center justify-center transition cursor-pointer shadow-md active:scale-95"
-                title="Send Prompt"
+          {/* Bottom Actions Row */}
+          <div className="flex items-center justify-between pt-2 border-t border-white/10">
+            <div className="flex items-center gap-2">
+              <button 
+                type="button" 
+                onClick={() => fileInputRef.current?.click()}
+                className="hover:text-white text-neutral-400 p-2 rounded-xl hover:bg-white/10 transition cursor-pointer" 
+                title="Attach creative asset or screenshot"
               >
-                <Send size={14} className="translate-x-[-0.5px] translate-y-[-0.5px]" />
+                <Paperclip size={16} />
+              </button>
+
+              <button 
+                type="button" 
+                className="hover:text-white text-neutral-400 p-2 rounded-xl hover:bg-white/10 transition cursor-pointer" 
+                title="Search Live Web Intelligence"
+              >
+                <Globe size={16} />
               </button>
             </div>
 
+            <button
+              type="button"
+              onClick={() => (promptText.trim() || attachedImage) && onSendMessage(promptText, attachedImage)}
+              disabled={!promptText.trim() && !attachedImage}
+              className="w-9 h-9 rounded-full bg-white hover:bg-neutral-200 disabled:opacity-25 text-neutral-950 font-bold flex items-center justify-center transition cursor-pointer shadow-md active:scale-95"
+              title="Launch Execution"
+            >
+              <Send size={14} className="translate-x-[-0.5px] translate-y-[-0.5px]" />
+            </button>
           </div>
 
         </div>
 
-        {/* Minimalist Integration Dock */}
-        <div className="bg-[#121310] border border-white/10 rounded-2xl p-4 text-left flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
+        {/* Streamlined Deployment Channels Dock */}
+        <div className="bg-[#11120f]/80 border border-white/10 rounded-2xl p-3.5 px-4 text-left flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
           <div className="flex items-center gap-2 text-xs">
-            <span className="text-neutral-400 font-medium">Connected Channels:</span>
+            <span className="text-neutral-400 font-medium">Deployment Channels:</span>
             {!hasConnectorsAccess && (
-              <span className="text-[10px] font-mono text-[#8057ff] font-bold bg-[#8057ff]/10 px-2 py-0.5 rounded-md border border-[#8057ff]/20">
-                Pro Feature
+              <span className="text-[10px] font-mono text-[#8057ff] font-bold bg-[#8057ff]/15 px-2 py-0.5 rounded-md border border-[#8057ff]/25">
+                Pro
               </span>
             )}
           </div>
@@ -352,7 +371,7 @@ export const CyNewChatPage = ({
                   className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs transition cursor-pointer ${
                     connected
                       ? 'bg-white/10 border-white/30 text-white font-semibold'
-                      : 'bg-[#181915] hover:bg-[#1e1f1a] border-white/10 text-neutral-400 hover:text-white'
+                      : 'bg-[#161714] hover:bg-[#1c1d19] border-white/10 text-neutral-400 hover:text-white'
                   }`}
                 >
                   {plat.renderIcon()}
