@@ -232,7 +232,7 @@ export const CyNewChatPage = ({
             </div>
           )}
 
-          <div className="bg-neutral-100/80 hover:bg-neutral-100 rounded-3xl p-4 sm:p-5 shadow-xs transition-all duration-200 text-left space-y-3 relative border-none">
+          <div className="bg-white border border-neutral-300 hover:border-neutral-400 focus-within:border-neutral-900 rounded-3xl p-4 sm:p-5 shadow-xs transition-all duration-200 text-left space-y-3 relative">
             <textarea
               ref={textareaRef}
               rows="1"
