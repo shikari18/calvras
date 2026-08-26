@@ -7,18 +7,18 @@ import {
   X, 
   Menu, 
   SquarePen, 
-  Bell,
-  Lock,
-  Sparkles,
-  ArrowRight,
-  Target,
-  PenTool,
-  Video,
-  Activity,
-  Layers,
-  TrendingUp,
-  Zap,
-  Bot
+  Lock, 
+  Sparkles, 
+  ArrowRight, 
+  Target, 
+  TrendingUp, 
+  Zap, 
+  Shield, 
+  Layers, 
+  BarChart3, 
+  Flame, 
+  Cpu,
+  ArrowUpRight
 } from 'lucide-react';
 import { useMarketing } from '../../context/MarketingContext';
 import { 
@@ -40,7 +40,6 @@ export const CyNewChatPage = ({
   const [authModalChannel, setAuthModalChannel] = useState(null);
   const [attachedImage, setAttachedImage] = useState(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [selectedIntent, setSelectedIntent] = useState('campaign');
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
 
@@ -59,17 +58,17 @@ export const CyNewChatPage = ({
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       if (promptText) {
-        const nextHeight = Math.min(Math.max(textareaRef.current.scrollHeight, 44), 220);
+        const nextHeight = Math.min(Math.max(textareaRef.current.scrollHeight, 52), 240);
         textareaRef.current.style.height = `${nextHeight}px`;
       }
     }
   }, [promptText]);
 
   const socialPlatforms = [
-    { id: 'Instagram', name: 'Instagram', renderIcon: () => <InstagramLogo size={16} /> },
-    { id: 'TikTok', name: 'TikTok', renderIcon: () => <TikTokLogo size={15} className="text-white" /> },
-    { id: 'Twitter', name: 'X / Twitter', renderIcon: () => <XTwitterLogo size={14} className="text-white" /> },
-    { id: 'Facebook', name: 'Facebook', renderIcon: () => <FacebookLogo size={16} /> }
+    { id: 'Instagram', name: 'Instagram', renderIcon: () => <InstagramLogo size={14} /> },
+    { id: 'TikTok', name: 'TikTok', renderIcon: () => <TikTokLogo size={13} className="text-white" /> },
+    { id: 'Twitter', name: 'X / Twitter', renderIcon: () => <XTwitterLogo size={12} className="text-white" /> },
+    { id: 'Facebook', name: 'Meta / Ads', renderIcon: () => <FacebookLogo size={14} /> }
   ];
 
   const handleKeyDown = (e) => {
@@ -100,41 +99,43 @@ export const CyNewChatPage = ({
     setAuthModalChannel(platId);
   };
 
-  const intents = [
-    { 
-      id: 'campaign', 
-      label: '30-Day Campaign', 
+  // Billion-Dollar AI Marketing Capability Cards
+  const capabilityCards = [
+    {
+      id: 'scale-campaign',
       icon: Target,
-      placeholder: 'E.g. Launch a $1,500 weekend sale for a luxury apparel brand targeting US buyers...'
+      tag: 'Meta & TikTok ASC+',
+      badgeColor: 'text-emerald-400 border-emerald-500/20 bg-emerald-500/10',
+      title: 'Full 30-Day Growth Campaign',
+      description: 'Generate multi-channel ad roadmaps, budgets, audience targeting & copy variations.',
+      prompt: 'Build a full 30-day multi-channel paid ad campaign for my brand targeting high-intent buyers with Meta ASC+, TikTok, and retargeting funnels.'
     },
-    { 
-      id: 'copy', 
-      label: 'Direct-Response Copy', 
-      icon: PenTool,
-      placeholder: 'E.g. Write 5 high-converting Meta ASC+ ad angles and headlines for a skincare product...'
+    {
+      id: 'viral-creative',
+      icon: Flame,
+      tag: 'Viral Hooks & Scripts',
+      badgeColor: 'text-[#ff5e28] border-[#ff5e28]/20 bg-[#ff5e28]/10',
+      title: 'Direct-Response Creative Lab',
+      description: 'Write 3:2:2 dynamic testing angles, high-converting hooks, and visual storytelling scripts.',
+      prompt: 'Write 5 high-converting direct-response ad copy variations and 3 viral UGC TikTok hook scripts with visual stage directions.'
     },
-    { 
-      id: 'hooks', 
-      label: 'Viral TikTok Hooks', 
-      icon: Video,
-      placeholder: 'E.g. Generate 3 viral TikTok & Reel hook scripts with visual staging cues...'
-    },
-    { 
-      id: 'cro', 
-      label: 'Funnel CRO Audit', 
-      icon: Activity,
-      placeholder: 'E.g. Our checkout drop-off jumped by 28%. Diagnose friction points and give me a recovery plan...'
+    {
+      id: 'cro-doctor',
+      icon: Zap,
+      tag: 'ROAS & Funnel Recovery',
+      badgeColor: 'text-[#a88aff] border-[#8057ff]/20 bg-[#8057ff]/10',
+      title: 'Campaign Doctor & CRO Audit',
+      description: 'Diagnose conversion drops, message mismatches, and deliver a 3-step ROAS recovery playbook.',
+      prompt: 'Audit our funnel performance and landing page conversion friction, then give me an immediate 3-step ROAS recovery playbook.'
     }
   ];
 
-  const currentPlaceholder = intents.find(i => i.id === selectedIntent)?.placeholder;
-
   return (
-    <div className="flex-1 min-h-screen bg-[#0a0b09] flex flex-col justify-between items-center p-4 sm:p-8 lg:p-10 font-sans antialiased text-[#f4f4ee] select-none overflow-y-auto w-full min-w-0 relative">
+    <div className="flex-1 min-h-screen bg-[#070806] flex flex-col justify-between items-center p-4 sm:p-8 lg:p-12 font-sans antialiased text-[#f4f4ee] select-none overflow-y-auto w-full min-w-0 relative">
       
-      {/* Ambient Gradient Glow Lighting */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[450px] bg-gradient-to-b from-[#ff5e28]/[0.04] via-[#8057ff]/[0.03] to-transparent blur-3xl pointer-events-none -z-10" />
-      <div className="absolute top-20 left-1/2 -translate-x-1/2 w-96 h-96 bg-white/[0.015] rounded-full blur-2xl pointer-events-none -z-10" />
+      {/* 1. Luminous Ambient Gradient Glow Mesh (Billion-Dollar Depth) */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-[550px] bg-gradient-to-b from-[#ff5e28]/[0.05] via-[#8057ff]/[0.04] to-transparent blur-[120px] pointer-events-none -z-10" />
+      <div className="absolute top-24 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-white/[0.015] rounded-full blur-[90px] pointer-events-none -z-10" />
 
       {/* Hidden File Input */}
       <input 
@@ -157,43 +158,43 @@ export const CyNewChatPage = ({
 
       {/* Feature Gating Upgrade Modal for $10 Basic Users */}
       {showUpgradeModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-[#141512] border border-white/20 rounded-3xl p-6 sm:p-8 max-w-md w-full text-center space-y-5 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-[#121310] border border-white/20 rounded-3xl p-7 sm:p-9 max-w-md w-full text-center space-y-6 shadow-[0_25px_70px_rgba(0,0,0,0.8)] relative">
             <button
               onClick={() => setShowUpgradeModal(false)}
-              className="absolute top-4 right-4 text-neutral-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition cursor-pointer"
+              className="absolute top-4 right-4 text-neutral-400 hover:text-white p-1.5 rounded-xl hover:bg-white/10 transition cursor-pointer"
             >
               <X size={18} />
             </button>
 
-            <div className="w-12 h-12 rounded-2xl bg-[#8057ff]/15 border border-[#8057ff]/30 text-[#a88aff] flex items-center justify-center mx-auto shadow-lg">
-              <Lock size={22} />
+            <div className="w-14 h-14 rounded-2xl bg-[#8057ff]/20 border border-[#8057ff]/40 text-[#a88aff] flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(128,87,255,0.3)]">
+              <Lock size={24} />
             </div>
 
-            <div className="space-y-1.5">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#8057ff]/20 text-[#a88aff] text-[10px] font-bold uppercase tracking-wider">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#8057ff]/20 text-[#a88aff] text-[10px] font-bold uppercase tracking-wider border border-[#8057ff]/30">
                 <Sparkles size={11} />
                 <span>Pro & Agency Feature</span>
               </div>
-              <h3 className="text-xl font-serif font-bold text-white tracking-tight">
-                Unlock Social Connectors
+              <h3 className="text-2xl font-serif font-bold text-white tracking-tight">
+                Unlock Live Channel Sync
               </h3>
               <p className="text-xs text-neutral-300 leading-relaxed max-w-xs mx-auto">
                 Live social account syncing & automated publishing are available on the <strong>Pro Growth ($25)</strong> and <strong>Agency & Scale ($48)</strong> plans.
               </p>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-[#0d0e0c] border border-white/10 text-left text-xs text-neutral-300 space-y-2">
-              <div className="flex items-center gap-2 text-white font-semibold">
-                <CheckCircle2 size={13} className="text-emerald-400" />
-                <span>Sync live TikTok & Instagram analytics</span>
+            <div className="p-4 rounded-2xl bg-[#0a0b08] border border-white/10 text-left text-xs text-neutral-300 space-y-2.5">
+              <div className="flex items-center gap-2.5 text-white font-medium">
+                <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
+                <span>Sync live TikTok, Meta & Instagram telemetry</span>
               </div>
-              <div className="flex items-center gap-2 text-white font-semibold">
-                <CheckCircle2 size={13} className="text-emerald-400" />
+              <div className="flex items-center gap-2.5 text-white font-medium">
+                <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
                 <span>Autonomous 24/7 ROAS pacing & CPA guards</span>
               </div>
-              <div className="flex items-center gap-2 text-white font-semibold">
-                <CheckCircle2 size={13} className="text-emerald-400" />
+              <div className="flex items-center gap-2.5 text-white font-medium">
+                <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
                 <span>3,500+ credits/mo for scaling campaigns</span>
               </div>
             </div>
@@ -203,7 +204,7 @@ export const CyNewChatPage = ({
                 setShowUpgradeModal(false);
                 if (typeof window !== 'undefined') window.location.hash = '#pricing';
               }}
-              className="w-full py-3 px-4 rounded-xl bg-white hover:bg-neutral-100 text-neutral-950 font-bold text-xs transition cursor-pointer shadow-md active:scale-95 flex items-center justify-center gap-2"
+              className="w-full py-3.5 px-4 rounded-xl bg-white hover:bg-neutral-100 text-neutral-950 font-bold text-xs transition cursor-pointer shadow-lg active:scale-95 flex items-center justify-center gap-2"
             >
               <span>Upgrade to Pro ($25)</span>
               <ArrowRight size={14} />
@@ -212,98 +213,86 @@ export const CyNewChatPage = ({
         </div>
       )}
 
-      {/* Top Mobile Brand Bar */}
-      <div className="w-full max-w-2xl mx-auto flex md:hidden items-center justify-between pb-3">
-        <div className="flex items-center gap-2.5">
-          <img 
-            src="/calvras.png" 
-            alt="Calvras" 
-            className="w-7 h-7 rounded-lg object-contain"
-          />
-          <span className="font-serif font-bold text-white text-lg tracking-tight">
-            Calvras
-          </span>
+      {/* Top Bar Status Pill & Mobile Actions */}
+      <div className="w-full max-w-3xl mx-auto flex items-center justify-between pb-2">
+        
+        {/* Mobile Header (Hidden on Desktop) */}
+        <div className="flex md:hidden items-center justify-between w-full pb-2">
+          <div className="flex items-center gap-2.5">
+            <img 
+              src="/calvras.png" 
+              alt="Calvras" 
+              className="w-7 h-7 rounded-lg object-contain"
+            />
+            <span className="font-serif font-bold text-white text-lg tracking-tight">
+              Calvras
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={onToggleSidebar}
+              className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-neutral-300 hover:text-white"
+            >
+              <Menu size={15} />
+            </button>
+            <button 
+              onClick={onNewChat}
+              className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-neutral-300 hover:text-white"
+            >
+              <SquarePen size={15} />
+            </button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button 
-            onClick={onToggleSidebar}
-            className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-neutral-300 hover:text-white"
-          >
-            <Menu size={15} />
-          </button>
-          <button 
-            onClick={onNewChat}
-            className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-neutral-300 hover:text-white"
-          >
-            <SquarePen size={15} />
-          </button>
+        {/* Desktop System Status Pill */}
+        <div className="hidden md:inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-white/10 text-[11px] font-mono text-neutral-400 shadow-2xs">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span>Calvras Autonomous Neural Engine v4.2</span>
+          <span className="text-white/20">•</span>
+          <span className="text-emerald-400/90 font-semibold">Active</span>
         </div>
+
+        {/* Global Strategy Mode Badge */}
+        <div className="hidden md:inline-flex items-center gap-1.5 text-[11px] font-mono text-neutral-400">
+          <Cpu size={12} className="text-neutral-500" />
+          <span>Multi-Channel Strategy Engine</span>
+        </div>
+
       </div>
 
       {/* Main Studio Core Content */}
-      <div className="max-w-2xl mx-auto w-full text-center space-y-7 my-auto py-2">
+      <div className="max-w-3xl mx-auto w-full text-center space-y-8 my-auto py-4">
         
         {/* Luxury Hero Header */}
-        <div className="space-y-3.5 px-2 animate-in fade-in duration-500">
-          
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-[11px] font-mono text-neutral-300 shadow-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="font-medium tracking-wide">Calvras Autonomous Marketing OS</span>
-          </div>
-
-          {/* Heading */}
-          <h1 className="text-3xl sm:text-5xl lg:text-[50px] font-serif font-normal text-[#f4f4ee] tracking-tight leading-[1.12]">
+        <div className="space-y-3.5 px-2">
+          <h1 className="text-3xl sm:text-5xl lg:text-[54px] font-serif font-normal text-[#f4f4ee] tracking-tight leading-[1.08]">
             What are we scaling today,<br />
-            <span className="italic text-transparent bg-clip-text bg-gradient-to-r from-[#f4f4ee] via-neutral-200 to-neutral-400">
+            <span className="italic text-transparent bg-clip-text bg-gradient-to-r from-white via-neutral-100 to-neutral-400">
               {displayFirstName}
             </span>?
           </h1>
 
-          <p className="text-xs sm:text-sm text-neutral-400 font-normal max-w-md mx-auto leading-relaxed">
-            Formulate campaigns, generate direct-response ad copy, and scale ROAS.
+          <p className="text-xs sm:text-sm text-neutral-400 font-normal max-w-lg mx-auto leading-relaxed">
+            Direct-response ad campaigns, high-converting copy, viral video hooks, and automated revenue funnels.
           </p>
         </div>
 
-        {/* Studio Prompt Cockpit Card */}
-        <div className="bg-[#121310]/95 backdrop-blur-xl border border-white/12 hover:border-white/20 focus-within:border-white/35 rounded-3xl p-4 sm:p-5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all duration-300 text-left space-y-3 relative">
+        {/* Billion-Dollar Command Prompt Cockpit */}
+        <div className="bg-[#11120f]/95 backdrop-blur-2xl border border-white/12 hover:border-white/25 focus-within:border-white/40 rounded-3xl p-4 sm:p-5 shadow-[0_25px_60px_rgba(0,0,0,0.6)] transition-all duration-300 text-left space-y-3 relative">
           
           {/* Image Attachment Preview */}
           {attachedImage && (
-            <div className="relative inline-block border border-white/20 rounded-2xl overflow-hidden bg-black/40 p-1 mb-1">
+            <div className="relative inline-block border border-white/20 rounded-2xl overflow-hidden bg-black/60 p-1 mb-1 shadow-lg">
               <img src={attachedImage} alt="Attachment" className="max-h-24 max-w-xs object-cover rounded-xl" />
               <button
                 onClick={() => setAttachedImage(null)}
-                className="absolute top-2 right-2 w-5 h-5 rounded-full bg-black/80 hover:bg-red-600 text-white flex items-center justify-center text-[10px] transition cursor-pointer"
+                className="absolute top-2 right-2 w-5 h-5 rounded-full bg-black/80 hover:bg-red-600 text-white flex items-center justify-center text-[10px] transition cursor-pointer shadow-md"
               >
                 <X size={11} />
               </button>
             </div>
           )}
-
-          {/* Intent Mode Selector Pills */}
-          <div className="flex items-center gap-1.5 flex-wrap pb-2.5 border-b border-white/10">
-            {intents.map((intent) => {
-              const Icon = intent.icon;
-              const isSelected = selectedIntent === intent.id;
-              return (
-                <button
-                  key={intent.id}
-                  type="button"
-                  onClick={() => setSelectedIntent(intent.id)}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition cursor-pointer active:scale-95 ${
-                    isSelected
-                      ? 'bg-white text-neutral-950 font-bold shadow-sm'
-                      : 'bg-white/[0.04] hover:bg-white/[0.08] text-neutral-400 hover:text-white border border-white/5'
-                  }`}
-                >
-                  <Icon size={12} className={isSelected ? 'text-neutral-950' : 'text-neutral-400'} />
-                  <span>{intent.label}</span>
-                </button>
-              );
-            })}
-          </div>
 
           {/* Prompt Textarea */}
           <textarea
@@ -312,51 +301,92 @@ export const CyNewChatPage = ({
             value={promptText}
             onChange={(e) => setPromptText(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={currentPlaceholder}
-            className="w-full bg-transparent resize-none focus:outline-none text-xs sm:text-[14px] text-white placeholder:text-neutral-500 leading-relaxed font-normal min-h-[52px] max-h-60 overflow-y-auto py-1 transition-all"
+            placeholder="Ask anything or describe the product, offer, or campaign you want to market..."
+            className="w-full bg-transparent resize-none focus:outline-none text-xs sm:text-[14.5px] text-white placeholder:text-neutral-500 leading-relaxed font-normal min-h-[52px] max-h-60 overflow-y-auto py-1 transition-all"
           />
 
-          {/* Bottom Actions Row */}
-          <div className="flex items-center justify-between pt-2 border-t border-white/10">
-            <div className="flex items-center gap-2">
+          {/* Bottom Actions Tray */}
+          <div className="flex items-center justify-between pt-2.5 border-t border-white/10">
+            <div className="flex items-center gap-1.5">
               <button 
                 type="button" 
                 onClick={() => fileInputRef.current?.click()}
-                className="hover:text-white text-neutral-400 p-2 rounded-xl hover:bg-white/10 transition cursor-pointer" 
-                title="Attach creative asset or screenshot"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-neutral-400 hover:text-white hover:bg-white/10 transition cursor-pointer text-xs font-medium" 
+                title="Attach creative asset or product image"
               >
-                <Paperclip size={16} />
+                <Paperclip size={15} />
+                <span className="hidden sm:inline text-[11px]">Attach Image</span>
               </button>
 
               <button 
                 type="button" 
-                className="hover:text-white text-neutral-400 p-2 rounded-xl hover:bg-white/10 transition cursor-pointer" 
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-neutral-400 hover:text-white hover:bg-white/10 transition cursor-pointer text-xs font-medium" 
                 title="Search Live Web Intelligence"
               >
-                <Globe size={16} />
+                <Globe size={15} />
+                <span className="hidden sm:inline text-[11px]">Live Web Intel</span>
               </button>
             </div>
 
-            <button
-              type="button"
-              onClick={() => (promptText.trim() || attachedImage) && onSendMessage(promptText, attachedImage)}
-              disabled={!promptText.trim() && !attachedImage}
-              className="w-9 h-9 rounded-full bg-white hover:bg-neutral-200 disabled:opacity-25 text-neutral-950 font-bold flex items-center justify-center transition cursor-pointer shadow-md active:scale-95"
-              title="Launch Execution"
-            >
-              <Send size={14} className="translate-x-[-0.5px] translate-y-[-0.5px]" />
-            </button>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-mono text-neutral-500 hidden sm:inline">5 credits / prompt</span>
+              <button
+                type="button"
+                onClick={() => (promptText.trim() || attachedImage) && onSendMessage(promptText, attachedImage)}
+                disabled={!promptText.trim() && !attachedImage}
+                className="w-9 h-9 rounded-full bg-white hover:bg-neutral-200 disabled:opacity-20 text-neutral-950 font-bold flex items-center justify-center transition cursor-pointer shadow-md active:scale-95"
+                title="Generate Strategy"
+              >
+                <Send size={14} className="translate-x-[-0.5px] translate-y-[-0.5px]" />
+              </button>
+            </div>
           </div>
 
         </div>
 
-        {/* Streamlined Deployment Channels Dock */}
-        <div className="bg-[#11120f]/80 border border-white/10 rounded-2xl p-3.5 px-4 text-left flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
+        {/* 3 Interactive Billion-Dollar Marketing Capability Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 text-left pt-1">
+          {capabilityCards.map((card) => {
+            const Icon = card.icon;
+            return (
+              <div
+                key={card.id}
+                onClick={() => onSendMessage(card.prompt, null)}
+                className="group bg-[#11120f]/80 hover:bg-[#161714] border border-white/10 hover:border-white/25 rounded-2xl p-4 transition-all duration-200 cursor-pointer shadow-md hover:shadow-xl relative flex flex-col justify-between space-y-3"
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full border ${card.badgeColor}`}>
+                      {card.tag}
+                    </span>
+                    <ArrowUpRight size={13} className="text-neutral-500 group-hover:text-white transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </div>
+                  
+                  <h3 className="text-xs sm:text-[13px] font-bold text-white group-hover:text-emerald-300 transition tracking-tight">
+                    {card.title}
+                  </h3>
+
+                  <p className="text-[11px] text-neutral-400 leading-relaxed line-clamp-2 font-normal">
+                    {card.description}
+                  </p>
+                </div>
+
+                <div className="pt-2 border-t border-white/5 flex items-center gap-1.5 text-[10px] font-mono text-neutral-500 group-hover:text-neutral-300 transition">
+                  <Icon size={11} />
+                  <span>1-click launch execution →</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Connected Ecosystem Dock */}
+        <div className="bg-[#0f100d]/90 border border-white/10 rounded-2xl p-3 px-4 text-left flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
           <div className="flex items-center gap-2 text-xs">
             <span className="text-neutral-400 font-medium">Deployment Channels:</span>
             {!hasConnectorsAccess && (
               <span className="text-[10px] font-mono text-[#8057ff] font-bold bg-[#8057ff]/15 px-2 py-0.5 rounded-md border border-[#8057ff]/25">
-                Pro
+                Pro Feature
               </span>
             )}
           </div>
@@ -371,7 +401,7 @@ export const CyNewChatPage = ({
                   className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs transition cursor-pointer ${
                     connected
                       ? 'bg-white/10 border-white/30 text-white font-semibold'
-                      : 'bg-[#161714] hover:bg-[#1c1d19] border-white/10 text-neutral-400 hover:text-white'
+                      : 'bg-[#151613] hover:bg-[#1a1b17] border-white/10 text-neutral-400 hover:text-white'
                   }`}
                 >
                   {plat.renderIcon()}
