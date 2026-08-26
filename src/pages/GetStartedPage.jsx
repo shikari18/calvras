@@ -331,8 +331,8 @@ export const GetStartedPage = ({ onNavigate, onLoginSuccess, initialIsSignIn = f
 
       </div>
 
-      {/* Right Column: Full-Height Non-Scrollable Visual Banner (50% Width) */}
-      <div className="w-full lg:w-1/2 h-full max-h-screen p-4 sm:p-6 lg:p-8 flex items-center justify-center bg-[#1c1c1c]">
+      {/* Right Column: Full-Height Non-Scrollable Visual Banner (Hidden on mobile so login methods show properly) */}
+      <div className="hidden lg:flex lg:w-1/2 h-full max-h-screen p-4 sm:p-6 lg:p-8 items-center justify-center bg-[#1c1c1c]">
         <div className="w-full h-full max-h-[calc(100vh-64px)] rounded-3xl overflow-hidden relative shadow-2xl border border-neutral-800 bg-[#0d1520] flex items-center justify-center">
           
           {/* Pristine Clean Editorial Photography */}
