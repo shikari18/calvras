@@ -14,8 +14,8 @@ export const FAQSection = () => {
       a: "Generic AI requires endless manual prompting. Calvras is purpose-trained with over 300+ practitioner marketing frameworks, live direct-response copy teardowns, and media buying blueprints that output production-ready assets instantly formatted in copyable template blocks."
     },
     {
-      q: "Which advertising and video platforms are supported?",
-      a: "Calvras generates platform-native assets for Meta (Facebook & Instagram), TikTok (organic hooks & Spark Ads), Google Ads (Search & PMax), LinkedIn Document Ads, as well as cinematic AI Video Generation prompts for tools like Sora, Runway Gen-3, Kling AI, and Midjourney."
+      q: "Which advertising and growth channels are supported?",
+      a: "Calvras generates platform-native marketing assets for Meta (Facebook & Instagram feed/stories), TikTok (organic hooks & Spark Ads), Google Ads (Search & Performance Max), LinkedIn Document Ads, X, and Klaviyo/Omnisend email and SMS funnels."
     },
     {
       q: "What is the Campaign Doctor?",

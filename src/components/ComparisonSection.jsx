@@ -11,9 +11,9 @@ export const ComparisonSection = ({ onNavigate }) => {
       traditionalCheck: false
     },
     {
-      feature: "AI Video Prompt Directing & Controls",
-      calvras: "Precise camera lenses, lighting physics & cues for Sora, Runway & Kling",
-      traditional: "Basic text prompts with zero cinematic physics or lighting controls",
+      feature: "Multi-Channel Creative Direction & Hooks",
+      calvras: "Proven pattern interrupts, visual framing directives & CTA formulas",
+      traditional: "Basic text captions with zero psychological hook triggers",
       calvrasCheck: true,
       traditionalCheck: false
     },

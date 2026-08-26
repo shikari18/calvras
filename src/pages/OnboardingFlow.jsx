@@ -520,7 +520,7 @@ export const OnboardingFlow = ({ onComplete, userProfile }) => {
                 <div>
                   <h3 className="text-base font-bold text-white">Basic</h3>
                   <p className="text-[11px] text-neutral-400 mt-0.5 min-h-[28px]">
-                    For individual creators with core marketing needs.
+                    For growing brands & creators with core marketing needs.
                   </p>
                 </div>
 
@@ -543,11 +543,11 @@ export const OnboardingFlow = ({ onComplete, userProfile }) => {
                 <div className="pt-1 text-[11px] text-neutral-300 space-y-2 border-t border-neutral-700/60">
                   <div className="flex items-center gap-1.5 text-[#ff5e28] font-semibold">
                     <span>✦</span>
-                    <span>1,000 credits per month</span>
+                    <span>1,000 marketing credits per month</span>
                   </div>
                   <div className="flex items-start gap-1.5">
                     <Check size={12} className="text-[#ff5e28] shrink-0 mt-0.5" />
-                    <span>Commercial rights & private generations</span>
+                    <span>Unlimited ad copy variations & angles</span>
                   </div>
                   <div className="flex items-start gap-1.5">
                     <Check size={12} className="text-[#ff5e28] shrink-0 mt-0.5" />
@@ -555,7 +555,7 @@ export const OnboardingFlow = ({ onComplete, userProfile }) => {
                   </div>
                   <div className="flex items-start gap-1.5">
                     <Check size={12} className="text-[#ff5e28] shrink-0 mt-0.5" />
-                    <span>Unlimited video scripts & hooks</span>
+                    <span>Landing page teardowns & CRO playbooks</span>
                   </div>
                 </div>
               </div>
@@ -592,7 +592,7 @@ export const OnboardingFlow = ({ onComplete, userProfile }) => {
                     <Sparkles size={14} className="text-[#8057ff]" />
                   </h3>
                   <p className="text-[11px] text-neutral-400 mt-0.5 min-h-[28px]">
-                    For professional marketers who need scale and video generation.
+                    For high-growth brands & agencies scaling revenue and ROAS.
                   </p>
                 </div>
 
@@ -637,11 +637,11 @@ export const OnboardingFlow = ({ onComplete, userProfile }) => {
                   </div>
                   <div className="flex items-start gap-1.5">
                     <Check size={12} className="text-[#a88aff] shrink-0 mt-0.5" />
-                    <span>Video generation & prompt directing</span>
+                    <span>Autonomous media buying & ad scaling</span>
                   </div>
                   <div className="flex items-start gap-1.5">
                     <Check size={12} className="text-[#a88aff] shrink-0 mt-0.5" />
-                    <span>Sora, Kling, Runway Gen-3 workflows</span>
+                    <span>Campaign Doctor diagnostics & ROAS audits</span>
                   </div>
                   <div className="flex items-start gap-1.5">
                     <Check size={12} className="text-[#a88aff] shrink-0 mt-0.5" />

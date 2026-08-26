@@ -12,27 +12,43 @@ export const PricingSection = ({ onNavigate }) => {
       description: 'For exploring AI marketing features at a basic level.',
       isRecommended: false,
       cta: 'Get started',
-      features: ['3 generations daily', 'Standard response speed', 'Core copywriting frameworks']
+      features: [
+        '3 ad copy & campaign generations daily',
+        'Standard response speed',
+        'Core copywriting & direct-response frameworks'
+      ]
     },
     {
       name: 'Basic',
       price: isAnnual ? '$8' : '$10',
       period: '/ month',
       subtext: isAnnual ? 'billed annually $96' : '',
-      description: 'For individual creators with core marketing needs.',
+      description: 'For growing brands & creators with core marketing needs.',
       isRecommended: false,
       cta: 'Get started',
-      features: ['1,000 credits per month', 'Unlimited ad copy & hooks', 'Email & SMS funnels', 'Commercial rights']
+      features: [
+        '1,000 marketing credits per month',
+        'Unlimited ad copy variations & angles',
+        'Full email & SMS funnel automations',
+        'Landing page teardowns & CRO playbooks',
+        'Commercial rights & private workspace'
+      ]
     },
     {
       name: 'Pro',
       price: isAnnual ? '$13' : '$16',
       period: '/ month',
       subtext: isAnnual ? 'billed annually $156' : '',
-      description: 'For professional marketers who need scale and video generation.',
+      description: 'For high-growth brands & agencies scaling revenue and ROAS.',
       isRecommended: true,
       cta: 'Upgrade to Pro',
-      features: ['2,000 credits per month', 'Video generation prompt directing', 'Sora, Kling & Runway workflows', 'Priority neural compute']
+      features: [
+        '2,000 to 16,000 credits per month',
+        'Autonomous media buying & ad scaling strategies',
+        'Multi-channel campaign blueprints (Meta, TikTok, Google)',
+        'Campaign Doctor conversion diagnostics & ROAS audits',
+        'Priority neural compute & 24/7 strategic support'
+      ]
     }
   ];
 
