@@ -89,7 +89,7 @@ export const CyLayout = ({
   const currentTitle = activeThread?.title || threadTitle || 'Help Making Product Popular';
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-white font-sans text-neutral-900 antialiased relative">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#0d0e0c] font-sans text-white antialiased relative">
       
       {/* 1. Desktop Main Left Navigation Sidebar (Hidden on mobile) */}
       <div className="hidden md:flex shrink-0 relative z-30">
@@ -113,16 +113,16 @@ export const CyLayout = ({
           {/* Overlay Backdrop */}
           <div 
             onClick={() => setMobileMenuOpen(false)}
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs z-40 animate-in fade-in duration-150" 
+            className="fixed inset-0 bg-black/70 backdrop-blur-xs z-40 animate-in fade-in duration-150" 
           />
 
           {/* Slide-out Sidebar Drawer */}
-          <div className="relative z-50 w-64 bg-white h-full shadow-2xl animate-in slide-in-from-left duration-200 flex flex-col">
+          <div className="relative z-50 w-64 bg-[#121310] h-full shadow-2xl animate-in slide-in-from-left duration-200 flex flex-col border-r border-white/10">
             
             {/* Mobile Drawer Close Button */}
             <button
               onClick={() => setMobileMenuOpen(false)}
-              className="absolute top-3.5 right-3.5 w-7 h-7 rounded-full text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 flex items-center justify-center transition cursor-pointer z-50"
+              className="absolute top-3.5 right-3.5 w-7 h-7 rounded-full text-neutral-400 hover:text-white hover:bg-white/10 flex items-center justify-center transition cursor-pointer z-50"
               title="Close Menu"
             >
               <X size={16} />
@@ -144,8 +144,8 @@ export const CyLayout = ({
         </div>
       )}
 
-      {/* 3. Main Center Canvas View (Clean, Direct, Unobstructed) */}
-      <div className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden bg-white relative z-10">
+      {/* 3. Main Center Canvas View (Dark, Clean, Direct) */}
+      <div className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden bg-[#0d0e0c] relative z-10">
         {activeTab === 'new-chat' && (
           <CyNewChatPage 
             onSendMessage={handleSendMessageFromNewChat}

@@ -27,20 +27,24 @@ import {
   Clock,
   ChevronRight,
   Code2,
-  BarChart3
+  BarChart3,
+  Lock
 } from 'lucide-react';
 
 import { useMarketing } from '../../context/MarketingContext';
-import calvrasIcon from '../../assets/calvras-icon.png';
 
-// Official Calvras Image Logo
-export const BrandBurstLogo = ({ size = 20, className = "" }) => (
+// Official Calvras Image Logo (No White Background)
+export const BrandBurstLogo = ({ size = 22, className = "" }) => (
   <img 
-    src={calvrasIcon} 
+    src="/calvras.png" 
     alt="Calvras" 
-    className={`shrink-0 object-contain select-none ${className}`}
+    className={`shrink-0 object-contain select-none rounded-lg ${className}`}
     style={{ width: size, height: size }}
     loading="eager"
+    onError={(e) => {
+      e.currentTarget.onerror = null;
+      e.currentTarget.src = '/calvras-icon.png';
+    }}
   />
 );
 
@@ -60,6 +64,12 @@ export const CySidebar = ({
   const [showNotifications, setShowNotifications] = useState(false);
   const [isRecentHovered, setIsRecentHovered] = useState(false);
   const hoverTimeoutRef = useRef(null);
+
+  // Check plan for Connectors gating
+  const userEmail = userProfile?.email || 'default';
+  const userPlanRaw = typeof window !== 'undefined' ? localStorage.getItem(`calvras_user_plan_${userEmail}`) : null;
+  const userPlan = userPlanRaw ? JSON.parse(userPlanRaw)?.planKey : 'basic';
+  const hasConnectorsAccess = userPlan === 'pro' || userPlan === 'agency';
 
   const handleMouseEnterRecent = () => {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
@@ -88,26 +98,26 @@ export const CySidebar = ({
   ];
 
   const adminItems = [
-    { id: 'connectors', label: 'Connectors', icon: Plug },
+    { id: 'connectors', label: 'Connectors', icon: Plug, isGated: !hasConnectorsAccess },
     { id: 'permissions', label: 'Permissions', icon: ShieldCheck },
     { id: 'team', label: 'Team', icon: Users },
     { id: 'billing', label: 'Billing', icon: CreditCard },
   ];
 
-  // Collapsed Rail View
+  // Collapsed Rail View (Dark Mode)
   if (isCollapsed) {
     return (
-      <aside className="w-14 bg-white border-r border-[#e5e5e7] flex flex-col justify-between h-screen shrink-0 text-left select-none text-[13px] font-sans antialiased py-3 items-center transition-all duration-300 relative z-30 overflow-visible">
+      <aside className="w-14 bg-[#121310] border-r border-white/10 flex flex-col justify-between h-screen shrink-0 text-left select-none text-[13px] font-sans antialiased py-3 items-center transition-all duration-300 relative z-30 overflow-visible text-white">
         
         {/* Top Logo & Expand Button */}
         <div className="space-y-4 flex flex-col items-center">
-          <div className="cursor-pointer p-1 rounded-lg hover:bg-purple-50 transition" onClick={() => onSelectTab('overview')} title="Calvras">
-            <BrandBurstLogo size={22} />
+          <div className="cursor-pointer p-1 rounded-lg hover:bg-white/10 transition" onClick={() => onSelectTab('overview')} title="Calvras">
+            <BrandBurstLogo size={24} />
           </div>
 
           <button 
             onClick={onToggleCollapse} 
-            className="p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-lg transition cursor-pointer"
+            className="p-1.5 text-neutral-400 hover:text-white hover:bg-white/10 rounded-lg transition cursor-pointer"
             title="Expand Sidebar"
           >
             <PanelLeftOpen size={16} />
@@ -115,7 +125,7 @@ export const CySidebar = ({
 
           <button 
             onClick={() => setShowNotifications(!showNotifications)}
-            className="p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-lg transition cursor-pointer relative"
+            className="p-1.5 text-neutral-400 hover:text-white hover:bg-white/10 rounded-lg transition cursor-pointer relative"
             title="Notifications"
           >
             <Bell size={15} />
@@ -123,13 +133,13 @@ export const CySidebar = ({
 
           <button
             onClick={onNewChat}
-            className="p-2 bg-white border border-[#e5e5e7] hover:bg-neutral-100 rounded-xl text-neutral-800 transition cursor-pointer shadow-2xs"
+            className="p-2 bg-white/10 border border-white/10 hover:bg-white/20 rounded-xl text-white transition cursor-pointer shadow-2xs"
             title="New Chat"
           >
             <Plus size={15} />
           </button>
 
-          <div className="w-6 h-px bg-[#ebebec]" />
+          <div className="w-6 h-px bg-white/10" />
 
           {/* Collapsed Nav Stack with Hover Flyout on Recent Chats */}
           <div className="space-y-1.5 flex flex-col items-center relative overflow-visible">
@@ -139,15 +149,15 @@ export const CySidebar = ({
               onClick={() => onSelectTab('threads')}
               className={`p-2 rounded-xl transition cursor-pointer ${
                 activeTab === 'threads' 
-                  ? 'bg-[#efeff1] text-neutral-900 shadow-2xs font-semibold' 
-                  : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900'
+                  ? 'bg-white/15 text-white shadow-2xs font-semibold' 
+                  : 'text-neutral-400 hover:bg-white/10 hover:text-white'
               }`}
               title="Chat"
             >
               <MessageSquare size={16} />
             </button>
 
-            {/* Recent Chats Icon with Hover Flyout Dropout on Right */}
+            {/* Recent Chats Icon with Hover Flyout */}
             <div 
               className="relative"
               onMouseEnter={handleMouseEnterRecent}
@@ -157,8 +167,8 @@ export const CySidebar = ({
                 onClick={() => onSelectTab('threads')}
                 className={`p-2 rounded-xl transition cursor-pointer ${
                   isRecentHovered
-                    ? 'bg-[#efeff1] text-neutral-900 shadow-2xs font-semibold' 
-                    : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900'
+                    ? 'bg-white/15 text-white shadow-2xs font-semibold' 
+                    : 'text-neutral-400 hover:bg-white/10 hover:text-white'
                 }`}
                 title="Recent Chats"
               >
@@ -168,17 +178,17 @@ export const CySidebar = ({
               {/* Flyout Dropout to the Right */}
               {isRecentHovered && (
                 <div 
-                  className="absolute left-full top-0 ml-2 w-64 bg-white border border-[#e5e5e7] rounded-2xl shadow-2xl p-2.5 z-50 animate-in fade-in slide-in-from-left-2 duration-150 space-y-1.5"
+                  className="absolute left-full top-0 ml-2 w-64 bg-[#181915] border border-white/15 rounded-2xl shadow-2xl p-2.5 z-50 animate-in fade-in slide-in-from-left-2 duration-150 space-y-1.5 text-white"
                   onMouseEnter={handleMouseEnterRecent}
                   onMouseLeave={handleMouseLeaveRecent}
                 >
                   <div className="absolute -left-3 top-0 bottom-0 w-3" />
                   
-                  <div className="flex items-center justify-between px-2 py-1 border-b border-neutral-100 pb-1.5">
-                    <span className="text-[11px] font-bold text-neutral-900">Recent Chats</span>
+                  <div className="flex items-center justify-between px-2 py-1 border-b border-white/10 pb-1.5">
+                    <span className="text-[11px] font-bold text-white">Recent Chats</span>
                     <button 
                       onClick={onNewChat}
-                      className="text-[10px] text-purple-600 hover:text-purple-800 font-semibold cursor-pointer"
+                      className="text-[10px] text-emerald-400 hover:text-emerald-300 font-semibold cursor-pointer"
                     >
                       + New
                     </button>
@@ -193,8 +203,8 @@ export const CySidebar = ({
                             key={t.id}
                             className={`group flex items-center justify-between px-2 py-1.5 rounded-xl text-xs transition cursor-pointer ${
                               isCurrent 
-                                ? 'bg-[#efeff1] text-neutral-950 font-semibold shadow-2xs' 
-                                : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
+                                ? 'bg-white/15 text-white font-semibold shadow-2xs' 
+                                : 'text-neutral-400 hover:bg-white/10 hover:text-white'
                             }`}
                             onClick={() => {
                               if (onSelectThread) onSelectThread(t.id);
@@ -203,7 +213,7 @@ export const CySidebar = ({
                             }}
                           >
                             <div className="flex items-center gap-2 truncate mr-1">
-                              <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${isCurrent ? 'bg-neutral-950' : 'bg-neutral-400'}`} />
+                              <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${isCurrent ? 'bg-white' : 'bg-neutral-500'}`} />
                               <span className="truncate">{t.title}</span>
                             </div>
 
@@ -214,7 +224,7 @@ export const CySidebar = ({
                                 e.preventDefault();
                                 deleteThread(t.id, e);
                               }}
-                              className="opacity-0 group-hover:opacity-100 p-1 text-neutral-400 hover:text-rose-600 hover:bg-neutral-200/70 rounded-md transition cursor-pointer shrink-0"
+                              className="opacity-0 group-hover:opacity-100 p-1 text-neutral-400 hover:text-rose-400 hover:bg-white/10 rounded-md transition cursor-pointer shrink-0"
                               title="Delete chat"
                             >
                               <Trash2 size={12} />
@@ -223,7 +233,7 @@ export const CySidebar = ({
                         );
                       })
                     ) : (
-                      <div className="py-4 px-2 text-center text-xs text-neutral-400">
+                      <div className="py-4 px-2 text-center text-xs text-neutral-500">
                         No recent chats
                       </div>
                     )}
@@ -242,8 +252,8 @@ export const CySidebar = ({
                   onClick={() => onSelectTab(item.id)}
                   className={`p-2 rounded-xl transition cursor-pointer ${
                     isActive 
-                      ? 'bg-[#efeff1] text-neutral-900 shadow-2xs font-semibold' 
-                      : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900'
+                      ? 'bg-white/15 text-white shadow-2xs font-semibold' 
+                      : 'text-neutral-400 hover:bg-white/10 hover:text-white'
                   }`}
                   title={item.label}
                 >
@@ -257,10 +267,10 @@ export const CySidebar = ({
         {/* Collapsed Bottom User Profile Avatar */}
         <div 
           onClick={() => setShowProfileMenu(!showProfileMenu)}
-          className="cursor-pointer p-1 rounded-xl hover:bg-neutral-100 transition"
+          className="cursor-pointer p-1 rounded-xl hover:bg-white/10 transition"
           title={userProfile?.name}
         >
-          <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center text-xs font-semibold overflow-hidden shadow-2xs">
+          <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-neutral-700 to-neutral-800 border border-white/20 text-white flex items-center justify-center text-xs font-semibold overflow-hidden shadow-2xs">
             {userProfile?.picture ? (
               <img 
                 src={userProfile.picture} 
@@ -279,18 +289,18 @@ export const CySidebar = ({
     );
   }
 
-  // Expanded Sidebar View
+  // Expanded Sidebar View (Dark Luxury Theme)
   return (
-    <aside className="w-60 bg-white border-r border-[#e5e5e7] flex flex-col justify-between h-screen shrink-0 text-left select-none text-[13px] font-sans antialiased relative transition-all duration-300 z-40 overflow-visible">
+    <aside className="w-60 bg-[#121310] border-r border-white/10 flex flex-col justify-between h-screen shrink-0 text-left select-none text-[13px] font-sans antialiased relative transition-all duration-300 z-40 overflow-visible text-white">
       
       {/* Top Section */}
       <div className="p-3 space-y-2 flex-1 overflow-visible">
         
         {/* Brand Header */}
         <div className="flex items-center justify-between px-2 py-1.5 mb-1">
-          <div className="flex items-center gap-2 cursor-pointer group" onClick={() => onSelectTab('overview')}>
-            <BrandBurstLogo size={20} className="group-hover:rotate-45 transition duration-300" />
-            <span className="font-serif font-bold text-neutral-950 text-base tracking-tight">
+          <div className="flex items-center gap-2.5 cursor-pointer group" onClick={() => onSelectTab('overview')}>
+            <BrandBurstLogo size={24} />
+            <span className="font-serif font-bold text-white text-base tracking-tight">
               Calvras
             </span>
           </div>
@@ -298,14 +308,14 @@ export const CySidebar = ({
           <div className="flex items-center gap-1 text-neutral-400">
             <button 
               onClick={() => setShowNotifications(!showNotifications)}
-              className="p-1 hover:text-neutral-700 hover:bg-neutral-100 rounded-md transition cursor-pointer relative" 
+              className="p-1 hover:text-white hover:bg-white/10 rounded-md transition cursor-pointer relative" 
               title="Notifications"
             >
               <Bell size={14} />
             </button>
             <button 
               onClick={onToggleCollapse} 
-              className="p-1 hover:text-neutral-700 hover:bg-neutral-100 rounded-md transition cursor-pointer" 
+              className="p-1 hover:text-white hover:bg-white/10 rounded-md transition cursor-pointer" 
               title="Collapse Sidebar"
             >
               <PanelLeftClose size={14} />
@@ -315,55 +325,54 @@ export const CySidebar = ({
 
         {/* Notifications Dropdown Modal */}
         {showNotifications && (
-          <div className="absolute top-12 left-3 right-3 bg-white border border-[#e5e5e7] rounded-2xl shadow-xl p-5 z-50 text-left space-y-4 animate-in slide-in-from-top-2 duration-150">
+          <div className="absolute top-12 left-3 right-3 bg-[#181915] border border-white/15 rounded-2xl shadow-2xl p-5 z-50 text-left space-y-4 animate-in slide-in-from-top-2 duration-150">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-neutral-950">Notifications</h3>
+              <h3 className="text-xs font-bold text-white">Notifications</h3>
               <button 
                 onClick={() => setShowNotifications(false)}
-                className="text-neutral-400 hover:text-neutral-700 text-xs cursor-pointer"
+                className="text-neutral-400 hover:text-white text-xs cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
             <div className="flex flex-col items-center justify-center py-6 text-center space-y-2">
-              <div className="w-10 h-10 rounded-full bg-neutral-50 border border-neutral-100 flex items-center justify-center text-neutral-400 relative">
+              <div className="w-10 h-10 rounded-full bg-[#121310] border border-white/10 flex items-center justify-center text-neutral-400 relative">
                 <Bell size={18} />
-                <span className="absolute -top-1 -right-1 text-[9px] font-bold text-neutral-400">zZ</span>
+                <span className="absolute -top-1 -right-1 text-[9px] font-bold text-emerald-400">zZ</span>
               </div>
-              <h4 className="text-xs font-bold text-neutral-900">You're all caught up</h4>
+              <h4 className="text-xs font-bold text-white">You're all caught up</h4>
               <p className="text-[11px] text-neutral-400 max-w-[180px]">
-                Requests and updates land here.
+                Campaign updates & insights land here.
               </p>
             </div>
           </div>
         )}
 
-        {/* New Chat Button */}
+        {/* New Chat Button (High-Contrast White Button) */}
         <button
           onClick={onNewChat}
-          className="w-full flex items-center justify-center gap-1.5 bg-white border border-[#e5e5e7] hover:bg-neutral-50 text-neutral-800 font-medium py-1.5 px-3 rounded-xl transition shadow-2xs cursor-pointer text-xs"
+          className="w-full flex items-center justify-center gap-1.5 bg-white hover:bg-neutral-200 text-neutral-950 font-bold py-2 px-3 rounded-xl transition shadow-md cursor-pointer text-xs active:scale-95"
         >
-          <Plus size={14} className="text-neutral-600" />
+          <Plus size={14} className="text-neutral-950 stroke-[3]" />
           <span>New Chat</span>
         </button>
 
         {/* Search Bar */}
-        <div className="flex items-center justify-between px-2.5 py-1.5 text-neutral-400 border border-transparent hover:border-[#e5e5e7] rounded-xl cursor-pointer transition">
+        <div className="flex items-center justify-between px-2.5 py-1.5 text-neutral-400 bg-[#161714] border border-white/5 hover:border-white/15 rounded-xl cursor-pointer transition">
           <div className="flex items-center gap-2">
             <Search size={13} />
-            <span className="text-xs text-neutral-500 font-normal">Search</span>
+            <span className="text-xs text-neutral-400 font-normal">Search</span>
           </div>
-          <span className="text-[10px] bg-neutral-100 text-neutral-500 px-1.5 py-0.5 rounded font-medium">Ctrl K</span>
+          <span className="text-[10px] bg-white/10 text-neutral-300 px-1.5 py-0.5 rounded font-mono">Ctrl K</span>
         </div>
 
-        {/* Unified Main Navigation Menu */}
+        {/* Main Navigation Menu */}
         <div className="space-y-0.5 pt-1 overflow-visible">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
 
-            // Special Case: "Recent Chats" row with Hover Dropout Flyout to the Right
             if (item.isRecentFlyout) {
               return (
                 <div 
@@ -376,31 +385,31 @@ export const CySidebar = ({
                     onClick={() => onSelectTab('threads')}
                     className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer ${
                       isRecentHovered
-                        ? 'bg-[#efeff1] text-neutral-950 font-semibold shadow-2xs' 
-                        : 'text-neutral-600 hover:bg-neutral-100/70 hover:text-neutral-900'
+                        ? 'bg-white/15 text-white font-semibold shadow-2xs' 
+                        : 'text-neutral-400 hover:bg-white/10 hover:text-white'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <Icon size={14} className={isRecentHovered ? 'text-neutral-900' : 'text-neutral-500'} />
+                      <Icon size={14} className={isRecentHovered ? 'text-white' : 'text-neutral-400'} />
                       <span>{item.label}</span>
                     </div>
-                    <ChevronRight size={12} className="text-neutral-400 opacity-60" />
+                    <ChevronRight size={12} className="text-neutral-500" />
                   </button>
 
-                  {/* Dropout Flyout Card to the Right of Sidebar on Hover (Unclipped & Elevated) */}
+                  {/* Dropout Flyout Card to the Right of Sidebar */}
                   {isRecentHovered && (
                     <div 
-                      className="absolute left-full top-0 ml-2 w-64 bg-white border border-[#e5e5e7] rounded-2xl shadow-2xl p-2.5 z-50 animate-in fade-in slide-in-from-left-2 duration-150 space-y-1.5"
+                      className="absolute left-full top-0 ml-2 w-64 bg-[#181915] border border-white/15 rounded-2xl shadow-2xl p-2.5 z-50 animate-in fade-in slide-in-from-left-2 duration-150 space-y-1.5 text-white"
                       onMouseEnter={handleMouseEnterRecent}
                       onMouseLeave={handleMouseLeaveRecent}
                     >
                       <div className="absolute -left-3 top-0 bottom-0 w-3" />
 
-                      <div className="flex items-center justify-between px-2 py-1 border-b border-neutral-100 pb-1.5">
-                        <span className="text-[11px] font-bold text-neutral-900">Recent Chats</span>
+                      <div className="flex items-center justify-between px-2 py-1 border-b border-white/10 pb-1.5">
+                        <span className="text-[11px] font-bold text-white">Recent Chats</span>
                         <button 
                           onClick={onNewChat}
-                          className="text-[10px] text-purple-600 hover:text-purple-800 font-semibold cursor-pointer"
+                          className="text-[10px] text-emerald-400 hover:text-emerald-300 font-semibold cursor-pointer"
                         >
                           + New
                         </button>
@@ -415,8 +424,8 @@ export const CySidebar = ({
                                 key={t.id}
                                 className={`group flex items-center justify-between px-2 py-1.5 rounded-xl text-xs transition cursor-pointer ${
                                   isCurrent 
-                                  ? 'bg-[#efeff1] text-neutral-950 font-semibold shadow-2xs' 
-                                  : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
+                                  ? 'bg-white/15 text-white font-semibold shadow-2xs' 
+                                  : 'text-neutral-400 hover:bg-white/10 hover:text-white'
                                 }`}
                                 onClick={() => {
                                   if (onSelectThread) onSelectThread(t.id);
@@ -425,7 +434,7 @@ export const CySidebar = ({
                                 }}
                               >
                                 <div className="flex items-center gap-2 truncate mr-1">
-                                  <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${isCurrent ? 'bg-neutral-950' : 'bg-neutral-400'}`} />
+                                  <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${isCurrent ? 'bg-white' : 'bg-neutral-500'}`} />
                                   <span className="truncate">{t.title}</span>
                                 </div>
 
@@ -436,7 +445,7 @@ export const CySidebar = ({
                                     e.preventDefault();
                                     deleteThread(t.id, e);
                                   }}
-                                  className="opacity-0 group-hover:opacity-100 p-1 text-neutral-400 hover:text-rose-600 hover:bg-neutral-200/70 rounded-md transition cursor-pointer shrink-0"
+                                  className="opacity-0 group-hover:opacity-100 p-1 text-neutral-400 hover:text-rose-400 hover:bg-white/10 rounded-md transition cursor-pointer shrink-0"
                                   title="Delete chat"
                                 >
                                   <Trash2 size={12} />
@@ -445,7 +454,7 @@ export const CySidebar = ({
                             );
                           })
                         ) : (
-                          <div className="py-4 px-2 text-center text-xs text-neutral-400">
+                          <div className="py-4 px-2 text-center text-xs text-neutral-500">
                             No recent chats
                           </div>
                         )}
@@ -456,27 +465,26 @@ export const CySidebar = ({
               );
             }
 
-            // Normal Uniform Nav Row Item
             return (
               <button
                 key={item.id}
                 onClick={() => onSelectTab(item.id)}
                 className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer ${
                   isActive 
-                    ? 'bg-[#efeff1] text-neutral-950 font-semibold shadow-2xs' 
-                    : 'text-neutral-600 hover:bg-neutral-100/70 hover:text-neutral-900'
+                    ? 'bg-white/15 text-white font-semibold shadow-2xs' 
+                    : 'text-neutral-400 hover:bg-white/10 hover:text-white'
                 }`}
               >
-                <Icon size={14} className={isActive ? 'text-neutral-900' : 'text-neutral-500'} />
+                <Icon size={14} className={isActive ? 'text-white' : 'text-neutral-400'} />
                 <span>{item.label}</span>
               </button>
             );
           })}
         </div>
 
-        <div className="h-px bg-[#ebebec] my-2" />
+        <div className="h-px bg-white/10 my-2" />
 
-        {/* Admin Menu Items */}
+        {/* Admin Menu Items (With Lock on Connectors for $10 Basic Users) */}
         <div className="space-y-0.5">
           {adminItems.map((item) => {
             const Icon = item.icon;
@@ -485,14 +493,22 @@ export const CySidebar = ({
               <button
                 key={item.id}
                 onClick={() => onSelectTab(item.id)}
-                className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer ${
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer ${
                   isActive 
-                    ? 'bg-[#efeff1] text-neutral-950 font-semibold shadow-2xs' 
-                    : 'text-neutral-600 hover:bg-neutral-100/70 hover:text-neutral-900'
+                    ? 'bg-white/15 text-white font-semibold shadow-2xs' 
+                    : 'text-neutral-400 hover:bg-white/10 hover:text-white'
                 }`}
               >
-                <Icon size={14} className={isActive ? 'text-neutral-900' : 'text-neutral-500'} />
-                <span>{item.label}</span>
+                <div className="flex items-center gap-2.5">
+                  <Icon size={14} className={isActive ? 'text-white' : 'text-neutral-400'} />
+                  <span>{item.label}</span>
+                </div>
+                {item.isGated && (
+                  <span className="text-[9px] font-mono text-[#8057ff] font-bold flex items-center gap-1 bg-[#8057ff]/15 px-1.5 py-0.5 rounded">
+                    <Lock size={9} />
+                    <span>Pro</span>
+                  </span>
+                )}
               </button>
             );
           })}
@@ -500,19 +516,19 @@ export const CySidebar = ({
 
       </div>
 
-      {/* Bottom User & Credits Section */}
-      <div className="p-3 border-t border-[#e5e5e7] space-y-2.5 bg-white relative">
+      {/* Bottom User & Credits Section (Dark Mode) */}
+      <div className="p-3 border-t border-white/10 space-y-2.5 bg-[#10110e] relative">
         
         {/* Credits Remaining */}
         <div className="px-1 flex items-center justify-between text-[11px]">
-          <span className="text-neutral-500">Credits remaining</span>
-          <span className="text-neutral-900 font-bold">{credits?.remaining ?? 100} credits</span>
+          <span className="text-neutral-400">Credits remaining</span>
+          <span className="text-white font-bold font-mono">{credits?.remaining ?? 1000} credits</span>
         </div>
 
         {/* Upgrade Plan Button */}
         <button 
           onClick={() => onSelectTab('billing')}
-          className="w-full bg-[#17171a] hover:bg-neutral-800 text-white text-xs font-medium py-2 rounded-xl transition cursor-pointer shadow-xs"
+          className="w-full bg-white hover:bg-neutral-200 text-neutral-950 text-xs font-bold py-2 rounded-xl transition cursor-pointer shadow-sm active:scale-95"
         >
           Upgrade Plan
         </button>
@@ -520,9 +536,9 @@ export const CySidebar = ({
         {/* User Profile Bar */}
         <div 
           onClick={() => setShowProfileMenu(!showProfileMenu)}
-          className="flex items-center gap-2.5 pt-1 px-1 p-1 rounded-xl hover:bg-neutral-50 transition cursor-pointer"
+          className="flex items-center gap-2.5 pt-1 px-1 p-1 rounded-xl hover:bg-white/5 transition cursor-pointer"
         >
-          <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center text-xs font-semibold shrink-0 overflow-hidden shadow-2xs">
+          <div className="w-7 h-7 rounded-full bg-neutral-800 border border-white/20 text-white flex items-center justify-center text-xs font-semibold shrink-0 overflow-hidden shadow-2xs">
             {userProfile?.picture ? (
               <img 
                 src={userProfile.picture} 
@@ -536,16 +552,16 @@ export const CySidebar = ({
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <span className="text-xs font-semibold text-neutral-900 block truncate leading-tight">{userProfile.name}</span>
+            <span className="text-xs font-semibold text-white block truncate leading-tight">{userProfile.name}</span>
             <span className="text-[10px] text-neutral-400 block truncate">{userProfile.email}</span>
           </div>
         </div>
 
         {/* Profile Popup Menu */}
         {showProfileMenu && (
-          <div className="absolute bottom-16 left-3 right-3 bg-white border border-[#e5e5e7] rounded-2xl shadow-xl p-2 z-50 text-xs space-y-2 animate-in slide-in-from-bottom-2 duration-150">
-            <div className="px-2 py-1 border-b border-neutral-100 pb-2">
-              <span className="font-bold text-neutral-900 block">{userProfile.name}</span>
+          <div className="absolute bottom-16 left-3 right-3 bg-[#181915] border border-white/15 rounded-2xl shadow-2xl p-2 z-50 text-xs space-y-2 animate-in slide-in-from-bottom-2 duration-150 text-white">
+            <div className="px-2 py-1 border-b border-white/10 pb-2">
+              <span className="font-bold text-white block">{userProfile.name}</span>
               <span className="text-[10px] text-neutral-400 block">{userProfile.email}</span>
             </div>
 
@@ -554,7 +570,7 @@ export const CySidebar = ({
                 onSelectTab('billing');
                 setShowProfileMenu(false);
               }}
-              className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-neutral-100 text-neutral-700 transition cursor-pointer text-left"
+              className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/10 text-neutral-300 hover:text-white transition cursor-pointer text-left"
             >
               <Settings size={13} />
               <span>Workspace Settings</span>
@@ -565,20 +581,20 @@ export const CySidebar = ({
                 onSelectTab('team');
                 setShowProfileMenu(false);
               }}
-              className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-neutral-100 text-neutral-700 transition cursor-pointer text-left"
+              className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/10 text-neutral-300 hover:text-white transition cursor-pointer text-left"
             >
               <Building2 size={13} />
               <span>Organization</span>
             </button>
 
-            <div className="h-px bg-neutral-100 my-1" />
+            <div className="h-px bg-white/10 my-1" />
 
             <button 
               onClick={() => {
                 setShowProfileMenu(false);
                 onSignOut();
               }}
-              className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-rose-50 text-rose-600 transition cursor-pointer text-left"
+              className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-rose-950/40 text-rose-400 transition cursor-pointer text-left"
             >
               <LogOut size={13} />
               <span>Sign Out</span>
