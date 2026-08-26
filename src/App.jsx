@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CyLayout } from './pages/cy/CyLayout';
 import { LandingPage } from './pages/LandingPage';
 import { GetStartedPage } from './pages/GetStartedPage';
+import { OnboardingFlow } from './pages/OnboardingFlow';
 import { MarketingProvider } from './context/MarketingContext';
 import { TikTokAuthPopupWindow } from './components/auth/TikTokAuthPopupWindow';
 import { TermsOfServicePage } from './pages/legal/TermsOfServicePage';
@@ -16,6 +17,20 @@ function App() {
       return false;
     }
   });
+
+  const [isOnboarding, setIsOnboarding] = useState(() => {
+    try {
+      if (typeof window !== 'undefined' && window.location.hash.toLowerCase() === '#onboarding') {
+        return true;
+      }
+      const savedAuth = localStorage.getItem('calvras_is_authenticated');
+      const savedOnboarding = localStorage.getItem('calvras_onboarding_completed');
+      return savedAuth === 'true' && savedOnboarding !== 'true';
+    } catch (e) {
+      return false;
+    }
+  });
+
   const [isAuthOpen, setIsAuthOpen] = useState(() => {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash.toLowerCase();
@@ -61,6 +76,7 @@ function App() {
       const hash = window.location.hash.toLowerCase();
       if (hash === '#terms') setLegalView('terms');
       else if (hash === '#privacy') setLegalView('privacy');
+      else if (hash === '#onboarding') setIsOnboarding(true);
       else setLegalView(null);
     };
     window.addEventListener('hashchange', handleHashChange);
@@ -84,6 +100,7 @@ function App() {
   const handleSignOut = () => {
     setIsSigningOut(true);
     setIsAuthOpen(false);
+    setIsOnboarding(false);
     try {
       localStorage.removeItem('calvras_is_authenticated');
     } catch (e) {}
@@ -110,7 +127,21 @@ function App() {
       setIsSigningIn(false);
       setIsAuthOpen(false);
       setIsAuthenticated(true);
-    }, 2000);
+      
+      // Check if onboarding needs to be shown
+      const onboarded = localStorage.getItem('calvras_onboarding_completed') === 'true';
+      setIsOnboarding(!onboarded);
+    }, 1600);
+  };
+
+  const handleOnboardingComplete = (planData, answers) => {
+    try {
+      localStorage.setItem('calvras_onboarding_completed', 'true');
+      localStorage.setItem('calvras_user_plan', JSON.stringify(planData));
+      localStorage.setItem('calvras_onboarding_answers', JSON.stringify(answers));
+      localStorage.setItem('calvras_active_tab', 'new-chat');
+    } catch (e) {}
+    setIsOnboarding(false);
   };
 
   return (
@@ -131,7 +162,7 @@ function App() {
         </div>
       )}
 
-      {/* 2-Second Full White Screen Loading Spinner + Signing in text */}
+      {/* Full Screen Loading Spinner + Signing in text */}
       {isSigningIn && (
         <div className="fixed inset-0 bg-white flex flex-col items-center justify-center gap-3.5 z-50 select-none animate-in fade-in duration-150">
           <div className="w-8 h-8 rounded-full border-2 border-neutral-200 border-t-neutral-950 animate-spin" />
@@ -141,7 +172,7 @@ function App() {
         </div>
       )}
 
-      {/* 1-Second Full White Screen Loading Spinner + Signing out text */}
+      {/* Full Screen Loading Spinner + Signing out text */}
       {isSigningOut && (
         <div className="fixed inset-0 bg-white flex flex-col items-center justify-center gap-3 z-50 select-none animate-in fade-in duration-150">
           <div className="w-7 h-7 rounded-full border-2 border-neutral-200 border-t-neutral-950 animate-spin" />
@@ -152,7 +183,12 @@ function App() {
       )}
 
       {!isRefreshing && !isSigningIn && !isSigningOut && (
-        isAuthenticated ? (
+        isOnboarding ? (
+          <OnboardingFlow 
+            userProfile={userProfile}
+            onComplete={handleOnboardingComplete}
+          />
+        ) : isAuthenticated ? (
           <CyLayout 
             onSignOut={handleSignOut} 
             initialTab="new-chat"
