@@ -30,7 +30,7 @@ export const Navbar = ({ onNavigate }) => {
     >
       <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between">
         
-        {/* Brand Logo matching Lovart/Calvras minimalist style */}
+        {/* Brand Logo matching Lovart/Calvras minimalist style (No White Background, +5px size) */}
         <button 
           onClick={() => onNavigate('home', 'hero')}
           className="flex items-center gap-2.5 group cursor-pointer transition-opacity hover:opacity-90"
@@ -38,7 +38,7 @@ export const Navbar = ({ onNavigate }) => {
           <img 
             src="/calvras.png" 
             alt="Calvras Logo" 
-            className="w-7 h-7 rounded-lg object-contain bg-white p-0.5 shadow-sm"
+            className="w-[33px] h-[33px] rounded-lg object-contain shadow-sm"
             onError={(e) => {
               e.target.onerror = null;
               e.target.src = '/calvras-icon.png';

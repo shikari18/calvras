@@ -8,12 +8,12 @@ export const OnboardingFlow = ({ onComplete, userProfile }) => {
   const [activatingPlan, setActivatingPlan] = useState(null);
   const [isCompletedSuccess, setIsCompletedSuccess] = useState(false);
 
-  // User answers state
+  // User answers state (initially empty so user makes fresh selection)
   const [answers, setAnswers] = useState({
-    useCase: 'Personal',
-    workRole: 'Marketer',
-    creationGoals: ['Marketing / Advertising assets', 'Video scripts & TikTok reels'],
-    source: 'TikTok'
+    useCase: '',
+    workRole: '',
+    creationGoals: [],
+    source: ''
   });
 
   const handleSingleSelect = (key, value) => {
@@ -110,12 +110,12 @@ export const OnboardingFlow = ({ onComplete, userProfile }) => {
           {/* Left Column: Full-Height Questionnaire Section (50% Width) */}
           <div className="w-full lg:w-1/2 h-full max-h-screen flex flex-col justify-between p-5 sm:p-8 lg:p-10 bg-[#1c1c1c] overflow-y-auto lg:overflow-hidden">
             
-            {/* Top Bar with Updated Calvras Logo */}
-            <div className="flex items-center gap-2.5 w-full max-w-lg mx-auto">
+            {/* Top Bar with Updated Calvras Logo (No White Background, +5px size) */}
+            <div className="flex items-center gap-3 w-full max-w-lg mx-auto">
               <img 
                 src="/calvras.png" 
                 alt="Calvras Logo" 
-                className="w-8 h-8 rounded-xl object-contain bg-white p-0.5 shadow-md"
+                className="w-[37px] h-[37px] rounded-xl object-contain shadow-md"
                 onError={(e) => {
                   e.target.onerror = null;
                   e.target.src = '/calvras-icon.png';

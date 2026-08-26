@@ -8,7 +8,7 @@ export const Footer = ({ onOpenLegal }) => {
           <img 
             src="/calvras.png" 
             alt="Calvras" 
-            className="w-6 h-6 rounded-lg bg-white p-0.5 object-contain" 
+            className="w-[29px] h-[29px] rounded-lg object-contain" 
           />
           <span className="text-sm font-bold text-white font-sans tracking-tight">Calvras</span>
         </div>

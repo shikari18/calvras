@@ -144,13 +144,13 @@ export const GetStartedPage = ({ onNavigate, onLoginSuccess, initialIsSignIn = f
       {/* Left Column: Full-Height Clean Form (50% Width, Zero Page Scroll on Desktop) */}
       <div className="w-full lg:w-1/2 h-full max-h-screen flex flex-col justify-between p-5 sm:p-8 lg:p-10 bg-[#1c1c1c] overflow-y-auto lg:overflow-hidden">
         
-        {/* Top Bar Logo */}
+        {/* Top Bar Logo (No White Background, +5px size) */}
         <div className="flex items-center justify-between w-full max-w-sm mx-auto">
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-3">
             <img 
               src="/calvras.png" 
               alt="Calvras Logo" 
-              className="w-8 h-8 rounded-xl object-contain bg-white p-0.5 shadow-md"
+              className="w-[37px] h-[37px] rounded-xl object-contain shadow-md"
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.src = '/calvras-icon.png';

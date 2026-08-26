@@ -24,7 +24,7 @@ export const BuiltAroundBusiness = () => {
             <img 
               src="/calvras.png" 
               alt="Calvras" 
-              className="w-10 h-10 rounded-xl bg-white p-1 object-contain" 
+              className="w-[45px] h-[45px] rounded-xl object-contain" 
             />
           </div>
 

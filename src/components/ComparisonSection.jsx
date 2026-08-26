@@ -72,7 +72,7 @@ export const ComparisonSection = ({ onNavigate }) => {
                     <img 
                       src="/calvras.png" 
                       alt="Calvras" 
-                      className="w-5 h-5 rounded-md bg-white p-0.5 object-contain" 
+                      className="w-[25px] h-[25px] rounded-md object-contain" 
                     />
                     <span className="text-white text-sm">Calvras Autonomous OS</span>
                   </div>
