@@ -91,7 +91,7 @@ export const CyNewChatPage = ({
   };
 
   return (
-    <div className="flex-1 min-h-screen bg-[#0d0e0c] flex flex-col justify-between items-center p-4 sm:p-8 lg:p-10 font-sans antialiased text-white select-none overflow-y-auto w-full min-w-0 relative">
+    <div className="flex-1 min-h-screen bg-[#1c1c1c] flex flex-col justify-between items-center p-4 sm:p-8 lg:p-10 font-sans antialiased text-white select-none overflow-y-auto w-full min-w-0 relative">
       
       {/* Subtle Ambient Radial Glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-80 bg-gradient-to-b from-white/[0.02] to-transparent blur-3xl pointer-events-none -z-10" />
@@ -118,7 +118,7 @@ export const CyNewChatPage = ({
       {/* Feature Gating Upgrade Modal for $10 Basic Users */}
       {showUpgradeModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-[#181915] border border-white/20 rounded-3xl p-6 sm:p-8 max-w-md w-full text-center space-y-5 shadow-2xl relative">
+          <div className="bg-[#242424] border border-white/20 rounded-3xl p-6 sm:p-8 max-w-md w-full text-center space-y-5 shadow-2xl relative">
             <button
               onClick={() => setShowUpgradeModal(false)}
               className="absolute top-4 right-4 text-neutral-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition cursor-pointer"
@@ -143,7 +143,7 @@ export const CyNewChatPage = ({
               </p>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-[#121310] border border-white/10 text-left text-xs text-neutral-300 space-y-1.5">
+            <div className="p-3.5 rounded-2xl bg-[#1c1c1c] border border-white/10 text-left text-xs text-neutral-300 space-y-1.5">
               <div className="flex items-center gap-2 text-white font-semibold">
                 <CheckCircle2 size={13} className="text-emerald-400" />
                 <span>Automatic post syncing & ad attribution</span>
@@ -189,13 +189,13 @@ export const CyNewChatPage = ({
           <div className="flex items-center gap-2">
             <button 
               onClick={onToggleSidebar}
-              className="w-9 h-9 rounded-xl bg-[#161714] border border-white/10 flex items-center justify-center text-white transition cursor-pointer active:scale-95"
+              className="w-9 h-9 rounded-xl bg-[#242424] border border-white/10 flex items-center justify-center text-white transition cursor-pointer active:scale-95"
             >
               <Menu size={16} />
             </button>
             <button 
               onClick={onNewChat}
-              className="w-9 h-9 rounded-xl bg-[#161714] border border-white/10 flex items-center justify-center text-white transition cursor-pointer active:scale-95"
+              className="w-9 h-9 rounded-xl bg-[#242424] border border-white/10 flex items-center justify-center text-white transition cursor-pointer active:scale-95"
             >
               <SquarePen size={16} />
             </button>
@@ -221,7 +221,7 @@ export const CyNewChatPage = ({
           
           {/* Image Attachment Preview */}
           {attachedImage && (
-            <div className="relative inline-block border border-white/15 rounded-xl overflow-hidden shadow-2xs bg-[#161714] p-1 mb-1">
+            <div className="relative inline-block border border-white/15 rounded-xl overflow-hidden shadow-2xs bg-[#242424] p-1 mb-1">
               <img src={attachedImage} alt="Attachment" className="max-h-20 max-w-xs object-cover rounded-lg" />
               <button
                 onClick={() => setAttachedImage(null)}
@@ -232,7 +232,7 @@ export const CyNewChatPage = ({
             </div>
           )}
 
-          <div className="bg-[#141512] rounded-3xl p-4 sm:p-5 shadow-2xl transition-all duration-200 text-left space-y-3 relative">
+          <div className="bg-[#242424] rounded-3xl p-4 sm:p-5 shadow-2xl transition-all duration-200 text-left space-y-3 relative">
             <textarea
               ref={textareaRef}
               rows="1"
@@ -280,7 +280,7 @@ export const CyNewChatPage = ({
 
       {/* Connect Accounts Card (Pushed Down to Bottom with Generous Spacing) */}
       <div className="w-full max-w-xl mx-auto pt-10 pb-4">
-        <div className="bg-[#141512] border border-white/10 rounded-3xl p-4 sm:p-5 text-left space-y-3 shadow-xl">
+        <div className="bg-[#242424] border border-white/10 rounded-3xl p-4 sm:p-5 text-left space-y-3 shadow-xl">
           <div className="flex items-center justify-between text-xs">
             <span className="font-semibold text-neutral-300">
               Connect accounts to add posts & track reach.
@@ -303,7 +303,7 @@ export const CyNewChatPage = ({
                   className={`flex items-center justify-between p-3 rounded-2xl border transition-all duration-200 cursor-pointer shadow-sm hover:border-white/20 active:scale-[0.98] ${
                     connected 
                       ? 'bg-white/10 border-white/30 text-white font-semibold' 
-                      : 'bg-[#181915] border-white/5 text-neutral-300 font-medium'
+                      : 'bg-[#282828] border-white/5 text-neutral-300 font-medium'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">

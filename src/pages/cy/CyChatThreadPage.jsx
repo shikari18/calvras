@@ -217,7 +217,7 @@ export const CyChatThreadPage = ({
   });
 
   return (
-    <div className="flex-1 min-h-screen bg-[#0d0e0c] flex flex-col justify-between font-sans antialiased text-white select-none">
+    <div className="flex-1 min-h-screen bg-[#1c1c1c] flex flex-col justify-between font-sans antialiased text-white select-none">
       
       {/* Hidden File Input */}
       <input 
@@ -229,7 +229,7 @@ export const CyChatThreadPage = ({
       />
 
       {/* Top Header (Dark Mode) */}
-      <header className="px-4 sm:px-6 py-3.5 border-b border-white/10 flex items-center justify-between bg-[#0d0e0c]/90 backdrop-blur-md sticky top-0 z-20">
+      <header className="px-4 sm:px-6 py-3.5 border-b border-white/10 flex items-center justify-between bg-[#1c1c1c]/90 backdrop-blur-md sticky top-0 z-20">
         <div className="flex items-center gap-2">
           {onToggleSidebar && (
             <button
@@ -281,7 +281,7 @@ export const CyChatThreadPage = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {msg.sender === 'ai' ? (
-                  <div className="w-6 h-6 rounded-md bg-[#181915] border border-white/15 flex items-center justify-center shrink-0 shadow-2xs">
+                  <div className="w-6 h-6 rounded-md bg-[#242424] border border-white/15 flex items-center justify-center shrink-0 shadow-2xs">
                     <BrandBurstLogo size={16} />
                   </div>
                 ) : (
@@ -327,7 +327,7 @@ export const CyChatThreadPage = ({
             {/* User Uploaded Image Card */}
             {msg.image && (
               <div className="pl-8 pt-1">
-                <div className="max-w-xs sm:max-w-sm rounded-2xl border border-white/15 overflow-hidden bg-[#181915] shadow-xs p-2">
+                <div className="max-w-xs sm:max-w-sm rounded-2xl border border-white/15 overflow-hidden bg-[#242424] shadow-xs p-2">
                   <img 
                     src={msg.image} 
                     alt="Uploaded Creative" 
@@ -358,7 +358,7 @@ export const CyChatThreadPage = ({
         {isWorking && (
           <div className="space-y-1.5 text-left animate-in fade-in duration-150">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md bg-[#181915] border border-white/15 flex items-center justify-center shrink-0 shadow-2xs">
+              <div className="w-6 h-6 rounded-md bg-[#242424] border border-white/15 flex items-center justify-center shrink-0 shadow-2xs">
                 <BrandBurstLogo size={16} />
               </div>
               <span className="text-xs font-bold text-white">Calvras</span>
@@ -376,12 +376,12 @@ export const CyChatThreadPage = ({
       </main>
 
       {/* Bottom Sticky Reply Input Box (Dark Luxury Glass) */}
-      <footer className="p-6 max-w-4xl w-full mx-auto bg-[#0d0e0c]">
+      <footer className="p-6 max-w-4xl w-full mx-auto bg-[#1c1c1c]">
         
         {/* Attached Image Preview Card */}
         {attachedImage && (
           <div className="mb-2 relative inline-block">
-            <div className="w-16 h-16 rounded-xl border border-white/20 overflow-hidden bg-[#181915] shadow-xs relative">
+            <div className="w-16 h-16 rounded-xl border border-white/20 overflow-hidden bg-[#242424] shadow-xs relative">
               <img src={attachedImage} alt="Attachment" className="w-full h-full object-cover" />
             </div>
             <button
@@ -393,7 +393,7 @@ export const CyChatThreadPage = ({
           </div>
         )}
 
-        <div className="bg-[#141512] border border-white/15 hover:border-white/25 focus-within:border-white/40 rounded-2xl p-3 shadow-xl transition text-left space-y-2 relative">
+        <div className="bg-[#242424] border border-white/15 hover:border-white/25 focus-within:border-white/40 rounded-2xl p-3 shadow-xl transition text-left space-y-2 relative">
           
           <textarea
             ref={textareaRef}

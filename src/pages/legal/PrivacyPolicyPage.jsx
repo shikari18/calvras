@@ -3,10 +3,10 @@ import { ArrowLeft, Shield, Lock, Eye, CheckCircle2, Database, Key } from 'lucid
 
 export const PrivacyPolicyPage = ({ onBack }) => {
   return (
-    <div className="min-h-screen bg-[#0d0e0c] text-[#f4f4ee] font-sans flex flex-col justify-between antialiased selection:bg-white/20 selection:text-white">
+    <div className="min-h-screen bg-[#1c1c1c] text-[#f4f4ee] font-sans flex flex-col justify-between antialiased selection:bg-white/20 selection:text-white">
       
       {/* Top Header */}
-      <header className="w-full py-5 px-6 sm:px-12 flex items-center justify-between border-b border-white/10 bg-[#0d0e0c]/90 backdrop-blur-md sticky top-0 z-30">
+      <header className="w-full py-5 px-6 sm:px-12 flex items-center justify-between border-b border-white/10 bg-[#1c1c1c]/90 backdrop-blur-md sticky top-0 z-30">
         <div className="flex items-center gap-3">
           {onBack && (
             <button
@@ -42,18 +42,18 @@ export const PrivacyPolicyPage = ({ onBack }) => {
         <div className="space-y-3 border-b border-white/10 pb-8">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono uppercase tracking-wider text-neutral-300">
             <Shield size={13} className="text-emerald-400" />
-            <span>Data Protection & Privacy</span>
+            <span>Privacy & Data Protection</span>
           </div>
           <h1 className="text-3xl sm:text-5xl font-serif font-normal text-white tracking-tight">
             Privacy Policy
           </h1>
           <p className="text-sm sm:text-base text-neutral-400 leading-relaxed max-w-2xl">
-            This Privacy Policy explains how Calvras ("we", "our", or "us") collects, secures, uses, and protects your personal and business data.
+            Your privacy, campaign data, and marketing assets are strictly confidential. We prioritize industry-standard encryption, zero data selling, and GDPR/CCPA compliance.
           </p>
         </div>
 
         {/* Security Commitment Box */}
-        <div className="p-5 rounded-2xl bg-[#161714] border border-white/10 space-y-2">
+        <div className="p-5 rounded-2xl bg-[#242424] border border-white/10 space-y-2">
           <div className="flex items-center gap-2 text-white font-semibold text-sm">
             <Lock size={16} className="text-emerald-400" />
             <span>Our Core Privacy Principle: We Never Sell Your Data</span>

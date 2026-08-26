@@ -89,7 +89,7 @@ export const CyLayout = ({
   const currentTitle = activeThread?.title || threadTitle || 'Help Making Product Popular';
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#0d0e0c] font-sans text-white antialiased relative">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#1c1c1c] font-sans text-white antialiased relative">
       
       {/* 1. Desktop Main Left Navigation Sidebar (Hidden on mobile) */}
       <div className="hidden md:flex shrink-0 relative z-30">
@@ -117,7 +117,7 @@ export const CyLayout = ({
           />
 
           {/* Slide-out Sidebar Drawer */}
-          <div className="relative z-50 w-64 bg-[#121310] h-full shadow-2xl animate-in slide-in-from-left duration-200 flex flex-col border-r border-white/10">
+          <div className="relative z-50 w-64 bg-[#1c1c1c] h-full shadow-2xl animate-in slide-in-from-left duration-200 flex flex-col border-r border-white/10">
             
             {/* Mobile Drawer Close Button */}
             <button
@@ -145,7 +145,7 @@ export const CyLayout = ({
       )}
 
       {/* 3. Main Center Canvas View (Dark, Clean, Direct) */}
-      <div className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden bg-[#0d0e0c] relative z-10">
+      <div className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden bg-[#1c1c1c] relative z-10">
         {activeTab === 'new-chat' && (
           <CyNewChatPage 
             onSendMessage={handleSendMessageFromNewChat}

@@ -5,10 +5,10 @@
     --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
   }
   
-  html, body {
+  html, body, #root {
     font-family: var(--font-sans);
-    color: #0a0a0a;
-    background-color: #ffffff;
+    color: #ffffff;
+    background-color: #1c1c1c;
     overflow-x: hidden;
   }
 }

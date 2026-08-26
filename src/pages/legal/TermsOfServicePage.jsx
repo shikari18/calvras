@@ -3,10 +3,10 @@ import { ArrowLeft, Shield, CheckCircle2, Lock, FileText, Scale, Sparkles, Exter
 
 export const TermsOfServicePage = ({ onBack }) => {
   return (
-    <div className="min-h-screen bg-[#0d0e0c] text-[#f4f4ee] font-sans flex flex-col justify-between antialiased selection:bg-white/20 selection:text-white">
+    <div className="min-h-screen bg-[#1c1c1c] text-[#f4f4ee] font-sans flex flex-col justify-between antialiased selection:bg-white/20 selection:text-white">
       
       {/* Top Header */}
-      <header className="w-full py-5 px-6 sm:px-12 flex items-center justify-between border-b border-white/10 bg-[#0d0e0c]/90 backdrop-blur-md sticky top-0 z-30">
+      <header className="w-full py-5 px-6 sm:px-12 flex items-center justify-between border-b border-white/10 bg-[#1c1c1c]/90 backdrop-blur-md sticky top-0 z-30">
         <div className="flex items-center gap-3">
           {onBack && (
             <button
@@ -53,7 +53,7 @@ export const TermsOfServicePage = ({ onBack }) => {
         </div>
 
         {/* Highlight Callout Box */}
-        <div className="p-5 rounded-2xl bg-[#161714] border border-white/10 space-y-2">
+        <div className="p-5 rounded-2xl bg-[#242424] border border-white/10 space-y-2">
           <div className="flex items-center gap-2 text-white font-semibold text-sm">
             <Sparkles size={16} className="text-emerald-400" />
             <span>100% Commercial Ownership Guarantee</span>

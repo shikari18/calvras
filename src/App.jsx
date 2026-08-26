@@ -177,7 +177,7 @@ function App() {
       {isRefreshing && (
         <div 
           style={{ zIndex: 99999999 }}
-          className="fixed inset-0 bg-[#141414] text-white flex flex-col items-center justify-center gap-4 select-none animate-in fade-in duration-200"
+          className="fixed inset-0 bg-[#1c1c1c] text-white flex flex-col items-center justify-center gap-4 select-none animate-in fade-in duration-200"
         >
           <div className="relative flex items-center justify-center">
             <div className="w-9 h-9 rounded-full border-[2.5px] border-neutral-800 border-t-[#ff5e28] animate-spin" />
@@ -191,7 +191,7 @@ function App() {
 
       {/* Dark Full Screen Loading Spinner + Signing in text */}
       {isSigningIn && (
-        <div className="fixed inset-0 bg-[#141414] text-white flex flex-col items-center justify-center gap-3.5 z-50 select-none animate-in fade-in duration-150">
+        <div className="fixed inset-0 bg-[#1c1c1c] text-white flex flex-col items-center justify-center gap-3.5 z-50 select-none animate-in fade-in duration-150">
           <div className="w-8 h-8 rounded-full border-2 border-neutral-800 border-t-[#ff5e28] animate-spin" />
           <span className="text-xs font-semibold text-neutral-200 tracking-tight animate-pulse">
             Signing in...
@@ -201,7 +201,7 @@ function App() {
 
       {/* Dark Full Screen Loading Spinner + Signing out text */}
       {isSigningOut && (
-        <div className="fixed inset-0 bg-[#141414] text-white flex flex-col items-center justify-center gap-3 z-50 select-none animate-in fade-in duration-150">
+        <div className="fixed inset-0 bg-[#1c1c1c] text-white flex flex-col items-center justify-center gap-3 z-50 select-none animate-in fade-in duration-150">
           <div className="w-7 h-7 rounded-full border-2 border-neutral-800 border-t-neutral-400 animate-spin" />
           <span className="text-xs font-semibold text-neutral-400 tracking-tight animate-pulse">
             Signing out...

@@ -5,7 +5,7 @@ export const PricingSection = ({ onNavigate }) => {
   const [isAnnual, setIsAnnual] = useState(false);
 
   return (
-    <section id="pricing" className="py-24 md:py-36 border-t border-white/10 bg-[#0d0e0c] text-white">
+    <section id="pricing" className="py-24 md:py-36 border-t border-white/10 bg-[#1c1c1c] text-white">
       <div className="max-w-7xl mx-auto px-6 md:px-12 space-y-12">
         
         {/* Header */}
