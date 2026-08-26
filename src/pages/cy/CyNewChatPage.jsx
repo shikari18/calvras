@@ -94,7 +94,7 @@ export const CyNewChatPage = ({
     <div className="flex-1 min-h-screen bg-[#0d0e0c] flex flex-col justify-between items-center p-4 sm:p-8 lg:p-10 font-sans antialiased text-white select-none overflow-y-auto w-full min-w-0 relative">
       
       {/* Subtle Ambient Radial Glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-80 bg-gradient-to-b from-white/[0.03] to-transparent blur-3xl pointer-events-none -z-10" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-80 bg-gradient-to-b from-white/[0.02] to-transparent blur-3xl pointer-events-none -z-10" />
 
       {/* Hidden File Input */}
       <input 
@@ -203,8 +203,8 @@ export const CyNewChatPage = ({
         </div>
       </div>
 
-      {/* Center Main Content (Clean, Minimal, Modern) */}
-      <div className="max-w-xl mx-auto w-full text-center space-y-6 my-auto py-2">
+      {/* Center Main Content (Heading + Seamless Borderless Input) */}
+      <div className="max-w-xl mx-auto w-full text-center space-y-6 my-auto pt-6">
         
         {/* Simple Elegant Heading */}
         <div className="space-y-2 px-2">
@@ -216,7 +216,7 @@ export const CyNewChatPage = ({
           </p>
         </div>
 
-        {/* Clean Prompt Input Box */}
+        {/* Seamless Borderless Input Box (No Outer Border, No Inner Divider Line) */}
         <div className="space-y-3 w-full">
           
           {/* Image Attachment Preview */}
@@ -232,7 +232,7 @@ export const CyNewChatPage = ({
             </div>
           )}
 
-          <div className="bg-[#141512] border border-white/15 hover:border-white/25 focus-within:border-white/40 focus-within:ring-4 focus-within:ring-white/5 rounded-3xl p-4 shadow-xl transition-all duration-200 text-left space-y-2.5 relative">
+          <div className="bg-[#141512] rounded-3xl p-4 sm:p-5 shadow-2xl transition-all duration-200 text-left space-y-3 relative">
             <textarea
               ref={textareaRef}
               rows="1"
@@ -243,7 +243,8 @@ export const CyNewChatPage = ({
               className="w-full bg-transparent resize-none focus:outline-none text-xs sm:text-[14px] text-white placeholder:text-neutral-500 leading-relaxed font-normal min-h-[44px] max-h-60 overflow-y-auto py-1 transition-all"
             />
 
-            <div className="flex items-center justify-between pt-1 border-t border-white/10">
+            {/* Seamless Bottom Action Row (No Dividing Line) */}
+            <div className="flex items-center justify-between pt-1">
               <div className="flex items-center gap-1.5 text-neutral-400">
                 <button 
                   type="button" 
@@ -275,8 +276,11 @@ export const CyNewChatPage = ({
           </div>
         </div>
 
-        {/* Clean Connect Accounts Card (2x2 Grid) */}
-        <div className="bg-[#141512] border border-white/10 rounded-3xl p-4 sm:p-5 text-left space-y-3 mt-4 shadow-xl">
+      </div>
+
+      {/* Connect Accounts Card (Pushed Down to Bottom with Generous Spacing) */}
+      <div className="w-full max-w-xl mx-auto pt-10 pb-4">
+        <div className="bg-[#141512] border border-white/10 rounded-3xl p-4 sm:p-5 text-left space-y-3 shadow-xl">
           <div className="flex items-center justify-between text-xs">
             <span className="font-semibold text-neutral-300">
               Connect accounts to add posts & track reach.
@@ -316,10 +320,7 @@ export const CyNewChatPage = ({
             })}
           </div>
         </div>
-
       </div>
-
-      <div className="w-full" />
 
     </div>
   );
