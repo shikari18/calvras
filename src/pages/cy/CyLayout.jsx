@@ -144,8 +144,8 @@ export const CyLayout = ({
         </div>
       )}
 
-      {/* 3. Main Center Canvas View (Dark, Clean, Direct) */}
-      <div className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden bg-[#1c1c1c] relative z-10">
+      {/* 3. Main Center Canvas View (Clean White Canvas) */}
+      <div className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden bg-white relative z-10">
         {activeTab === 'new-chat' && (
           <CyNewChatPage 
             onSendMessage={handleSendMessageFromNewChat}

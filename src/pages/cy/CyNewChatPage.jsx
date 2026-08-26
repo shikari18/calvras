@@ -91,10 +91,10 @@ export const CyNewChatPage = ({
   };
 
   return (
-    <div className="flex-1 min-h-screen bg-[#1c1c1c] flex flex-col justify-between items-center p-4 sm:p-8 lg:p-10 font-sans antialiased text-white select-none overflow-y-auto w-full min-w-0 relative">
+    <div className="flex-1 min-h-screen bg-white flex flex-col justify-between items-center p-4 sm:p-8 lg:p-10 font-sans antialiased text-neutral-900 select-none overflow-y-auto w-full min-w-0 relative">
       
       {/* Subtle Ambient Radial Glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-80 bg-gradient-to-b from-white/[0.02] to-transparent blur-3xl pointer-events-none -z-10" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-80 bg-gradient-to-b from-neutral-100 to-transparent blur-3xl pointer-events-none -z-10" />
 
       {/* Hidden File Input */}
       <input 
@@ -181,7 +181,7 @@ export const CyNewChatPage = ({
               alt="Calvras Logo" 
               className="w-[33px] h-[33px] rounded-lg object-contain"
             />
-            <span className="font-serif font-bold text-white text-xl tracking-tight">
+            <span className="font-serif font-bold text-neutral-900 text-xl tracking-tight">
               Calvras
             </span>
           </div>
@@ -189,13 +189,13 @@ export const CyNewChatPage = ({
           <div className="flex items-center gap-2">
             <button 
               onClick={onToggleSidebar}
-              className="w-9 h-9 rounded-xl bg-[#242424] border border-white/10 flex items-center justify-center text-white transition cursor-pointer active:scale-95"
+              className="w-9 h-9 rounded-xl bg-neutral-100 border border-neutral-200 flex items-center justify-center text-neutral-800 transition cursor-pointer active:scale-95"
             >
               <Menu size={16} />
             </button>
             <button 
               onClick={onNewChat}
-              className="w-9 h-9 rounded-xl bg-[#242424] border border-white/10 flex items-center justify-center text-white transition cursor-pointer active:scale-95"
+              className="w-9 h-9 rounded-xl bg-neutral-100 border border-neutral-200 flex items-center justify-center text-neutral-800 transition cursor-pointer active:scale-95"
             >
               <SquarePen size={16} />
             </button>
@@ -208,10 +208,10 @@ export const CyNewChatPage = ({
         
         {/* Simple Elegant Heading */}
         <div className="space-y-2 px-2">
-          <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-serif font-normal text-white tracking-tight leading-snug">
+          <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-serif font-normal text-neutral-900 tracking-tight leading-snug">
             Hey {displayFirstName},<br className="sm:hidden" /> how can I help?
           </h1>
-          <p className="text-xs sm:text-sm text-neutral-400 font-normal max-w-sm sm:max-w-md mx-auto leading-relaxed">
+          <p className="text-xs sm:text-sm text-neutral-500 font-normal max-w-sm sm:max-w-md mx-auto leading-relaxed">
             Plan campaigns, generate viral creatives, and scale your brand across Instagram, TikTok, WhatsApp & Ads.
           </p>
         </div>
@@ -221,7 +221,7 @@ export const CyNewChatPage = ({
           
           {/* Image Attachment Preview */}
           {attachedImage && (
-            <div className="relative inline-block border border-white/15 rounded-xl overflow-hidden shadow-2xs bg-[#242424] p-1 mb-1">
+            <div className="relative inline-block border border-neutral-200 rounded-xl overflow-hidden shadow-2xs bg-neutral-50 p-1 mb-1">
               <img src={attachedImage} alt="Attachment" className="max-h-20 max-w-xs object-cover rounded-lg" />
               <button
                 onClick={() => setAttachedImage(null)}
@@ -232,7 +232,7 @@ export const CyNewChatPage = ({
             </div>
           )}
 
-          <div className="bg-[#242424] rounded-3xl p-4 sm:p-5 shadow-2xl transition-all duration-200 text-left space-y-3 relative">
+          <div className="bg-neutral-100/80 hover:bg-neutral-100 rounded-3xl p-4 sm:p-5 shadow-xs transition-all duration-200 text-left space-y-3 relative border-none">
             <textarea
               ref={textareaRef}
               rows="1"
@@ -240,7 +240,7 @@ export const CyNewChatPage = ({
               onChange={(e) => setPromptText(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Ask anything or describe what you want to market..."
-              className="w-full bg-transparent resize-none focus:outline-none text-xs sm:text-[14px] text-white placeholder:text-neutral-500 leading-relaxed font-normal min-h-[44px] max-h-60 overflow-y-auto py-1 transition-all"
+              className="w-full bg-transparent resize-none focus:outline-none text-xs sm:text-[14px] text-neutral-900 placeholder:text-neutral-500 leading-relaxed font-normal min-h-[44px] max-h-60 overflow-y-auto py-1 transition-all"
             />
 
             {/* Seamless Bottom Action Row (No Dividing Line) */}
@@ -249,7 +249,7 @@ export const CyNewChatPage = ({
                 <button 
                   type="button" 
                   onClick={() => fileInputRef.current?.click()}
-                  className="hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition cursor-pointer active:scale-95" 
+                  className="hover:text-neutral-800 p-1.5 rounded-lg hover:bg-neutral-200/60 transition cursor-pointer active:scale-95" 
                   title="Attach file"
                 >
                   <Paperclip size={15} />
@@ -257,7 +257,7 @@ export const CyNewChatPage = ({
 
                 <button 
                   type="button" 
-                  className="hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition cursor-pointer active:scale-95" 
+                  className="hover:text-neutral-800 p-1.5 rounded-lg hover:bg-neutral-200/60 transition cursor-pointer active:scale-95" 
                   title="Web search / Global"
                 >
                   <Globe size={15} />
@@ -268,7 +268,7 @@ export const CyNewChatPage = ({
                 type="button"
                 onClick={() => (promptText.trim() || attachedImage) && onSendMessage(promptText, attachedImage)}
                 disabled={!promptText.trim() && !attachedImage}
-                className="w-8 h-8 rounded-full bg-white hover:bg-neutral-200 disabled:opacity-30 text-neutral-950 flex items-center justify-center transition cursor-pointer shadow-md active:scale-90"
+                className="w-8 h-8 rounded-full bg-neutral-900 hover:bg-neutral-800 disabled:opacity-30 text-white flex items-center justify-center transition cursor-pointer shadow-md active:scale-90"
               >
                 <Send size={13} className="translate-x-[-0.5px] translate-y-[-0.5px]" />
               </button>
@@ -280,9 +280,9 @@ export const CyNewChatPage = ({
 
       {/* Connect Accounts Card (Pushed Down to Bottom with Generous Spacing) */}
       <div className="w-full max-w-xl mx-auto pt-10 pb-4">
-        <div className="bg-[#242424] border border-white/10 rounded-3xl p-4 sm:p-5 text-left space-y-3 shadow-xl">
+        <div className="bg-neutral-50 border border-neutral-200/80 rounded-3xl p-4 sm:p-5 text-left space-y-3 shadow-xs">
           <div className="flex items-center justify-between text-xs">
-            <span className="font-semibold text-neutral-300">
+            <span className="font-semibold text-neutral-800">
               Connect accounts to add posts & track reach.
             </span>
             {!hasConnectorsAccess && (
@@ -300,10 +300,10 @@ export const CyNewChatPage = ({
                 <button
                   key={plat.id}
                   onClick={() => handleConnectorClick(plat.id)}
-                  className={`flex items-center justify-between p-3 rounded-2xl border transition-all duration-200 cursor-pointer shadow-sm hover:border-white/20 active:scale-[0.98] ${
+                  className={`flex items-center justify-between p-3 rounded-2xl border transition-all duration-200 cursor-pointer shadow-2xs hover:border-neutral-400 active:scale-[0.98] ${
                     connected 
-                      ? 'bg-white/10 border-white/30 text-white font-semibold' 
-                      : 'bg-[#282828] border-white/5 text-neutral-300 font-medium'
+                      ? 'bg-white border-neutral-900 text-neutral-950 font-semibold' 
+                      : 'bg-white border-neutral-200 text-neutral-700 font-medium'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
@@ -311,9 +311,9 @@ export const CyNewChatPage = ({
                     <span className="text-xs">{plat.name}</span>
                   </div>
                   {connected ? (
-                    <CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
+                    <CheckCircle2 size={13} className="text-emerald-600 shrink-0" />
                   ) : !hasConnectorsAccess ? (
-                    <Lock size={12} className="text-neutral-500 shrink-0" />
+                    <Lock size={12} className="text-neutral-400 shrink-0" />
                   ) : null}
                 </button>
               );

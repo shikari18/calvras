@@ -361,23 +361,23 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
   };
 
   return (
-    <div className="flex-1 min-h-screen bg-[#1c1c1c] p-6 sm:p-10 font-sans antialiased text-white select-none text-left overflow-y-auto">
+    <div className="flex-1 min-h-screen bg-white p-6 sm:p-10 font-sans antialiased text-neutral-900 select-none text-left overflow-y-auto">
       <div className="max-w-7xl mx-auto space-y-6 pt-2 sm:pt-4">
         
         {/* Title Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-200 pb-5">
           <div className="space-y-1">
-            <h1 className="text-3xl sm:text-4xl font-serif font-normal text-white tracking-tight">
+            <h1 className="text-3xl sm:text-4xl font-serif font-normal text-neutral-900 tracking-tight">
               Connectors & Store Apps
             </h1>
-            <p className="text-xs sm:text-sm text-neutral-400 font-normal">
+            <p className="text-xs sm:text-sm text-neutral-500 font-normal">
               Connect your online store, payment gateways, and social accounts for <strong>{userName}'s Business</strong> to automate WhatsApp VIP upsells, inventory posting, and ad campaigns.
             </p>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-white/5 text-emerald-400 border border-white/10 flex items-center gap-1.5 font-mono">
-              <Zap size={13} className="text-emerald-400" />
+            <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200/80 flex items-center gap-1.5">
+              <Zap size={13} className="text-purple-600" />
               <span>{connectedCount} Active Connectors</span>
             </span>
           </div>
@@ -394,8 +394,8 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
                 onClick={() => setActiveFilter(tab.id)}
                 className={`text-xs px-3 py-1.5 rounded-xl font-medium whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 ${
                   activeFilter === tab.id
-                    ? 'bg-white text-neutral-950 font-bold shadow-2xs'
-                    : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                    ? 'bg-[#efeff1] text-neutral-950 font-semibold shadow-2xs'
+                    : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100/60'
                 }`}
               >
                 <span>{tab.label}</span>
@@ -412,7 +412,7 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search store apps & connectors..."
-              className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#1c1c1c] border border-white/10 hover:border-white/20 focus:border-white/40 rounded-xl text-white placeholder:text-neutral-500 focus:outline-none transition"
+              className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-[#e5e5e7] hover:border-neutral-400 focus:border-neutral-900 rounded-xl text-neutral-900 placeholder:text-neutral-400 focus:outline-none transition"
             />
           </div>
 
@@ -425,26 +425,26 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
             return (
               <div 
                 key={c.id} 
-                className="bg-[#242424] border border-white/10 hover:border-white/25 rounded-2xl p-4 shadow-sm flex flex-col justify-between space-y-4 transition group"
+                className="bg-white border border-[#e5e5e7] hover:border-neutral-400 rounded-2xl p-4 shadow-2xs flex flex-col justify-between space-y-4 transition group"
               >
                 <div className="space-y-2.5">
                   
                   {/* Card Top: Real Logo, Name, Status, Tag */}
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-[#1c1c1c] border border-white/10 flex items-center justify-center shadow-2xs shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-neutral-50 border border-neutral-100 flex items-center justify-center shadow-2xs shrink-0">
                         <LogoComponent />
                       </div>
                       <div>
-                        <h3 className="text-xs font-bold text-white">{c.name}</h3>
+                        <h3 className="text-xs font-bold text-neutral-900">{c.name}</h3>
                         <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className={`w-2 h-2 rounded-full ${c.connected ? 'bg-emerald-400' : 'bg-neutral-600'}`} />
+                          <span className={`w-2 h-2 rounded-full ${c.connected ? 'bg-emerald-500' : 'bg-neutral-300'}`} />
                           <span className="text-[11px] text-neutral-400 font-normal">{c.statusText}</span>
                         </div>
                       </div>
                     </div>
 
-                    <span className="text-[9.5px] font-semibold text-neutral-400 tracking-wider bg-white/5 px-2 py-0.5 rounded uppercase font-mono">
+                    <span className="text-[9.5px] font-semibold text-neutral-500 tracking-wider bg-neutral-100 px-2 py-0.5 rounded uppercase">
                       {c.tag}
                     </span>
                   </div>
