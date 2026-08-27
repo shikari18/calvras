@@ -7,6 +7,7 @@ import {
   Hash, 
   Activity, 
   Gauge, 
+  Code2,
   Plug, 
   ShieldCheck, 
   Users, 
@@ -44,26 +45,22 @@ export const BrandBurstLogo = ({ size = 20, className = "" }) => (
 );
 
 export const CySidebar = ({ 
-  activeTab, 
+  activeTab = 'threads',
   onSelectTab, 
-  isCollapsed, 
+  isCollapsed = false, 
   onToggleCollapse, 
   onNewChat,
-  chatThreads,
-  activeThreadId,
   onSelectThread,
   onDeleteThread,
-  userProfile = { name: 'SHIKARI', email: 'zenithzoral.9@gmail.com' },
+  threadTitle = 'Help Making Product Popular',
+  userProfile = { name: 'SHIKARI Ogar', email: 'zenithzone18@gmail.com' },
   onSignOut
 }) => {
-  const { credits, deleteThread } = useMarketing();
+  const { chatThreads, activeThreadId, deleteThread, credits, hasConnectorsAccess } = useMarketing();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [isRecentHovered, setIsRecentHovered] = useState(false);
   const hoverTimeoutRef = useRef(null);
-
-  const currentPlan = credits?.plan || 'Basic';
-  const hasConnectorsAccess = currentPlan === 'Pro Growth' || currentPlan === 'Agency & Scale';
 
   const handleMouseEnterRecent = () => {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
@@ -87,6 +84,7 @@ export const CySidebar = ({
   ];
 
   const adminItems = [
+    { id: 'developers', label: 'Developers / API', icon: Code2 },
     { id: 'connectors', label: 'Connectors', icon: Plug, isGated: !hasConnectorsAccess },
     { id: 'permissions', label: 'Permissions', icon: ShieldCheck },
     { id: 'team', label: 'Team', icon: Users },

@@ -209,6 +209,10 @@ export const CyLayout = ({
           <CyBillingPage userName={userName} onSelectTab={handleSelectTab} />
         )}
 
+        {activeTab === 'developers' && (
+          <CyDevelopersPage userName={userName} onNewChat={handleNewChat} />
+        )}
+
         {['signals', 'artifacts', 'skills', 'runs', 'usage', 'permissions'].includes(activeTab) && (
           <CyGenericListPage 
             tabId={activeTab}
