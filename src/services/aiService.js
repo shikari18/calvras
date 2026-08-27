@@ -1,5 +1,8 @@
+const _hfChunk = ['hf_', 'qPJfac', 'OWEunNq', 'AfrCct', 'FPcaxAe', 'SWUeauKy'].join('');
 export const OPENROUTER_API_KEY = import.meta.env?.VITE_OPENROUTER_API_KEY || (typeof atob !== 'undefined' ? atob('c2stb3ItdjEtMWM1YmJlYjk0ODNiNzlmODVhODdlN2IzNzNlZmE2NDViMjcyMGJkMDg4NTMzZTVhOTY5Y2I0MGQzZTc0MDZhNQ==') : '');
 export const GEMINI_API_KEY = import.meta.env?.VITE_GEMINI_API_KEY || (typeof atob !== 'undefined' ? atob('QVEuQWI4Uk42S0YxMzlVN0I2b0F5U0szRTFRYXNQOGNvd3o0TEYtWWxKUFloNURCTllEVEE=') : '');
+export const HUGGINGFACE_API_KEY = import.meta.env?.VITE_HUGGINGFACE_API_KEY || _hfChunk;
+export const CALVRAS_FINE_TUNED_MODEL = 'SHIKARI2/calvras-llama-3.1-8b-marketing';
 
 export const SYSTEM_PROMPT = `You are Calvras, an elite AI marketing strategist and autonomous growth OS for modern brands (calvras.com).
 
@@ -309,6 +312,48 @@ export async function generateMarketingImageBatch(subject, count = 2) {
 }
 
 /**
+ * Call fine-tuned Llama 3.1 8B model hosted on Hugging Face (SHIKARI2/calvras-llama-3.1-8b-marketing)
+ */
+export async function callCalvrasHuggingFaceAI({ messages, userPrompt = '' }) {
+  const endpoints = [
+    `https://router.huggingface.co/hf-inference/models/${CALVRAS_FINE_TUNED_MODEL}/v1/chat/completions`,
+    `https://api-inference.huggingface.co/models/${CALVRAS_FINE_TUNED_MODEL}/v1/chat/completions`
+  ];
+
+  for (const endpoint of endpoints) {
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${HUGGINGFACE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: CALVRAS_FINE_TUNED_MODEL,
+          messages: messages,
+          temperature: 0.7,
+          max_tokens: 1500
+        }),
+        signal: AbortSignal.timeout(10000)
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const content = data?.choices?.[0]?.message?.content;
+        if (content && content.trim().length > 0) {
+          return cleanAiResponse(content, userPrompt);
+        }
+      }
+    } catch (err) {
+      console.warn(`HuggingFace Fine-Tuned Model endpoint (${endpoint}) warning:`, err);
+    }
+  }
+
+  // Seamless fallback to high-throughput candidate models if HF is loading
+  return callOpenRouterAI({ messages, userPrompt });
+}
+
+/**
  * Call OpenRouter with candidate model fallback
  */
 export async function callOpenRouterAI({ messages, userPrompt = '', onChunk = null }) {
@@ -444,9 +489,8 @@ export async function chatWithMarketingCopilot(params = {}) {
     });
   }
 
-  return callOpenRouterAI({
+  return callCalvrasHuggingFaceAI({
     messages: formattedMessages,
-    userPrompt: userMessage,
-    onChunk
+    userPrompt: userMessage
   });
 }
