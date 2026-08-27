@@ -254,13 +254,6 @@ export const CyChatThreadPage = ({
           <span className="text-neutral-300">|</span>
           <span className="text-xs text-neutral-500 font-normal truncate max-w-[120px] sm:max-w-xs">{threadTitle}</span>
         </div>
-
-        {/* Credit Indicator in Header */}
-        <div className="flex items-center gap-2">
-          <div className="text-[11px] font-semibold text-neutral-700 bg-neutral-100 px-3 py-1 rounded-full border border-neutral-200 shadow-2xs font-mono">
-            <span>{credits?.remaining ?? 1000} credits</span>
-          </div>
-        </div>
       </header>
 
       {/* Credit Alert Toast */}
@@ -415,7 +408,7 @@ export const CyChatThreadPage = ({
             value={inputVal}
             onChange={(e) => setInputVal(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Reply in thread (5 credits per prompt)..."
+            placeholder="Reply in thread..."
             className="w-full bg-transparent resize-none focus:outline-none text-[13px] text-neutral-900 placeholder:text-neutral-400 leading-relaxed font-normal overflow-y-auto max-h-56 min-h-[38px] transition-all"
           />
 
