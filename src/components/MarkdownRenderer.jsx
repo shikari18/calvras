@@ -4,27 +4,68 @@ import remarkGfm from 'remark-gfm';
 import { cleanAiResponse } from '../services/aiService';
 import { Download, ExternalLink, Check, Copy, Loader2, Sparkles, Terminal, CheckCircle2, ChevronRight, RefreshCw } from 'lucide-react';
 
+// Persistent Browser Image Cache Manager to prevent re-generation on refresh
+const IMAGE_CACHE_NAME = 'calvras_generated_images_v1';
+
+async function getCachedImageUrl(url) {
+  try {
+    if (typeof window !== 'undefined' && 'caches' in window && url && !url.startsWith('blob:')) {
+      const cache = await caches.open(IMAGE_CACHE_NAME);
+      const match = await cache.match(url);
+      if (match) {
+        const blob = await match.blob();
+        return URL.createObjectURL(blob);
+      }
+    }
+  } catch (e) {}
+  return null;
+}
+
+async function saveImageToCache(url) {
+  try {
+    if (typeof window !== 'undefined' && 'caches' in window && url && !url.startsWith('blob:')) {
+      const response = await fetch(url, { mode: 'cors' });
+      if (response.ok) {
+        const cache = await caches.open(IMAGE_CACHE_NAME);
+        await cache.put(url, response.clone());
+      }
+    }
+  } catch (e) {}
+}
+
 const CompactImageCard = ({ src, alt }) => {
   const [loaded, setLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [copied, setCopied] = useState(false);
   const [imgSrc, setImgSrc] = useState(src);
+  const [isFromCache, setIsFromCache] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    setImgSrc(src);
-    setLoaded(false);
-    setHasError(false);
+    let isMounted = true;
+    (async () => {
+      const cachedUrl = await getCachedImageUrl(src);
+      if (cachedUrl && isMounted) {
+        setImgSrc(cachedUrl);
+        setLoaded(true);
+        setIsFromCache(true);
+      } else if (isMounted) {
+        setImgSrc(src);
+      }
+    })();
+    return () => { isMounted = false; };
   }, [src]);
 
   const handleImageLoad = () => {
     setLoaded(true);
     setHasError(false);
+    if (!isFromCache && src && !src.startsWith('blob:')) {
+      saveImageToCache(src);
+    }
   };
 
   const handleImageError = () => {
     if (retryCount < 2) {
-      // Auto-retry with a slightly jittered seed
       setRetryCount(prev => prev + 1);
       const newSeed = Math.floor(Math.random() * 999999);
       if (imgSrc.includes('pollinations.ai')) {
@@ -146,10 +187,7 @@ const CodeBlock = ({ inline, children }) => {
   const [copied, setCopied] = useState(false);
   const textContent = String(children || '').trim();
 
-  // If text is short (< 40 chars) or single-line code snippet (like ACCRA24, #AccraVibes, coupon codes), render as inline badge
-  const isShortOrSingleLine = inline || (textContent.length < 50 && !textContent.includes('\n'));
-
-  if (isShortOrSingleLine) {
+  if (inline || (textContent.length < 50 && !textContent.includes('\n'))) {
     return (
       <code className="inline-flex items-center gap-1 font-mono text-[11.5px] font-semibold text-purple-300 bg-purple-950/40 border border-purple-800/40 px-2 py-0.5 rounded-md align-baseline shadow-2xs">
         {textContent}
@@ -157,7 +195,6 @@ const CodeBlock = ({ inline, children }) => {
     );
   }
 
-  // Multi-line code block with copy button
   const handleCopyCode = () => {
     navigator.clipboard.writeText(textContent);
     setCopied(true);
@@ -189,10 +226,6 @@ const CodeBlock = ({ inline, children }) => {
 export const MarkdownRenderer = ({ content }) => {
   if (!content) return null;
   const clean = typeof content === 'string' ? content : String(content);
-
-  // Extract consecutive images to group into a responsive grid
-  const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
-  const matches = [...clean.matchAll(imageRegex)];
 
   return (
     <div className="text-[13px] sm:text-[13.5px] text-[#f4f4ee] leading-[1.65] space-y-3 text-left select-text font-sans antialiased">
