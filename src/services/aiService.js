@@ -163,39 +163,40 @@ export async function fetchProductMarketingImages(query, count = 3) {
 }
 
 /**
- * Robust image intent detector that accurately separates explicit image generation requests from strategic marketing prompts
+ * Robust image intent detector for generative AI image creation
  */
 export function detectImageIntent(text) {
   const lower = (text || '').toLowerCase().trim();
   
-  // If prompt asks for a blueprint, strategy, plan, copy, angles, storyboard, script, or unit economics, it is a strategic LLM prompt
-  const isStrategyOrPlan = /\b(blueprint|strategy|campaign plan|launch plan|script|storyboard|angles?|positioning|unit economics|revenue|persona|funnel|breakdown|guide|advice|pricing)\b/i.test(lower);
-  if (isStrategyOrPlan && !lower.startsWith('generate image') && !lower.startsWith('generate photo') && !lower.startsWith('create image')) {
+  // Strategy/plan keywords that shouldn't trigger standalone image generation unless explicitly requested
+  const isStrategyOrPlan = /\b(blueprint|funnel strategy|campaign plan|launch roadmap|unit economics|revenue projection)\b/i.test(lower);
+  if (isStrategyOrPlan && !lower.includes('generate image') && !lower.includes('create image') && !lower.includes('generate picture') && !lower.includes('draw')) {
     return { isImageRequest: false };
   }
 
-  // Explicit image request patterns
-  const explicitImageAction = /\b(generate|create|make|produce|render|draw|give me|show me|need|want)\s+(?:\d+\s+)?(?:images?|photos?|pictures?|pics?|visuals?|mockups?)\b/i.test(lower);
-  const explicitImagePrefix = /^(?:an?\s+)?(?:image|photo|picture|pic|visual|mockup)s?\s+of\b/i.test(lower);
-  const explicitImageSuffix = /\b(?:image|photo|picture|pic|visual)s?\s+(?:generate|create|render)\s*\d*\b/i.test(lower);
-  const simpleImageQuery = /\b(?:generate|create)\s+\d+\s+(?:images?|photos?|pictures?|pics?)\b/i.test(lower);
+  // Explicit image generation trigger patterns
+  const explicitImageAction = /\b(generate|create|make|produce|render|draw|give me|show me|design)\s+(?:(?:an?|the|\d+)\s+)?(?:images?|photos?|pictures?|pics?|visuals?|mockups?|logos?|creatives?|posters?|illustrations?)\b/i.test(lower);
+  const explicitImagePrefix = /^(?:generate|create|make|draw|render)?\s*(?:an?\s+)?(?:image|photo|picture|pic|visual|mockup|logo|creative|poster|illustration)s?\s+(?:of|for|showing|with)\b/i.test(lower);
+  const explicitImageSuffix = /\b(?:image|photo|picture|pic|visual|logo|creative)s?\s+(?:generate|create|render|design)\s*\d*\b/i.test(lower);
+  const directGenCommand = /^(?:generate|create|render|draw)\s+(?:a|an|the|\d+)?\s*.+$/i.test(lower) && /\b(logo|poster|banner|ad creative|artwork|illustration|photo|visual)\b/i.test(lower);
 
-  if (explicitImageAction || explicitImagePrefix || explicitImageSuffix || simpleImageQuery) {
-    let count = 2; // Default to 2 images
+  if (explicitImageAction || explicitImagePrefix || explicitImageSuffix || directGenCommand) {
+    let count = 2; // Default to 2 variations
     const numMatch = lower.match(/\b(\d+)\b/);
     if (numMatch) {
       count = parseInt(numMatch[1], 10);
-    } else if (lower.includes('two') || lower.includes(' 2')) count = 2;
-    else if (lower.includes('three') || lower.includes(' 3')) count = 3;
-    else if (lower.includes('four') || lower.includes(' 4')) count = 4;
-    else if (lower.includes('five') || lower.includes(' 5')) count = 5;
-    else if (lower.includes('six') || lower.includes(' 6')) count = 6;
-    else if (lower.includes('an image') || lower.includes('a photo') || lower.includes('1 image')) count = 1;
+    } else if (lower.includes('one') || lower.includes(' 1') || lower.includes('an image') || lower.includes('a photo') || lower.includes('1 image') || lower.includes('single image')) {
+      count = 1;
+    } else if (lower.includes('three') || lower.includes(' 3')) {
+      count = 3;
+    } else if (lower.includes('four') || lower.includes(' 4')) {
+      count = 4;
+    }
 
-    count = Math.min(Math.max(count, 1), 6);
+    count = Math.min(Math.max(count, 1), 4);
     const subject = cleanDisplaySubject(lower);
 
-    return { isImageRequest: true, subject, rawText: lower, count };
+    return { isImageRequest: true, subject, rawText: text, count };
   }
   return { isImageRequest: false };
 }
@@ -292,22 +293,46 @@ Your CPMs and targeting are delivering eyeballs, but traffic is stalling before 
 }
 
 /**
- * Generate 100% dynamic marketing creatives matching the user's exact specifications
+ * Generate high-definition AI diffusion images (Flux.1 / State-of-the-Art Generative Diffusion)
  */
-export async function generateMarketingImageBatch(subject, count = 2) {
-  const cleanSubject = cleanDisplaySubject(subject);
-  const items = await fetchProductMarketingImages(subject, count);
+export async function generateMarketingImageBatch(promptText, count = 2) {
+  const cleanSubject = cleanDisplaySubject(promptText) || 'Commercial Creative';
+  const isLogo = /\b(logo|icon|emblem|symbol|brandmark)\b/i.test(promptText);
 
-  let markdown = `Here are **${items.length} high-converting marketing creatives** generated for **${cleanSubject}**:\n\n`;
+  // Construct visual prompt
+  let styleEnhancement = isLogo
+    ? 'vector logo design, minimalist, clean geometric vector art, high contrast, brand identity symbol, white background, modern graphic design'
+    : 'commercial advertising photography, professional studio lighting, 8k resolution, ultra-detailed, photorealistic, cinematic depth of field, award-winning visual composition';
+
+  const basePrompt = `${promptText}, ${styleEnhancement}`;
+  const totalCount = Math.min(Math.max(count, 1), 4);
+
+  const items = Array.from({ length: totalCount }, (_, idx) => {
+    const seed = Math.floor(Math.random() * 9999999) + (idx * 1013);
+    const variationLabel = idx === 0 
+      ? 'Hero Primary Visual' 
+      : (idx === 1 ? 'Alternative Dynamic Angle' : (idx === 2 ? 'Minimalist High-Contrast Angle' : 'In-Context Lifestyle Variation'));
+
+    const variationPrompt = `${basePrompt}, variation ${idx + 1}`;
+    const encoded = encodeURIComponent(variationPrompt);
+    const url = `https://image.pollinations.ai/prompt/${encoded}?width=1024&height=1024&model=flux&nologo=true&seed=${seed}`;
+
+    return {
+      title: `${cleanSubject} - ${variationLabel}`,
+      url
+    };
+  });
+
+  let markdown = `### 🎨 Generated AI Creatives for **${cleanSubject}**\n\n`;
 
   items.forEach((item) => {
     markdown += `![${item.title}](${item.url})\n\n`;
   });
 
-  markdown += `\n### 🎯 Recommended Marketing Angles for ${cleanSubject}:
-- **Visual Campaign Angle**: High-contrast commercial hero visual highlighting primary product features and real-world utility.
-- **Social Feed & Ads (Instagram / TikTok)**: Focus on key customer benefits, problem-solving value, and a strong direct call-to-action.
-- **Direct Messaging & Conversions**: Drive high-intent traffic with a limited-time introductory launch discount.`;
+  markdown += `\n### 🎯 Creative Deployment Strategy:
+- **Feed Stopping Power**: Engineered with high focal contrast to capture user attention within the first 1.5 seconds in social feeds.
+- **Message Alignment**: Pair with direct-response headline copy and a single clear call-to-action button.
+- **A/B Split Testing**: Deploy Variation 1 vs. Variation 2 in your paid ad set to empirically determine the lowest Cost Per Click (CPC).`;
 
   return markdown;
 }
