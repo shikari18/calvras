@@ -66,7 +66,7 @@ export const CyNewChatPage = ({
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       if (promptText) {
-        const nextHeight = Math.min(Math.max(textareaRef.current.scrollHeight, 44), 220);
+        const nextHeight = Math.min(Math.max(textareaRef.current.scrollHeight, 36), 220);
         textareaRef.current.style.height = `${nextHeight}px`;
       }
     }
@@ -223,7 +223,7 @@ export const CyNewChatPage = ({
       </div>
 
       {/* Center Main Content (Heading + Seamless Borderless Input) */}
-      <div className="max-w-xl mx-auto w-full text-center space-y-6 my-auto pt-6">
+      <div className="max-w-[580px] mx-auto w-full text-center space-y-6 my-auto pt-6">
         
         {/* Simple Elegant Heading */}
         <div className="space-y-2 px-2">
@@ -251,7 +251,7 @@ export const CyNewChatPage = ({
             </div>
           )}
 
-          <div className="bg-[#282828] border border-white/10 hover:border-white/20 focus-within:border-white/40 rounded-3xl p-4 sm:p-5 shadow-2xl transition-all duration-200 text-left space-y-3 relative">
+          <div className="bg-[#282828] border border-white/10 hover:border-white/20 focus-within:border-white/40 rounded-3xl p-3.5 sm:p-4 shadow-2xl transition-all duration-200 text-left space-y-2.5 relative">
             <textarea
               ref={textareaRef}
               rows="1"
@@ -263,7 +263,7 @@ export const CyNewChatPage = ({
                   ? "Describe your product or goal for a full strategic plan & deep audit..." 
                   : "Ask anything or describe what you want to market..."
               }
-              className="w-full bg-transparent resize-none focus:outline-none text-xs sm:text-[14px] text-white placeholder:text-neutral-500 leading-relaxed font-normal min-h-[44px] max-h-60 overflow-y-auto py-1 transition-all"
+              className="w-full bg-transparent resize-none focus:outline-none text-xs sm:text-[14px] text-white placeholder:text-neutral-500 leading-relaxed font-normal min-h-[36px] max-h-60 overflow-y-auto py-0.5 transition-all"
             />
 
             {/* Seamless Bottom Action Row */}
@@ -368,7 +368,7 @@ export const CyNewChatPage = ({
       </div>
 
       {/* Connect Accounts Card (Pushed Down to Bottom with Generous Spacing) */}
-      <div className="w-full max-w-xl mx-auto pt-10 pb-4">
+      <div className="w-full max-w-[580px] mx-auto pt-10 pb-4">
         <div className="bg-[#282828] border border-white/10 rounded-3xl p-4 sm:p-5 text-left space-y-3 shadow-xs">
           <div className="flex items-center justify-between text-xs">
             <span className="font-semibold text-neutral-300">
