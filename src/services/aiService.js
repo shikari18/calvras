@@ -334,9 +334,8 @@ export async function generateMarketingImageBatch(promptText, count = 1) {
 
   let markdown = `### 🎨 Generated AI Visual for **${cleanSubject}**\n\n`;
 
-  items.forEach((item) => {
-    markdown += `![${item.title}](${item.url})\n\n`;
-  });
+  // Render images separated by space to ensure single-row horizontal flex rendering
+  markdown += items.map(item => `![${item.title}](${item.url})`).join(' ') + '\n\n';
 
   markdown += `\n### 🎯 Creative Strategy:
 - **Visual Hook**: Clean high-contrast focal point designed for immediate visual recognition.

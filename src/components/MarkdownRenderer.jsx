@@ -237,7 +237,10 @@ const CodeBlock = ({ inline, children }) => {
 
 export const MarkdownRenderer = ({ content }) => {
   if (!content) return null;
-  const clean = typeof content === 'string' ? content : String(content);
+  let clean = typeof content === 'string' ? content : String(content);
+
+  // Normalize consecutive markdown image tags so ReactMarkdown treats them as a single paragraph / flex container
+  clean = clean.replace(/(!\[[^\]]*\]\([^)]+\))\s*(\n\s*)+(?=(!\[[^\]]*\]\([^)]+\)))/g, '$1 ');
 
   return (
     <div className="text-[13px] sm:text-[13.5px] text-[#f4f4ee] leading-[1.65] space-y-3 text-left select-text font-sans antialiased">
