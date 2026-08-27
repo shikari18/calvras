@@ -105,7 +105,7 @@ export const DEFAULT_BUSINESS_PROFILE = {
 export function cleanDisplaySubject(text) {
   let clean = (text || '')
     .toLowerCase()
-    .replace(/\b(i need|i want|generate|created?|make|producing|render|show me|give me|an?|images?|photos?|pictures?|pics?|visuals?|to advertise|advertising|for my|my|advertise|today|now|\d+|they have|in them|with|sole|the|color|background|to sell|sell|nice|good|of|for me|to|amrket|market)\b/gi, ' ')
+    .replace(/\b(hey|hi|hello|yo|please|can you|could you|i need|i want|generate|created?|make|producing|render|show me|give me|an?|images?|photos?|pictures?|pics?|visuals?|logos?|to advertise|advertising|for my brand|for my business|for my|my|for me|advertise|today|now|\d+|they have|in them|with|sole|the|color|background|to sell|sell|nice|good|of|to|amrket|market)\b/gi, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 
@@ -185,12 +185,12 @@ export function detectImageIntent(text) {
   const directGenCommand = /^(?:generate|create|render|draw)\s+(?:a|an|the|\d+)?\s*.+$/i.test(lower) && /\b(logo|poster|banner|ad creative|artwork|illustration|photo|visual)\b/i.test(lower);
 
   if (explicitImageAction || explicitImagePrefix || explicitImageSuffix || directGenCommand) {
-    let count = 2; // Default to 2 variations
+    let count = 1; // Default to 1 image at a time for maximum speed
     const numMatch = lower.match(/\b(\d+)\b/);
     if (numMatch) {
       count = parseInt(numMatch[1], 10);
-    } else if (lower.includes('one') || lower.includes(' 1') || lower.includes('an image') || lower.includes('a photo') || lower.includes('1 image') || lower.includes('single image')) {
-      count = 1;
+    } else if (lower.includes('two') || lower.includes(' 2') || lower.includes('pair') || lower.includes('2 images')) {
+      count = 2;
     } else if (lower.includes('three') || lower.includes(' 3')) {
       count = 3;
     } else if (lower.includes('four') || lower.includes(' 4')) {
@@ -199,7 +199,7 @@ export function detectImageIntent(text) {
 
     count = Math.min(Math.max(count, 1), 4);
     let subject = cleanDisplaySubject(lower);
-    if (!subject || subject === 'Logo' || subject === 'Custom Product Creative') {
+    if (!subject || subject.length < 2 || subject === 'Logo' || subject === 'Custom Product Creative') {
       subject = lower.includes('logo') ? 'Modern Geometric Brand Logo' : 'Commercial Creative Visual';
     }
 
@@ -302,9 +302,12 @@ Your CPMs and targeting are delivering eyeballs, but traffic is stalling before 
 /**
  * Generate high-definition AI diffusion images (Multi-Model Parallel Generation: Flux.1 + Realism + Turbo)
  */
-export async function generateMarketingImageBatch(promptText, count = 2) {
-  const cleanSubject = cleanDisplaySubject(promptText) || 'Commercial Creative';
+export async function generateMarketingImageBatch(promptText, count = 1) {
+  let cleanSubject = cleanDisplaySubject(promptText);
   const isLogo = /\b(logo|icon|emblem|symbol|brandmark)\b/i.test(promptText);
+  if (!cleanSubject || cleanSubject.length < 2 || cleanSubject === 'Logo' || cleanSubject === 'Custom Product Creative') {
+    cleanSubject = isLogo ? 'Modern Brand Logo' : 'Commercial Creative Visual';
+  }
 
   // Construct visual prompt
   let styleEnhancement = isLogo
@@ -312,21 +315,16 @@ export async function generateMarketingImageBatch(promptText, count = 2) {
     : 'commercial advertising photography, professional studio lighting, 8k resolution, ultra-detailed, photorealistic, cinematic depth of field, award-winning visual composition';
 
   const basePrompt = `${promptText}, ${styleEnhancement}`;
-  const totalCount = Math.min(Math.max(count, 1), 3);
-
-  // Distinct model pipelines to avoid per-model concurrency rate limits
-  const modelPipelines = ['flux', 'flux-realism', 'turbo'];
+  const totalCount = Math.min(Math.max(count, 1), 4);
 
   const items = Array.from({ length: totalCount }, (_, idx) => {
     const seed = Math.floor(Math.random() * 9999999) + (idx * 7919) + Date.now().toString().slice(-4);
     const variationLabel = idx === 0 
-      ? 'Hero Concept 1' 
-      : (idx === 1 ? 'Dynamic Concept 2' : 'Minimalist Concept 3');
+      ? 'Hero Concept' 
+      : `Concept Variation ${idx + 1}`;
 
-    const modelName = modelPipelines[idx % modelPipelines.length];
-    const variationPrompt = idx === 0 ? basePrompt : `${basePrompt}, creative angle variation ${idx + 1}`;
-    const encoded = encodeURIComponent(variationPrompt);
-    const url = `https://image.pollinations.ai/prompt/${encoded}?width=1024&height=1024&model=${modelName}&nologo=true&seed=${seed}`;
+    const encoded = encodeURIComponent(basePrompt);
+    const url = `https://image.pollinations.ai/prompt/${encoded}?width=1024&height=1024&model=flux&nologo=true&seed=${seed}`;
 
     return {
       title: `${cleanSubject} - ${variationLabel}`,
@@ -334,16 +332,15 @@ export async function generateMarketingImageBatch(promptText, count = 2) {
     };
   });
 
-  let markdown = `### 🎨 Generated AI Creatives for **${cleanSubject}**\n\n`;
+  let markdown = `### 🎨 Generated AI Visual for **${cleanSubject}**\n\n`;
 
   items.forEach((item) => {
     markdown += `![${item.title}](${item.url})\n\n`;
   });
 
-  markdown += `\n### 🎯 Creative Strategy & Angles:
-- **Visual Impact**: High-contrast focal point designed for immediate feed stopping power.
-- **Copy & Headline Pairing**: Deploy alongside a strong direct-response headline and a clear 1-click CTA.
-- **A/B Split Test**: Test Concept 1 vs. Concept 2 in your campaign ad set to optimize CTR.`;
+  markdown += `\n### 🎯 Creative Strategy:
+- **Visual Hook**: Clean high-contrast focal point designed for immediate visual recognition.
+- **Deployment**: Ready for app icon, social feed, landing page header, or brand identity.`;
 
   return markdown;
 }

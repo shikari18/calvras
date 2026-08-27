@@ -52,13 +52,13 @@ const CompactImageCard = ({ src, alt }) => {
         setIsFromCache(true);
       } else if (isMounted) {
         setImgSrc(src);
-        // Set generous 35-second rendering timeout for heavy diffusion models
+        // Generous 60-second safety timeout
         timeoutRef.current = setTimeout(() => {
           if (!loaded && isMounted) {
             setHasError(true);
             setLoaded(true);
           }
-        }, 35000);
+        }, 60000);
       }
     })();
 
@@ -78,17 +78,16 @@ const CompactImageCard = ({ src, alt }) => {
   };
 
   const handleImageError = () => {
-    if (retryCount < 2) {
+    // If an initial glitch happens, retry gracefully with new seed without throwing immediate error card
+    if (retryCount < 3) {
       setRetryCount(prev => prev + 1);
       const newSeed = Math.floor(Math.random() * 9999999);
       if (imgSrc.includes('pollinations.ai')) {
         const base = imgSrc.replace(/seed=\d+/, `seed=${newSeed}`);
-        setTimeout(() => setImgSrc(base), 1500);
+        setTimeout(() => setImgSrc(base), 2000);
         return;
       }
     }
-    setHasError(true);
-    setLoaded(true);
   };
 
   const handleDownload = (e) => {
