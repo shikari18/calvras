@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-import { ChevronDown, Sparkles, Check, ArrowRight, TrendingUp, DollarSign, Target, BarChart2, RefreshCw, Zap } from 'lucide-react';
+import { ChevronDown, ArrowRight, TrendingUp, DollarSign, Target, BarChart2, RefreshCw, Zap, ShieldCheck, Sparkles, CheckCircle2 } from 'lucide-react';
 
 export const Hero = ({ onNavigate }) => {
-  // Pure Marketing & Growth Scenarios
+  const [urlInput, setUrlInput] = useState('');
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanResult, setScanResult] = useState(null);
+
   const scenarios = [
     {
-      action: "Launch an",
-      deliverable: "Ad Campaign",
+      action: "Launch 15",
+      deliverable: "Ad Campaigns",
       connector: "for a",
       client: "DTC Skincare Brand",
       prompt: "Generate a complete Meta & TikTok scaling sprint: 3 viral UGC video hooks, Advantage+ ad copy variations, and a 1-click post-purchase upsell funnel.",
@@ -112,63 +115,133 @@ export const Hero = ({ onNavigate }) => {
     setActiveScenarioIndex((prev) => (prev + 1) % scenarios.length);
   };
 
+  const handleLiveScan = (e) => {
+    e.preventDefault();
+    if (!urlInput.trim()) return;
+    setIsScanning(true);
+    setTimeout(() => {
+      setIsScanning(false);
+      setScanResult({
+        domain: urlInput.replace(/^https?:\/\//, '').replace(/\/.*$/, ''),
+        hooksFound: 15,
+        estimatedROAS: "4.25x",
+        turnaround: "90 Seconds"
+      });
+    }, 1200);
+  };
+
   return (
-    <section id="hero" className="relative pt-32 pb-24 md:pt-40 md:pb-36 bg-[#0d0e0c] text-white overflow-hidden text-center select-none">
+    <section id="hero" className="relative pt-28 pb-20 md:pt-36 md:pb-28 bg-[#0d0e0c] text-white overflow-hidden text-center select-none">
       
-      {/* Subtle Glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-white/[0.02] rounded-full blur-3xl pointer-events-none" />
+      {/* Subtle Glow Background */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-cyan-500/[0.03] rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 relative z-10 space-y-8">
         
-        {/* Eyebrow Label */}
-        <div className="space-y-4">
-          <p className="text-[11px] sm:text-xs font-mono font-medium tracking-[0.24em] uppercase text-neutral-400">
-            YOUR AUTONOMOUS AI MARKETING TEAM
-          </p>
+        {/* Eyebrow Pill */}
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/15 text-[11px] font-mono tracking-wider uppercase text-neutral-300 shadow-md">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span>AUTONOMOUS DIRECT-RESPONSE MARKETING OS</span>
+        </div>
 
-          {/* Luxury Serif Interactive Marketing Headline */}
-          <div className="max-w-4xl mx-auto">
-            <h1 className="text-4xl sm:text-6xl md:text-7xl font-serif font-normal text-[#f4f4ee] tracking-tight leading-[1.12]">
-              {activeScenario.action}{' '}
-              <button 
-                onClick={cycleScenario}
-                title="Click to change marketing scenario"
-                className="underline decoration-neutral-500 underline-offset-8 hover:decoration-white transition cursor-pointer"
+        {/* Master Value Proposition Headline */}
+        <div className="max-w-4xl mx-auto space-y-4">
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-serif font-normal text-[#f4f4ee] tracking-tight leading-[1.1]">
+            {activeScenario.action}{' '}
+            <button 
+              onClick={cycleScenario}
+              title="Click to swap marketing scenario"
+              className="underline decoration-cyan-500/60 underline-offset-8 hover:decoration-cyan-400 transition cursor-pointer"
+            >
+              {activeScenario.deliverable}
+            </button>
+            <sup className="text-xs sm:text-sm font-sans text-cyan-400 font-bold ml-1">
+              ({activeScenarioIndex + 1})
+            </sup>
+            <br className="hidden sm:inline" />
+            {' '}{activeScenario.connector}{' '}
+            <button 
+              onClick={cycleScenario}
+              title="Click to swap marketing scenario"
+              className="underline decoration-neutral-500 underline-offset-8 hover:decoration-white transition cursor-pointer"
+            >
+              {activeScenario.client}
+            </button>
+          </h1>
+          <p className="text-sm sm:text-base md:text-lg text-neutral-400 max-w-2xl mx-auto leading-relaxed">
+            Replace your <span className="text-white font-semibold line-through decoration-red-400">$5,000/month agency retainer</span>. 
+            Generate 15 high-converting ad campaigns across Meta, TikTok, and Google in 90 seconds for just <span className="text-emerald-400 font-bold">$10/month</span>.
+          </p>
+        </div>
+
+        {/* Live URL Instant Brand Scanner (PLG Time-to-First-Value) */}
+        <div className="max-w-2xl mx-auto pt-2">
+          <form onSubmit={handleLiveScan} className="relative">
+            <div className="flex flex-col sm:flex-row items-center bg-[#161714] rounded-2xl sm:rounded-full border border-white/20 p-2 sm:p-2.5 shadow-2xl focus-within:border-cyan-400 focus-within:ring-2 focus-within:ring-cyan-500/20 transition-all gap-2">
+              <input 
+                type="text"
+                value={urlInput}
+                onChange={(e) => setUrlInput(e.target.value)}
+                placeholder="Enter your store URL (e.g. luminaapparel.com)..."
+                className="w-full text-xs sm:text-sm text-white placeholder-neutral-500 bg-transparent px-4 py-2 focus:outline-none"
+              />
+              <button
+                type="submit"
+                disabled={isScanning}
+                className="w-full sm:w-auto px-6 py-3 rounded-xl sm:rounded-full bg-white hover:bg-neutral-100 text-neutral-950 font-bold text-xs sm:text-[13px] transition cursor-pointer flex items-center justify-center gap-2 shrink-0 active:scale-95 shadow-md"
               >
-                {activeScenario.deliverable}
+                {isScanning ? (
+                  <>
+                    <RefreshCw size={13} className="animate-spin text-neutral-950" />
+                    <span>Analyzing Brand DNA...</span>
+                  </>
+                ) : (
+                  <>
+                    <Zap size={13} className="text-[#ff5e28]" />
+                    <span>Generate 15 Ads (90s)</span>
+                  </>
+                )}
               </button>
-              <sup className="text-xs sm:text-sm font-sans text-neutral-500 font-normal ml-1">
-                ({activeScenarioIndex + 1})
-              </sup>
-              <br className="hidden sm:inline" />
-              {' '}{activeScenario.connector}{' '}
+            </div>
+          </form>
+
+          {/* Scan Output Toast */}
+          {scanResult && (
+            <div className="mt-3 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 flex items-center justify-between animate-in fade-in">
+              <span className="flex items-center gap-1.5">
+                <CheckCircle2 size={13} className="text-emerald-400" />
+                <span>Brand DNA extracted for <strong>{scanResult.domain}</strong>! 15 multivariate hooks ready.</span>
+              </span>
               <button 
-                onClick={cycleScenario}
-                title="Click to change marketing scenario"
-                className="underline decoration-neutral-500 underline-offset-8 hover:decoration-white transition cursor-pointer"
+                onClick={() => onNavigate('get-started')}
+                className="text-[11px] font-bold text-white underline ml-2 cursor-pointer"
               >
-                {activeScenario.client}
+                Deploy Sprints ➔
               </button>
-            </h1>
+            </div>
+          )}
+
+          {/* Click-Trigger Trust Micro-Copy */}
+          <div className="flex flex-wrap items-center justify-center gap-4 text-[11px] text-neutral-400 mt-3 font-mono">
+            <span className="flex items-center gap-1">
+              <ShieldCheck size={12} className="text-emerald-400" />
+              <span>30-Day Money-Back Guarantee</span>
+            </span>
+            <span>•</span>
+            <span className="flex items-center gap-1">
+              <Sparkles size={12} className="text-cyan-400" />
+              <span>1,000 Free Starter Credits</span>
+            </span>
+            <span>•</span>
+            <span>Cancel Anytime</span>
           </div>
         </div>
 
-        {/* Action Button */}
-        <div className="pt-2 flex items-center justify-center gap-4">
-          <button 
-            onClick={() => onNavigate('get-started')}
-            className="bg-white hover:bg-neutral-100 text-neutral-950 font-bold text-sm sm:text-[15px] px-8 py-3.5 rounded-full transition-all duration-200 cursor-pointer shadow-lg hover:shadow-2xl active:scale-95 flex items-center gap-2"
-          >
-            <span>Launch campaign</span>
-            <ArrowRight size={15} />
-          </button>
-        </div>
-
         {/* Hero Marketing Canvas Mockup (Lovart Architecture with Pure Marketing Data) */}
-        <div className="pt-8 sm:pt-12 max-w-6xl mx-auto text-left">
+        <div className="pt-6 sm:pt-10 max-w-6xl mx-auto text-left">
           
-          {/* Outer Canvas Backdrop with Earthy Texture */}
-          <div className="p-3 sm:p-5 md:p-7 rounded-[32px] sm:rounded-[40px] bg-gradient-to-b from-[#8a9179] via-[#7d856d] to-[#6d755e] shadow-[0_30px_100px_rgba(0,0,0,0.8)] border border-white/15 relative overflow-hidden">
+          {/* Outer Canvas Backdrop with Earthy Obsidian Texture */}
+          <div className="p-3 sm:p-5 md:p-7 rounded-[32px] sm:rounded-[40px] bg-gradient-to-b from-[#1b1d18] via-[#141512] to-[#0e0f0c] shadow-[0_30px_100px_rgba(0,0,0,0.8)] border border-white/15 relative overflow-hidden">
             
             {/* Inner Marketing Workstation Window */}
             <div className="w-full bg-[#121310] rounded-2xl sm:rounded-3xl border border-white/10 overflow-hidden shadow-2xl">
@@ -230,7 +303,7 @@ export const Hero = ({ onNavigate }) => {
 
                         {/* CTA Overlay Bar on Ad Creative */}
                         <div className="absolute bottom-0 left-0 right-0 p-2.5 bg-gradient-to-t from-black via-black/70 to-transparent flex items-center justify-between text-white">
-                          <span className="text-[11px] font-bold">\"Claim 20% Off Your First Order\"</span>
+                          <span className="text-[11px] font-bold">"Claim 20% Off Your First Order"</span>
                           <span className="text-[10px] bg-white text-black font-extrabold px-2 py-0.5 rounded">SHOP NOW</span>
                         </div>
 
@@ -322,7 +395,7 @@ export const Hero = ({ onNavigate }) => {
                     <div className="space-y-2 text-xs text-neutral-300 pl-1">
                       {activeScenario.aiSteps.map((step, idx) => (
                         <div key={idx} className="flex items-center gap-2 text-neutral-300">
-                          <Check size={12} className="text-emerald-400 shrink-0" />
+                          <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
                           <span>{step.label}</span>
                         </div>
                       ))}
@@ -331,7 +404,7 @@ export const Hero = ({ onNavigate }) => {
                     {/* Direct Assistant Output Box */}
                     <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-xs text-neutral-300 space-y-1.5">
                       <div className="flex items-center gap-1.5 text-emerald-400 font-bold text-[11px] uppercase tracking-wider">
-                        <Check size={12} strokeWidth={3} />
+                        <CheckCircle2 size={12} strokeWidth={3} />
                         <span>High-Converting Assets Ready</span>
                       </div>
                       <p className="text-[11px] text-neutral-300 leading-relaxed">
