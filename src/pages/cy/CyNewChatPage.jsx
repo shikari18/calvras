@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Paperclip, 
-  Globe, 
   Send, 
   CheckCircle2, 
   X, 
@@ -9,7 +8,11 @@ import {
   SquarePen, 
   Lock, 
   Sparkles, 
-  ArrowRight
+  ArrowRight,
+  MessageSquare,
+  Compass,
+  ChevronDown,
+  Check
 } from 'lucide-react';
 import { useMarketing } from '../../context/MarketingContext';
 import { 
@@ -28,11 +31,25 @@ export const CyNewChatPage = ({
 }) => {
   const { connectedSocials, connectSocialAccount, userProfile } = useMarketing();
   const [promptText, setPromptText] = useState('');
+  const [chatMode, setChatMode] = useState('chat'); // 'chat' | 'plan'
+  const [showModeDropdown, setShowModeDropdown] = useState(false);
   const [authModalChannel, setAuthModalChannel] = useState(null);
   const [attachedImage, setAttachedImage] = useState(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
+  const modeDropdownRef = useRef(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (modeDropdownRef.current && !modeDropdownRef.current.contains(e.target)) {
+        setShowModeDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Check plan for Connectors gating
   const userEmail = userProfile?.email || 'default';
@@ -241,13 +258,17 @@ export const CyNewChatPage = ({
               value={promptText}
               onChange={(e) => setPromptText(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask anything or describe what you want to market..."
+              placeholder={
+                chatMode === 'plan' 
+                  ? "Describe your product or goal for a full strategic plan & deep audit..." 
+                  : "Ask anything or describe what you want to market..."
+              }
               className="w-full bg-transparent resize-none focus:outline-none text-xs sm:text-[14px] text-white placeholder:text-neutral-500 leading-relaxed font-normal min-h-[44px] max-h-60 overflow-y-auto py-1 transition-all"
             />
 
             {/* Seamless Bottom Action Row */}
             <div className="flex items-center justify-between pt-1">
-              <div className="flex items-center gap-1.5 text-neutral-400">
+              <div className="flex items-center gap-2 text-neutral-400">
                 <button 
                   type="button" 
                   onClick={() => fileInputRef.current?.click()}
@@ -257,18 +278,90 @@ export const CyNewChatPage = ({
                   <Paperclip size={15} />
                 </button>
 
-                <button 
-                  type="button" 
-                  className="hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition cursor-pointer active:scale-95" 
-                  title="Web search / Global"
-                >
-                  <Globe size={15} />
-                </button>
+                {/* Mode Selector Pill Button (Chat vs Plan) */}
+                <div className="relative" ref={modeDropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setShowModeDropdown(!showModeDropdown)}
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition cursor-pointer active:scale-95 ${
+                      chatMode === 'plan'
+                        ? 'bg-purple-950/40 border-purple-500/40 text-purple-200 hover:bg-purple-900/50'
+                        : 'bg-[#1c1c1c] border-white/10 text-neutral-300 hover:text-white hover:border-white/20'
+                    }`}
+                    title="Switch execution mode"
+                  >
+                    {chatMode === 'plan' ? (
+                      <>
+                        <Compass size={13} className="text-purple-400" />
+                        <span>Plan</span>
+                      </>
+                    ) : (
+                      <>
+                        <MessageSquare size={13} className="text-neutral-400" />
+                        <span>Chat</span>
+                      </>
+                    )}
+                    <ChevronDown size={11} className="text-neutral-400" />
+                  </button>
+
+                  {/* Dropdown Popup Menu */}
+                  {showModeDropdown && (
+                    <div className="absolute bottom-full left-0 mb-2 w-56 bg-[#1c1c1c] border border-white/10 rounded-2xl shadow-2xl p-1.5 z-50 text-left space-y-1 animate-in fade-in zoom-in-95 duration-150 text-white">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setChatMode('chat');
+                          setShowModeDropdown(false);
+                        }}
+                        className={`w-full flex items-start gap-2.5 p-2 rounded-xl text-left transition cursor-pointer ${
+                          chatMode === 'chat' ? 'bg-white/10 text-white' : 'hover:bg-white/5 text-neutral-300'
+                        }`}
+                      >
+                        <div className="p-1 rounded-lg bg-[#282828] border border-white/10 text-white shrink-0 mt-0.5">
+                          <MessageSquare size={13} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-white">Chat</span>
+                            {chatMode === 'chat' && <Check size={12} className="text-emerald-400" />}
+                          </div>
+                          <p className="text-[10.5px] text-neutral-400 leading-tight">
+                            Fast direct answers, ad copy, hooks & ideas.
+                          </p>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setChatMode('plan');
+                          setShowModeDropdown(false);
+                        }}
+                        className={`w-full flex items-start gap-2.5 p-2 rounded-xl text-left transition cursor-pointer ${
+                          chatMode === 'plan' ? 'bg-purple-950/40 text-purple-200 border border-purple-500/30' : 'hover:bg-white/5 text-neutral-300'
+                        }`}
+                      >
+                        <div className="p-1 rounded-lg bg-purple-900/40 border border-purple-500/30 text-purple-300 shrink-0 mt-0.5">
+                          <Compass size={13} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-white">Plan</span>
+                            {chatMode === 'plan' && <Check size={12} className="text-purple-400" />}
+                          </div>
+                          <p className="text-[10.5px] text-neutral-400 leading-tight">
+                            Full blueprint, back-to-back questions, corrections & 30-day roadmap.
+                          </p>
+                        </div>
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <button
                 type="button"
-                onClick={() => (promptText.trim() || attachedImage) && onSendMessage(promptText, attachedImage)}
+                onClick={() => (promptText.trim() || attachedImage) && onSendMessage(promptText, attachedImage, chatMode)}
                 disabled={!promptText.trim() && !attachedImage}
                 className="w-8 h-8 rounded-full bg-white hover:bg-neutral-200 disabled:opacity-30 text-neutral-950 flex items-center justify-center transition cursor-pointer shadow-md active:scale-90"
               >

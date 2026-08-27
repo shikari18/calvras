@@ -66,7 +66,8 @@ export const CyLayout = ({
     setMobileMenuOpen(false);
   };
 
-  const handleSendMessageFromNewChat = (prompt, attachedImg) => {
+  const handleSendMessageFromNewChat = (prompt, attachedImg, mode = 'chat') => {
+    const formattedPrompt = mode === 'plan' ? `[MODE: PLAN]\n${prompt}` : prompt;
     const userMsgId = `user-${Date.now()}`;
     const userMsg = {
       id: userMsgId,
@@ -81,7 +82,7 @@ export const CyLayout = ({
     createNewChatThread(prompt, userMsg);
     const shortTitle = prompt.length > 28 ? prompt.slice(0, 28) + '...' : prompt;
     setThreadTitle(shortTitle);
-    setInitialPrompt(prompt);
+    setInitialPrompt(formattedPrompt);
     setActiveTab('threads');
     setMobileMenuOpen(false);
   };

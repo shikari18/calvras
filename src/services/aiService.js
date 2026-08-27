@@ -454,6 +454,21 @@ export async function chatWithMarketingCopilot(params = {}) {
     }).join('\n');
   }
 
+  const isPlanMode = Boolean(params.isPlanMode || params.mode === 'plan' || promptText.startsWith('[MODE: PLAN]'));
+
+  if (isPlanMode) {
+    systemContent += `\n\n[MODE: COMPREHENSIVE STRATEGIC MARKETING BLUEPRINT & DIAGNOSTIC AUDIT ACTIVATED]
+The user explicitly selected PLAN MODE. Deliver a full, uncompromised, in-depth strategic marketing blueprint:
+1. 🔍 **Deep Funnel Diagnostics & Back-to-Back Critical Questions**: Ask 4-5 sharp, high-impact diagnostic questions to uncover their exact bottlenecks (e.g. Current monthly traffic vs. conversion rate, Primary acquisition channel CAC, Customer churn/retention rate, Offer hook vs. price point).
+2. ⚠️ **Immediate Bottleneck Corrections (What to Fix First)**: Identify top 3 conversion leaks (Landing page friction, weak above-the-fold value proposition, lack of social proof/risk reversal, ad-to-landing-page messaging mismatch).
+3. 🎯 **30-Day Multi-Channel Master Execution Roadmap**:
+   - **Week 1: Conversion Foundation & Offer Redesign** (Headline overhaul, trust signals, sticky CTA).
+   - **Week 2: Paid Traffic Launch** (3 Meta hook angles, 2 TikTok scripts, 1 Google high-intent keyword campaign).
+   - **Week 3: Automated Retention & Lead Nurture** (Abandoned-cart WhatsApp & 3-part email sequence).
+   - **Week 4: Scaling & Budget Optimization** (ROAS targets, scaling triggers, CAC reduction).
+4. 📊 **Key Metrics & Unit Economics Target Matrix**: Render a clean markdown table showing: Channel | Projected CPC | Target Conversion Rate | Target CAC | Expected ROAS.\n`;
+  }
+
   // Format messages
   const formattedMessages = [
     { role: 'system', content: systemContent }

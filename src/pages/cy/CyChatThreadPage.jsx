@@ -10,7 +10,10 @@ import {
   Hash,
   X,
   AlertCircle,
-  Menu
+  Menu,
+  MessageSquare,
+  Compass,
+  ChevronDown
 } from 'lucide-react';
 import { chatWithMarketingCopilot, cleanAiResponse } from '../../services/aiService';
 import { MarkdownRenderer } from '../../components/MarkdownRenderer';
@@ -42,7 +45,21 @@ export const CyChatThreadPage = ({
   } = useMarketing();
 
   const [inputVal, setInputVal] = useState('');
+  const [chatMode, setChatMode] = useState('chat'); // 'chat' | 'plan'
+  const [showModeDropdown, setShowModeDropdown] = useState(false);
   const [attachedImage, setAttachedImage] = useState(null);
+  const modeDropdownRef = useRef(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (modeDropdownRef.current && !modeDropdownRef.current.contains(e.target)) {
+        setShowModeDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   const [isWorking, setIsWorking] = useState(false);
   const [workingSeconds, setWorkingSeconds] = useState(0);
   const [copiedId, setCopiedId] = useState(null);
@@ -131,6 +148,7 @@ export const CyChatThreadPage = ({
         userMessage: userText,
         prompt: userText,
         message: userText,
+        isPlanMode: chatMode === 'plan',
         history: chatMessages || [],
         userProfile,
         businessProfile,
@@ -403,12 +421,16 @@ export const CyChatThreadPage = ({
             value={inputVal}
             onChange={(e) => setInputVal(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Reply in thread..."
+            placeholder={
+              chatMode === 'plan' 
+                ? "Reply in thread (Plan Mode: full roadmap & diagnostics)..." 
+                : "Reply in thread..."
+            }
             className="w-full bg-transparent resize-none focus:outline-none text-[13px] text-white placeholder:text-neutral-500 leading-relaxed font-normal overflow-y-auto max-h-56 min-h-[38px] transition-all"
           />
 
           <div className="flex items-center justify-between pt-1 border-t border-white/5">
-            <div className="flex items-center gap-2 text-neutral-500">
+            <div className="flex items-center gap-2 text-neutral-400">
               <button 
                 type="button" 
                 onClick={() => fileInputRef.current?.click()}
@@ -417,6 +439,72 @@ export const CyChatThreadPage = ({
               >
                 <Paperclip size={14} />
               </button>
+
+              {/* Mode Selector Pill (Chat vs Plan) */}
+              <div className="relative" ref={modeDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setShowModeDropdown(!showModeDropdown)}
+                  className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border transition cursor-pointer active:scale-95 ${
+                    chatMode === 'plan'
+                      ? 'bg-purple-950/40 border-purple-500/40 text-purple-200 hover:bg-purple-900/50'
+                      : 'bg-[#1c1c1c] border-white/10 text-neutral-300 hover:text-white hover:border-white/20'
+                  }`}
+                  title="Switch execution mode"
+                >
+                  {chatMode === 'plan' ? (
+                    <>
+                      <Compass size={12} className="text-purple-400" />
+                      <span>Plan</span>
+                    </>
+                  ) : (
+                    <>
+                      <MessageSquare size={12} className="text-neutral-400" />
+                      <span>Chat</span>
+                    </>
+                  )}
+                  <ChevronDown size={10} className="text-neutral-400" />
+                </button>
+
+                {/* Dropdown Popup */}
+                {showModeDropdown && (
+                  <div className="absolute bottom-full left-0 mb-2 w-52 bg-[#1c1c1c] border border-white/10 rounded-2xl shadow-2xl p-1.5 z-50 text-left space-y-1 animate-in fade-in zoom-in-95 duration-150 text-white">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setChatMode('chat');
+                        setShowModeDropdown(false);
+                      }}
+                      className={`w-full flex items-center justify-between p-2 rounded-xl text-left transition cursor-pointer ${
+                        chatMode === 'chat' ? 'bg-white/10 text-white' : 'hover:bg-white/5 text-neutral-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <MessageSquare size={13} className="text-neutral-400" />
+                        <span className="text-xs font-bold text-white">Chat</span>
+                      </div>
+                      {chatMode === 'chat' && <Check size={12} className="text-emerald-400" />}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setChatMode('plan');
+                        setShowModeDropdown(false);
+                      }}
+                      className={`w-full flex items-center justify-between p-2 rounded-xl text-left transition cursor-pointer ${
+                        chatMode === 'plan' ? 'bg-purple-950/40 text-purple-200 border border-purple-500/30' : 'hover:bg-white/5 text-neutral-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Compass size={13} className="text-purple-400" />
+                        <span className="text-xs font-bold text-white">Plan</span>
+                      </div>
+                      {chatMode === 'plan' && <Check size={12} className="text-purple-400" />}
+                    </button>
+                  </div>
+                )}
+              </div>
 
               <button 
                 type="button" 
