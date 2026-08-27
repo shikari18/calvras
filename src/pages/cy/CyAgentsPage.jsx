@@ -251,6 +251,7 @@ export const CyAgentsPage = ({ onNewChat }) => {
           <div className="flex flex-wrap items-center gap-2 pt-1">
             <span className="text-[11px] text-neutral-400 font-medium">Quick Missions:</span>
             {[
+              "Generate landing-page improvements (CRO Audit)",
               "Get 500 new customers in 30 days ($2k budget)",
               "Increase store conversion rate by +30%",
               "Scale high-ROI retargeting & stop ad fatigue",

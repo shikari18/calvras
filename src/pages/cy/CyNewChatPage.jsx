@@ -274,6 +274,24 @@ export const CyNewChatPage = ({
               </button>
             </div>
           </div>
+
+          {/* Quick Suggestion Chips */}
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+            {[
+              "Generate landing-page improvements",
+              "Write 15 Meta & TikTok ad hooks",
+              "Audit my marketing funnel for leaks",
+              "Build a 30-day multi-channel roadmap"
+            ].map((chip, idx) => (
+              <button
+                key={idx}
+                onClick={() => onSendMessage(chip)}
+                className="text-[11.5px] font-medium text-neutral-600 bg-neutral-100 hover:bg-neutral-200/80 hover:text-neutral-950 border border-neutral-200/80 px-3 py-1.5 rounded-full transition cursor-pointer active:scale-95 shadow-2xs"
+              >
+                {chip}
+              </button>
+            ))}
+          </div>
         </div>
 
       </div>
