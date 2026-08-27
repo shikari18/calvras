@@ -374,9 +374,8 @@ export const CyChatThreadPage = ({
               <span className="text-[10.5px] text-neutral-400 font-normal">Just now</span>
             </div>
 
-            <div className="pl-8 text-[13.5px] select-none text-neutral-500 flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Thinking & formulating campaign strategy...</span>
+            <div className="pl-8 select-none py-1">
+              <span className="thinking-glance-text">Thinking...</span>
             </div>
           </div>
         )}
