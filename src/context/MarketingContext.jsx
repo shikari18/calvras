@@ -227,11 +227,17 @@ export const MarketingProvider = ({ children, currentUserEmail = 'zenithzone18@g
 
   // Credit Management: Deduct 5 credits per prompt
   const deductCredits = (amount = 5) => {
+    if (credits && typeof credits.remaining === 'number' && credits.remaining <= 0) {
+      return false;
+    }
     setCredits(prev => {
-      const remaining = Math.max(0, (prev.remaining || 0) - amount);
-      const used = (prev.used || 0) + amount;
+      const currentRemaining = prev?.remaining ?? 1000;
+      if (currentRemaining <= 0) return prev;
+      const remaining = Math.max(0, currentRemaining - amount);
+      const used = (prev?.used || 0) + amount;
       return { ...prev, remaining, used };
     });
+    return true;
   };
 
   // Add credits / Upgrade plan (100 Cedis -> 100, 250 Cedis -> 250, 400 Cedis -> 400)

@@ -128,6 +128,8 @@ export const CyChatThreadPage = ({
 
     try {
       const response = await chatWithMarketingCopilot({
+        userMessage: userText,
+        prompt: userText,
         message: userText,
         history: chatMessages || [],
         userProfile,
