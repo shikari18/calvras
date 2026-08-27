@@ -1,6 +1,4 @@
 const _hfChunk = ['hf_', 'qPJfac', 'OWEunNq', 'AfrCct', 'FPcaxAe', 'SWUeauKy'].join('');
-export const OPENROUTER_API_KEY = import.meta.env?.VITE_OPENROUTER_API_KEY || (typeof atob !== 'undefined' ? atob('c2stb3ItdjEtMWM1YmJlYjk0ODNiNzlmODVhODdlN2IzNzNlZmE2NDViMjcyMGJkMDg4NTMzZTVhOTY5Y2I0MGQzZTc0MDZhNQ==') : '');
-export const GEMINI_API_KEY = import.meta.env?.VITE_GEMINI_API_KEY || (typeof atob !== 'undefined' ? atob('QVEuQWI4Uk42S0YxMzlVN0I2b0F5U0szRTFRYXNQOGNvd3o0TEYtWWxKUFloNURCTllEVEE=') : '');
 export const HUGGINGFACE_API_KEY = import.meta.env?.VITE_HUGGINGFACE_API_KEY || _hfChunk;
 export const CALVRAS_FINE_TUNED_MODEL = 'SHIKARI2/calvras-llama-3.1-8b-marketing';
 
@@ -87,15 +85,6 @@ export const DEFAULT_BUSINESS_PROFILE = {
   currentOffers: '',
   paymentMethods: ''
 };
-
-// Active high-throughput OpenRouter models
-const MODEL_CANDIDATES = [
-  'liquid/lfm-2.5-2.6b:free',
-  'nvidia/nemotron-3-nano-30b-a3b:free',
-  'poolside/laguna-s-2.1:free',
-  'nvidia/nemotron-3.5-lightning:free',
-  'nvidia/nemotron-3-super-120b-a12b:free'
-];
 
 export function cleanDisplaySubject(text) {
   let clean = (text || '')
@@ -312,13 +301,15 @@ export async function generateMarketingImageBatch(subject, count = 2) {
 }
 
 /**
- * Call fine-tuned Llama 3.1 8B model hosted on Hugging Face (SHIKARI2/calvras-llama-3.1-8b-marketing)
+ * Call fine-tuned Llama 3.1 8B model hosted exclusively on Hugging Face (SHIKARI2/calvras-llama-3.1-8b-marketing)
  */
 export async function callCalvrasHuggingFaceAI({ messages, userPrompt = '' }) {
   const endpoints = [
     `https://router.huggingface.co/hf-inference/models/${CALVRAS_FINE_TUNED_MODEL}/v1/chat/completions`,
     `https://api-inference.huggingface.co/models/${CALVRAS_FINE_TUNED_MODEL}/v1/chat/completions`
   ];
+
+  let lastError = null;
 
   for (const endpoint of endpoints) {
     try {
@@ -334,7 +325,7 @@ export async function callCalvrasHuggingFaceAI({ messages, userPrompt = '' }) {
           temperature: 0.7,
           max_tokens: 1500
         }),
-        signal: AbortSignal.timeout(10000)
+        signal: AbortSignal.timeout(20000)
       });
 
       if (response.ok) {
@@ -343,58 +334,17 @@ export async function callCalvrasHuggingFaceAI({ messages, userPrompt = '' }) {
         if (content && content.trim().length > 0) {
           return cleanAiResponse(content, userPrompt);
         }
-      }
-    } catch (err) {
-      console.warn(`HuggingFace Fine-Tuned Model endpoint (${endpoint}) warning:`, err);
-    }
-  }
-
-  // Seamless fallback to high-throughput candidate models if HF is loading
-  return callOpenRouterAI({ messages, userPrompt });
-}
-
-/**
- * Call OpenRouter with candidate model fallback
- */
-export async function callOpenRouterAI({ messages, userPrompt = '', onChunk = null }) {
-  let lastError = null;
-
-  for (const model of MODEL_CANDIDATES) {
-    try {
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://calvras.com',
-          'X-Title': 'Calvras AI Marketing'
-        },
-        body: JSON.stringify({
-          model: model,
-          messages: messages,
-          temperature: 0.7,
-          max_tokens: 1500
-        }),
-        signal: AbortSignal.timeout(9000)
-      });
-
-      if (!response.ok) {
-        throw new Error(`Model ${model} returned HTTP ${response.status}`);
-      }
-
-      const data = await response.json();
-      const content = data?.choices?.[0]?.message?.content;
-
-      if (content && content.trim().length > 0) {
-        return cleanAiResponse(content, userPrompt);
+      } else {
+        const errText = await response.text().catch(() => '');
+        throw new Error(`[HuggingFace ${response.status}] ${errText || response.statusText}`);
       }
     } catch (err) {
       lastError = err;
-      console.warn(`Fallback: ${model} failed, trying next candidate...`, err);
+      console.warn(`HuggingFace endpoint (${endpoint}) error:`, err);
     }
   }
 
-  throw lastError || new Error('All AI models failed to respond.');
+  throw lastError || new Error(`Fine-tuned model '${CALVRAS_FINE_TUNED_MODEL}' failed to respond. Verify your Hugging Face inference status.`);
 }
 
 /**
