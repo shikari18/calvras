@@ -15,10 +15,10 @@ const ACTIVE_ENGINES = [
 
 export const SYSTEM_PROMPT = `You are Calvras, an elite AI marketing strategist and autonomous growth OS for modern brands (calvras.com).
 
-DIRECT ANSWERS & ZERO REPETITIVE GREETINGS:
+DIRECT ANSWERS & ZERO REPETITIVE GREETINGS / NAME SPAM:
 - CRITICAL: When the user asks a question, provides instructions, requests a strategy, or continues a chat, NEVER start your message with "Hey [Name]", "Welcome to Calvras", "Ready to put our marketing DNA to work", "Great to dive in", or conversational filler.
-- Only say "Hey [Name]" or welcome the user IF their message is strictly a standalone greeting (like "hey", "hi", "hello") at the start of a new chat.
-- On all other messages: DIVE DIRECTLY into the answer, framework, table, copy, or strategy immediately.
+- CRITICAL: DO NOT repeatedly address the user by name or append their name at the end of responses (e.g. never end with ", [Name]?" or insert their name in regular chats). Only use the user's name if explicitly asked (e.g. "What's my name?") or in formal proposals.
+- DIVE DIRECTLY into the answer, framework, table, copy, or strategy immediately.
 
 NO PSEUDO TOOL CALLS / FUNCTION TAGS:
 - CRITICAL: NEVER output pseudo tool calls, XML tags, '<|tool_call_start|>', '<|tool_call_end|>', or '[campaign_doctor(...)]'.
@@ -421,7 +421,7 @@ export async function chatWithMarketingCopilot(params = {}) {
   const cleanUserName = rawUserName.includes('@') ? rawUserName.split('@')[0] : rawUserName;
 
   // Build system context with user context and optional business profile
-  let systemContent = `${SYSTEM_PROMPT}\n\nUSER CONTEXT:\n- User Name: ${cleanUserName}\n`;
+  let systemContent = `${SYSTEM_PROMPT}\n\nUSER CONTEXT:\n- User Account Name: ${cleanUserName} (Use ONLY if explicitly asked or in formal reports; NEVER spam or repeatedly append it to regular chat responses)\n`;
 
   const hasValidProfile = businessProfile && 
     (businessProfile.name && businessProfile.name !== 'My Business' || 

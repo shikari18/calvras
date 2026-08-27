@@ -282,16 +282,13 @@ export const CyChatThreadPage = ({
       {/* Chat Messages List */}
       <main className="flex-1 p-6 max-w-4xl w-full mx-auto space-y-6 overflow-y-auto">
         {displayMessages.map((msg) => (
-          <div key={msg.id} className="space-y-1.5 text-left animate-in fade-in duration-150">
-            
-            {/* Header: Sender + Time + Copy Icon */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {msg.sender === 'ai' ? (
-                  <div className="w-6 h-6 rounded-md bg-neutral-100 border border-neutral-200 flex items-center justify-center shrink-0 shadow-2xs">
-                    <BrandBurstLogo size={16} />
-                  </div>
-                ) : (
+          <div key={msg.id} className={`w-full flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in duration-150`}>
+            {msg.sender === 'user' ? (
+              /* User Message (Right Aligned) */
+              <div className="max-w-[85%] sm:max-w-[75%] space-y-1 text-right">
+                <div className="flex items-center justify-end gap-2">
+                  <span className="text-[10.5px] text-neutral-400 font-normal">{msg.time}</span>
+                  <span className="text-xs font-bold text-neutral-900">{msg.name}</span>
                   <div className="w-6 h-6 rounded-md bg-neutral-900 text-white flex items-center justify-center text-[10px] font-bold shrink-0 overflow-hidden shadow-2xs">
                     {(msg.avatar || userProfile?.picture) ? (
                       <img 
@@ -305,59 +302,70 @@ export const CyChatThreadPage = ({
                       <span>{(msg.name || userProfile?.name || 'U').charAt(0).toUpperCase()}</span>
                     )}
                   </div>
-                )}
-                <span className="text-xs font-bold text-neutral-900">{msg.name}</span>
-                <span className="text-[10.5px] text-neutral-400 font-normal">{msg.time}</span>
-              </div>
-
-              {/* Copy / Share Action */}
-              {msg.sender === 'ai' && (
-                <div className="flex items-center gap-1 text-neutral-400">
-                  <button 
-                    onClick={() => handleCopy(msg.id, msg.text)}
-                    className="p-1 hover:text-neutral-900 hover:bg-neutral-100 rounded-md transition cursor-pointer" 
-                    title={copiedId === msg.id ? "Copied!" : "Copy response"}
-                  >
-                    {copiedId === msg.id ? (
-                      <Check size={13} className="text-emerald-600" />
-                    ) : (
-                      <Copy size={13} />
-                    )}
-                  </button>
-                  <button className="p-1 hover:text-neutral-900 hover:bg-neutral-100 rounded-md transition cursor-pointer" title="Share">
-                    <Share2 size={13} />
-                  </button>
                 </div>
-              )}
-            </div>
 
-            {/* User Uploaded Image Card */}
-            {msg.image && (
-              <div className="pl-8 pt-1">
-                <div className="max-w-xs sm:max-w-sm rounded-2xl border border-neutral-200 overflow-hidden bg-neutral-50 shadow-xs p-2">
-                  <img 
-                    src={msg.image} 
-                    alt="Uploaded Creative" 
-                    className="w-full h-auto max-h-64 object-contain rounded-xl"
-                  />
+                {/* User Uploaded Image Card */}
+                {msg.image && (
+                  <div className="flex justify-end pt-1">
+                    <div className="max-w-xs rounded-2xl border border-neutral-200 overflow-hidden bg-neutral-50 shadow-xs p-2">
+                      <img 
+                        src={msg.image} 
+                        alt="Uploaded Creative" 
+                        className="w-full h-auto max-h-64 object-contain rounded-xl"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* User Message Bubble */}
+                <div className="inline-block text-left bg-neutral-900 text-white px-4 py-2.5 rounded-2xl rounded-tr-xs shadow-xs text-[13.5px] leading-[1.6]">
+                  <p className="whitespace-pre-wrap">{msg.text}</p>
+                </div>
+              </div>
+            ) : (
+              /* AI Message (Left Aligned) */
+              <div className="w-full max-w-3xl space-y-1.5 text-left">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-md bg-neutral-100 border border-neutral-200 flex items-center justify-center shrink-0 shadow-2xs">
+                      <BrandBurstLogo size={16} />
+                    </div>
+                    <span className="text-xs font-bold text-neutral-900">{msg.name}</span>
+                    <span className="text-[10.5px] text-neutral-400 font-normal">{msg.time}</span>
+                  </div>
+
+                  {/* Copy / Share Action */}
+                  <div className="flex items-center gap-1 text-neutral-400">
+                    <button 
+                      onClick={() => handleCopy(msg.id, msg.text)}
+                      className="p-1 hover:text-neutral-900 hover:bg-neutral-100 rounded-md transition cursor-pointer" 
+                      title={copiedId === msg.id ? "Copied!" : "Copy response"}
+                    >
+                      {copiedId === msg.id ? (
+                        <Check size={13} className="text-emerald-600" />
+                      ) : (
+                        <Copy size={13} />
+                      )}
+                    </button>
+                    <button className="p-1 hover:text-neutral-900 hover:bg-neutral-100 rounded-md transition cursor-pointer" title="Share">
+                      <Share2 size={13} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* AI Message Body */}
+                <div className="pl-8 text-[13.5px] text-neutral-800 leading-[1.65] font-normal">
+                  {msg.id === streamingMsgId ? (
+                    <div className="chatgpt-stream-chunk">
+                      <MarkdownRenderer content={streamingText} />
+                      <span className="chatgpt-cursor" />
+                    </div>
+                  ) : (
+                    <MarkdownRenderer content={msg.text} />
+                  )}
                 </div>
               </div>
             )}
-
-            {/* Clean Message Body */}
-            <div className="pl-8 text-[13.5px] text-neutral-800 leading-[1.65] font-normal">
-              {msg.sender === 'user' ? (
-                <p className="whitespace-pre-wrap">{msg.text}</p>
-              ) : msg.id === streamingMsgId ? (
-                <div className="chatgpt-stream-chunk">
-                  <MarkdownRenderer content={streamingText} />
-                  <span className="chatgpt-cursor" />
-                </div>
-              ) : (
-                <MarkdownRenderer content={msg.text} />
-              )}
-            </div>
-
           </div>
         ))}
 
