@@ -70,7 +70,18 @@ export const CyLayout = ({
 
   const handleSendMessageFromNewChat = (prompt, attachedImg, mode = 'chat') => {
     const cleanPrompt = (prompt || '').trim();
-    const formattedPrompt = mode === 'plan' ? `[MODE: PLAN]\n${cleanPrompt}` : cleanPrompt;
+    const isDoc = attachedImg && typeof attachedImg === 'object' && attachedImg.type === 'document';
+    const isImg = attachedImg && (typeof attachedImg === 'string' || attachedImg.type === 'image');
+    const imagePayload = isImg ? (typeof attachedImg === 'string' ? attachedImg : attachedImg.data) : null;
+    
+    let textWithDoc = cleanPrompt;
+    if (isDoc && attachedImg.text) {
+      textWithDoc = cleanPrompt 
+        ? `${cleanPrompt}\n\n[ATTACHED DOCUMENT: ${attachedImg.name}]\n${attachedImg.text}` 
+        : `[ATTACHED DOCUMENT: ${attachedImg.name}]\n${attachedImg.text}`;
+    }
+
+    const formattedPrompt = mode === 'plan' ? `[MODE: PLAN]\n${textWithDoc}` : textWithDoc;
     const userMsgId = `user-${Date.now()}`;
     const userMsg = {
       id: userMsgId,
@@ -79,14 +90,16 @@ export const CyLayout = ({
       avatar: userProfile?.picture || null,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       text: cleanPrompt,
-      image: attachedImg || null
+      image: imagePayload,
+      document: isDoc ? attachedImg : null
     };
 
-    createNewChatThread(cleanPrompt || 'Image Creative Review', userMsg);
-    const shortTitle = cleanPrompt ? (cleanPrompt.length > 28 ? cleanPrompt.slice(0, 28) + '...' : cleanPrompt) : 'Creative Review';
+    const threadSubject = cleanPrompt || (isDoc ? attachedImg.name : 'Creative Review');
+    createNewChatThread(threadSubject, userMsg);
+    const shortTitle = threadSubject.length > 28 ? threadSubject.slice(0, 28) + '...' : threadSubject;
     setThreadTitle(shortTitle);
     setInitialPrompt(formattedPrompt);
-    setInitialImage(attachedImg || null);
+    setInitialImage(imagePayload);
     setInitialMode(mode);
     setActiveTab('threads');
     setMobileMenuOpen(false);

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
-  Paperclip, 
+  Paperclip, FileText, 
   Send, 
   CheckCircle2, 
   X, 
@@ -88,16 +88,73 @@ export const CyNewChatPage = ({
     }
   };
 
+  const [isDragging, setIsDragging] = useState(false);
+
+  const processFile = (file) => {
+    if (!file) return;
+    const fileName = file.name || 'attachment';
+    const fileSizeStr = file.size > 1024 * 1024 
+      ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` 
+      : `${Math.round(file.size / 1024)} KB`;
+
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setAttachedImage({
+          type: 'image',
+          name: fileName,
+          size: fileSizeStr,
+          data: reader.result,
+          text: null
+        });
+      };
+      reader.readAsDataURL(file);
+    } else {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const rawContent = reader.result || '';
+        let cleanText = '';
+        if (typeof rawContent === 'string') {
+          cleanText = rawContent.replace(/[^\x20-\x7E\n\r\t]/g, ' ').replace(/\s+/g, ' ').trim();
+          if (cleanText.length > 8000) cleanText = cleanText.slice(0, 8000) + '... [truncated]';
+        }
+        const ext = fileName.split('.').pop()?.toUpperCase() || 'DOC';
+        setAttachedImage({
+          type: 'document',
+          docType: ext,
+          name: fileName,
+          size: fileSizeStr,
+          data: null,
+          text: cleanText || `[Attached Document: ${fileName} (${fileSizeStr})]`
+        });
+      };
+      reader.readAsText(file);
+    }
+  };
+
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      setAttachedImage(reader.result);
-    };
-    reader.readAsDataURL(file);
+    if (file) processFile(file);
   };
+
+  // Global paste handler for Ctrl+V
+  useEffect(() => {
+    const handleGlobalPaste = (e) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].kind === 'file') {
+          const file = items[i].getAsFile();
+          if (file) {
+            processFile(file);
+            break;
+          }
+        }
+      }
+    };
+    window.addEventListener('paste', handleGlobalPaste);
+    return () => window.removeEventListener('paste', handleGlobalPaste);
+  }, []);
 
   const handleConnectorClick = (platId) => {
     if (!hasConnectorsAccess) {
@@ -118,7 +175,7 @@ export const CyNewChatPage = ({
         type="file" 
         ref={fileInputRef} 
         onChange={handleFileChange} 
-        accept="image/*" 
+        accept="image/*,application/pdf,.doc,.docx,.txt,.csv,.json,.md" 
         className="hidden" 
       />
 
@@ -236,22 +293,58 @@ export const CyNewChatPage = ({
         </div>
 
         {/* Seamless Borderless Input Box */}
-        <div className="space-y-3 w-full">
-          
-          {/* Image Attachment Preview */}
+        <div 
+          className="space-y-2 w-full text-left"
+          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+          onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
+          onDrop={(e) => {
+            e.preventDefault();
+            setIsDragging(false);
+            if (e.dataTransfer?.files?.[0]) processFile(e.dataTransfer.files[0]);
+          }}
+        >
+          {/* Attachment Preview (Aligned to the Top Left) */}
           {attachedImage && (
-            <div className="relative inline-block border border-white/10 rounded-xl overflow-hidden shadow-2xs bg-[#282828] p-1 mb-1">
-              <img src={attachedImage} alt="Attachment" className="max-h-20 max-w-xs object-cover rounded-lg" />
-              <button
-                onClick={() => setAttachedImage(null)}
-                className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-black text-white flex items-center justify-center text-[10px] shadow-sm hover:bg-red-600 transition cursor-pointer"
-              >
-                <X size={10} />
-              </button>
+            <div className="flex justify-start items-center pb-1 animate-in fade-in zoom-in-95 duration-150">
+              {attachedImage.type === 'image' || typeof attachedImage === 'string' ? (
+                <div className="relative inline-block border border-white/15 rounded-xl overflow-hidden shadow-md bg-[#242424] p-1 group">
+                  <img 
+                    src={typeof attachedImage === 'string' ? attachedImage : attachedImage.data} 
+                    alt="Attachment" 
+                    className="w-14 h-14 object-cover rounded-lg bg-black/40" 
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setAttachedImage(null)}
+                    className="absolute top-1 right-1 w-4 h-4 rounded-full bg-black/80 text-white flex items-center justify-center text-[9px] hover:bg-red-600 transition cursor-pointer shadow-xs"
+                    title="Remove attachment"
+                  >
+                    <X size={10} />
+                  </button>
+                </div>
+              ) : (
+                <div className="relative flex items-center gap-2.5 border border-white/15 rounded-xl bg-[#242424] px-3 py-1.5 shadow-md max-w-xs text-left">
+                  <div className="w-8 h-8 rounded-lg bg-[#8057ff]/15 text-[#8057ff] flex items-center justify-center font-bold text-[10px] shrink-0 uppercase">
+                    {attachedImage.docType || 'DOC'}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="text-xs font-medium text-white truncate block max-w-[170px]">{attachedImage.name}</span>
+                    <span className="text-[10.5px] text-neutral-400 font-mono block">{attachedImage.size}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setAttachedImage(null)}
+                    className="w-4 h-4 rounded-full bg-white/10 text-neutral-300 hover:text-white hover:bg-red-600 flex items-center justify-center text-[9px] transition cursor-pointer shrink-0 ml-1"
+                    title="Remove document"
+                  >
+                    <X size={10} />
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
-          <div className="bg-[#282828] border border-white/10 hover:border-white/20 focus-within:border-white/40 rounded-3xl p-3.5 sm:p-4 shadow-2xl transition-all duration-200 text-left space-y-2.5 relative">
+          <div className={`bg-[#282828] border ${isDragging ? 'border-[#8057ff] ring-2 ring-[#8057ff]/30' : 'border-white/10 hover:border-white/20 focus-within:border-white/40'} rounded-3xl p-3.5 sm:p-4 shadow-2xl transition-all duration-200 text-left space-y-2.5 relative`}>
             <textarea
               ref={textareaRef}
               rows="1"

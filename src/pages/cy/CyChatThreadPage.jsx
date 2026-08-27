@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
-  Paperclip, 
+  Paperclip, FileText, 
   Sparkles, 
   Clock, 
   Send, 
@@ -109,16 +109,73 @@ export const CyChatThreadPage = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages, isWorking, streamingText]);
 
+  const [isDraggingThread, setIsDraggingThread] = useState(false);
+
+  const processThreadFile = (file) => {
+    if (!file) return;
+    const fileName = file.name || 'attachment';
+    const fileSizeStr = file.size > 1024 * 1024 
+      ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` 
+      : `${Math.round(file.size / 1024)} KB`;
+
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setAttachedImage({
+          type: 'image',
+          name: fileName,
+          size: fileSizeStr,
+          data: reader.result,
+          text: null
+        });
+      };
+      reader.readAsDataURL(file);
+    } else {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const rawContent = reader.result || '';
+        let cleanText = '';
+        if (typeof rawContent === 'string') {
+          cleanText = rawContent.replace(/[^\x20-\x7E\n\r\t]/g, ' ').replace(/\s+/g, ' ').trim();
+          if (cleanText.length > 8000) cleanText = cleanText.slice(0, 8000) + '... [truncated]';
+        }
+        const ext = fileName.split('.').pop()?.toUpperCase() || 'DOC';
+        setAttachedImage({
+          type: 'document',
+          docType: ext,
+          name: fileName,
+          size: fileSizeStr,
+          data: null,
+          text: cleanText || `[Attached Document: ${fileName} (${fileSizeStr})]`
+        });
+      };
+      reader.readAsText(file);
+    }
+  };
+
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      setAttachedImage(reader.result);
-    };
-    reader.readAsDataURL(file);
+    if (file) processThreadFile(file);
   };
+
+  // Global paste handler in Thread for Ctrl+V
+  useEffect(() => {
+    const handleGlobalPaste = (e) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].kind === 'file') {
+          const file = items[i].getAsFile();
+          if (file) {
+            processThreadFile(file);
+            break;
+          }
+        }
+      }
+    };
+    window.addEventListener('paste', handleGlobalPaste);
+    return () => window.removeEventListener('paste', handleGlobalPaste);
+  }, []);
 
   const handleSendMessage = async (customPrompt, customImage = null, isInitial = false) => {
     const query = customPrompt || inputVal;
@@ -134,6 +191,17 @@ export const CyChatThreadPage = ({
     }
 
     const userText = (query || '').trim();
+    const isDoc = currentImg && typeof currentImg === 'object' && currentImg.type === 'document';
+    const isImg = currentImg && (typeof currentImg === 'string' || currentImg.type === 'image');
+    const imagePayload = isImg ? (typeof currentImg === 'string' ? currentImg : currentImg.data) : null;
+    
+    let textWithDoc = userText;
+    if (isDoc && currentImg.text) {
+      textWithDoc = userText 
+        ? `${userText}\n\n[ATTACHED DOCUMENT: ${currentImg.name}]\n${currentImg.text}` 
+        : `[ATTACHED DOCUMENT: ${currentImg.name}]\n${currentImg.text}`;
+    }
+
     setInputVal('');
     setAttachedImage(null);
 
@@ -147,7 +215,8 @@ export const CyChatThreadPage = ({
         avatar: userProfile?.picture || null,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         text: userText,
-        image: currentImg
+        image: imagePayload,
+        document: isDoc ? currentImg : null
       };
       addChatMessage(userMsg);
     }
@@ -161,9 +230,9 @@ export const CyChatThreadPage = ({
 
     try {
       const response = await chatWithMarketingCopilot({
-        userMessage: userText,
-        prompt: userText,
-        message: userText,
+        userMessage: textWithDoc,
+        prompt: textWithDoc,
+        message: textWithDoc,
         isPlanMode: chatMode === 'plan',
         history: chatMessages || [],
         userProfile,
@@ -173,7 +242,7 @@ export const CyChatThreadPage = ({
         tasks,
         contentList,
         connectedSocials,
-        attachedImage: currentImg
+        attachedImage: imagePayload
       });
 
       clearInterval(timer);
@@ -266,7 +335,7 @@ export const CyChatThreadPage = ({
         type="file" 
         ref={fileInputRef} 
         onChange={handleFileChange} 
-        accept="image/*" 
+        accept="image/*,application/pdf,.doc,.docx,.txt,.csv,.json,.md" 
         className="hidden" 
       />
 
@@ -335,6 +404,21 @@ export const CyChatThreadPage = ({
                         alt="Uploaded Creative" 
                         className="w-full h-full object-cover rounded-lg bg-black/40"
                       />
+                    </div>
+                  </div>
+                )}
+
+                {/* User Uploaded Document Card */}
+                {msg.document && (
+                  <div className="flex justify-end pt-1">
+                    <div className="flex items-center gap-2.5 border border-white/15 rounded-xl bg-[#242424] px-3 py-2 shadow-md text-left max-w-xs">
+                      <div className="w-8 h-8 rounded-lg bg-[#8057ff]/20 text-[#8057ff] flex items-center justify-center font-bold text-[10px] shrink-0 uppercase">
+                        {msg.document.docType || 'DOC'}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <span className="text-xs font-semibold text-white truncate block max-w-[160px]">{msg.document.name}</span>
+                        <span className="text-[10px] text-neutral-400 font-mono block">{msg.document.size}</span>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -416,22 +500,57 @@ export const CyChatThreadPage = ({
       {/* Bottom Sticky Reply Input Box */}
       <footer className="p-6 max-w-4xl w-full mx-auto bg-[#1c1c1c]">
         
-        {/* Attached Image Preview Card */}
+        {/* Attachment Preview (Aligned to Top Left) */}
         {attachedImage && (
-          <div className="mb-2 relative inline-block">
-            <div className="w-16 h-16 rounded-xl border border-white/10 overflow-hidden bg-[#282828] shadow-xs relative">
-              <img src={attachedImage} alt="Attachment" className="w-full h-full object-cover" />
-            </div>
-            <button
-              onClick={() => setAttachedImage(null)}
-              className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-black text-white flex items-center justify-center text-[10px] shadow-sm hover:bg-red-600 transition cursor-pointer"
-            >
-              <X size={10} />
-            </button>
+          <div className="flex justify-start items-center pb-2 animate-in fade-in zoom-in-95 duration-150">
+            {attachedImage.type === 'image' || typeof attachedImage === 'string' ? (
+              <div className="relative inline-block border border-white/15 rounded-xl overflow-hidden shadow-md bg-[#242424] p-1 group">
+                <img 
+                  src={typeof attachedImage === 'string' ? attachedImage : attachedImage.data} 
+                  alt="Attachment" 
+                  className="w-14 h-14 object-cover rounded-lg bg-black/40" 
+                />
+                <button
+                  type="button"
+                  onClick={() => setAttachedImage(null)}
+                  className="absolute top-1 right-1 w-4 h-4 rounded-full bg-black/80 text-white flex items-center justify-center text-[9px] hover:bg-red-600 transition cursor-pointer shadow-xs"
+                  title="Remove attachment"
+                >
+                  <X size={10} />
+                </button>
+              </div>
+            ) : (
+              <div className="relative flex items-center gap-2.5 border border-white/15 rounded-xl bg-[#242424] px-3 py-1.5 shadow-md max-w-xs text-left">
+                <div className="w-8 h-8 rounded-lg bg-[#8057ff]/15 text-[#8057ff] flex items-center justify-center font-bold text-[10px] shrink-0 uppercase">
+                  {attachedImage.docType || 'DOC'}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="text-xs font-medium text-white truncate block max-w-[170px]">{attachedImage.name}</span>
+                  <span className="text-[10.5px] text-neutral-400 font-mono block">{attachedImage.size}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setAttachedImage(null)}
+                  className="w-4 h-4 rounded-full bg-white/10 text-neutral-300 hover:text-white hover:bg-red-600 flex items-center justify-center text-[9px] transition cursor-pointer shrink-0 ml-1"
+                  title="Remove document"
+                >
+                  <X size={10} />
+                </button>
+              </div>
+            )}
           </div>
         )}
 
-        <div className="bg-[#282828] border border-white/10 hover:border-white/20 focus-within:border-white/40 rounded-2xl p-3 shadow-lg transition text-left space-y-2 relative">
+        <div 
+          className={`bg-[#282828] border ${isDraggingThread ? 'border-[#8057ff] ring-2 ring-[#8057ff]/30' : 'border-white/10 hover:border-white/20 focus-within:border-white/40'} rounded-2xl p-3 shadow-lg transition text-left space-y-2 relative`}
+          onDragOver={(e) => { e.preventDefault(); setIsDraggingThread(true); }}
+          onDragLeave={(e) => { e.preventDefault(); setIsDraggingThread(false); }}
+          onDrop={(e) => {
+            e.preventDefault();
+            setIsDraggingThread(false);
+            if (e.dataTransfer?.files?.[0]) processThreadFile(e.dataTransfer.files[0]);
+          }}
+        >
           
           <textarea
             ref={textareaRef}
