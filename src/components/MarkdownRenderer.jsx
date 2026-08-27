@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { cleanAiResponse } from '../services/aiService';
@@ -40,6 +40,7 @@ const CompactImageCard = ({ src, alt }) => {
   const [imgSrc, setImgSrc] = useState(src);
   const [isFromCache, setIsFromCache] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+  const timeoutRef = useRef(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -51,12 +52,24 @@ const CompactImageCard = ({ src, alt }) => {
         setIsFromCache(true);
       } else if (isMounted) {
         setImgSrc(src);
+        // Set generous 35-second rendering timeout for heavy diffusion models
+        timeoutRef.current = setTimeout(() => {
+          if (!loaded && isMounted) {
+            setHasError(true);
+            setLoaded(true);
+          }
+        }, 35000);
       }
     })();
-    return () => { isMounted = false; };
+
+    return () => {
+      isMounted = false;
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
   }, [src]);
 
   const handleImageLoad = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setLoaded(true);
     setHasError(false);
     if (!isFromCache && src && !src.startsWith('blob:')) {
@@ -67,10 +80,10 @@ const CompactImageCard = ({ src, alt }) => {
   const handleImageError = () => {
     if (retryCount < 2) {
       setRetryCount(prev => prev + 1);
-      const newSeed = Math.floor(Math.random() * 999999);
+      const newSeed = Math.floor(Math.random() * 9999999);
       if (imgSrc.includes('pollinations.ai')) {
         const base = imgSrc.replace(/seed=\d+/, `seed=${newSeed}`);
-        setTimeout(() => setImgSrc(base), 1200);
+        setTimeout(() => setImgSrc(base), 1500);
         return;
       }
     }
@@ -97,15 +110,15 @@ const CompactImageCard = ({ src, alt }) => {
   };
 
   return (
-    <div className="relative group rounded-2xl overflow-hidden border border-white/10 shadow-lg bg-[#242424] text-white w-full aspect-square flex flex-col justify-between transition-all hover:border-white/20">
+    <div className="relative group rounded-2xl overflow-hidden border border-white/10 shadow-lg bg-[#242424] text-white w-[230px] sm:w-[260px] aspect-square flex flex-col justify-between transition-all hover:border-white/25 shrink-0">
       
       {/* Loading Shimmer State */}
       {!loaded && !hasError && (
-        <div className="absolute inset-0 bg-[#1e1e1e] flex flex-col items-center justify-center p-3 text-center space-y-2 z-10 animate-pulse">
+        <div className="absolute inset-0 bg-[#1e1e1e] flex flex-col items-center justify-center p-3 text-center space-y-2.5 z-10 animate-pulse">
           <Loader2 size={24} className="text-[#8057ff] animate-spin" />
           <div className="space-y-0.5">
             <span className="text-[11px] font-semibold text-white block">Generating AI Visual...</span>
-            <span className="text-[10px] text-neutral-400 font-mono">Rendering high-res render</span>
+            <span className="text-[10px] text-neutral-400 font-mono">Rendering high-res diffusion</span>
           </div>
         </div>
       )}
@@ -119,7 +132,7 @@ const CompactImageCard = ({ src, alt }) => {
               setHasError(false);
               setLoaded(false);
               setRetryCount(0);
-              const newSeed = Math.floor(Math.random() * 999999);
+              const newSeed = Math.floor(Math.random() * 9999999);
               setImgSrc(src.replace(/seed=\d+/, `seed=${newSeed}`));
             }}
             className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold text-white transition cursor-pointer"
@@ -173,7 +186,7 @@ const CompactImageCard = ({ src, alt }) => {
 
       {/* Bottom Caption Bar */}
       {alt && loaded && !hasError && (
-        <div className="absolute bottom-0 inset-x-0 px-2.5 py-1.5 bg-black/80 backdrop-blur-xs border-t border-white/10 text-[10.5px] text-neutral-200 truncate z-10">
+        <div className="absolute bottom-0 inset-x-0 px-2.5 py-1.5 bg-black/85 backdrop-blur-xs border-t border-white/10 text-[10.5px] text-neutral-200 truncate z-10">
           <span className="truncate block font-medium">{alt}</span>
         </div>
       )}
@@ -248,11 +261,27 @@ export const MarkdownRenderer = ({ content }) => {
               {children}
             </h4>
           ),
-          p: ({ children }) => (
-            <p className="text-[13px] sm:text-[13.5px] text-[#f4f4ee] leading-[1.65] my-2 font-normal">
-              {children}
-            </p>
-          ),
+          p: ({ children }) => {
+            // Check if paragraph contains only image elements to wrap in side-by-side flex container
+            const childrenArray = React.Children.toArray(children);
+            const isImageContainer = childrenArray.length > 0 && childrenArray.every(
+              child => React.isValidElement(child) && (child.type === 'img' || child.props?.src)
+            );
+
+            if (isImageContainer) {
+              return (
+                <div className="flex flex-wrap items-start gap-4 my-3 w-full">
+                  {children}
+                </div>
+              );
+            }
+
+            return (
+              <p className="text-[13px] sm:text-[13.5px] text-[#f4f4ee] leading-[1.65] my-2 font-normal">
+                {children}
+              </p>
+            );
+          },
           strong: ({ children }) => (
             <strong className="font-bold text-white">{children}</strong>
           ),
@@ -272,9 +301,7 @@ export const MarkdownRenderer = ({ content }) => {
             </li>
           ),
           img: ({ src, alt }) => (
-            <div className="w-full max-w-[270px] sm:max-w-[290px] aspect-square my-2 inline-block mr-3 align-top">
-              <CompactImageCard src={src} alt={alt} />
-            </div>
+            <CompactImageCard src={src} alt={alt} />
           ),
           table: ({ children }) => (
             <div className="my-3 overflow-x-auto rounded-2xl border border-white/10 shadow-lg bg-[#282828]">

@@ -181,6 +181,13 @@ export function detectImageIntent(text) {
   const directGenCommand = /^(?:generate|create|render|draw)\s+(?:a|an|the|\d+)?\s*.+$/i.test(lower) && /\b(logo|poster|banner|ad creative|artwork|illustration|photo|visual)\b/i.test(lower);
 
   if (explicitImageAction || explicitImagePrefix || explicitImageSuffix || directGenCommand) {
+    // Check if the prompt is too generic/underspecified (e.g. "generate a logo for me", "create a logo", "make an image")
+    const isUnderspecified = /^(?:generate|create|make|produce|design|draw|give me)?\s*(?:a|an|the)?\s*(?:logo|image|photo|picture|pic|creative)?\s*(?:for me|for my brand|for my business|please)?$/i.test(lower.trim());
+    if (isUnderspecified) {
+      // Let LLM handle it to ask clarifying questions about brand name, industry, and desired style
+      return { isImageRequest: false };
+    }
+
     let count = 2; // Default to 2 variations
     const numMatch = lower.match(/\b(\d+)\b/);
     if (numMatch) {
