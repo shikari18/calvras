@@ -2,46 +2,39 @@ import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { cleanAiResponse } from '../services/aiService';
-import { Download, ExternalLink, Check, Copy, Loader2, Sparkles, Terminal, CheckCircle2, ChevronRight } from 'lucide-react';
+import { Download, ExternalLink, Check, Copy, Loader2, Sparkles, Terminal, CheckCircle2, ChevronRight, RefreshCw } from 'lucide-react';
 
 const CompactImageCard = ({ src, alt }) => {
   const [loaded, setLoaded] = useState(false);
-  const [progress, setProgress] = useState(25);
+  const [hasError, setHasError] = useState(false);
   const [copied, setCopied] = useState(false);
   const [imgSrc, setImgSrc] = useState(src);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    if (loaded) return;
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 98) {
-          clearInterval(interval);
-          setLoaded(true);
-          return 100;
-        }
-        return prev + Math.floor(Math.random() * 20) + 15;
-      });
-    }, 80);
-
-    const timeout = setTimeout(() => {
-      setLoaded(true);
-      setProgress(100);
-    }, 1500);
-
-    return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
-    };
-  }, [loaded]);
+    setImgSrc(src);
+    setLoaded(false);
+    setHasError(false);
+  }, [src]);
 
   const handleImageLoad = () => {
-    setProgress(100);
     setLoaded(true);
+    setHasError(false);
   };
 
   const handleImageError = () => {
+    if (retryCount < 2) {
+      // Auto-retry with a slightly jittered seed
+      setRetryCount(prev => prev + 1);
+      const newSeed = Math.floor(Math.random() * 999999);
+      if (imgSrc.includes('pollinations.ai')) {
+        const base = imgSrc.replace(/seed=\d+/, `seed=${newSeed}`);
+        setTimeout(() => setImgSrc(base), 1200);
+        return;
+      }
+    }
+    setHasError(true);
     setLoaded(true);
-    setProgress(100);
   };
 
   const handleDownload = (e) => {
@@ -49,7 +42,7 @@ const CompactImageCard = ({ src, alt }) => {
     const link = document.createElement('a');
     link.href = imgSrc;
     link.target = '_blank';
-    link.download = `Calvras_Ad_${Date.now()}.png`;
+    link.download = `Calvras_Creative_${Date.now()}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -63,47 +56,69 @@ const CompactImageCard = ({ src, alt }) => {
   };
 
   return (
-    <div className="relative group rounded-2xl overflow-hidden border border-neutral-200 shadow-2xs bg-neutral-900 text-white w-full aspect-square flex flex-col justify-between transition-all hover:shadow-md hover:border-neutral-300">
+    <div className="relative group rounded-2xl overflow-hidden border border-white/10 shadow-lg bg-[#242424] text-white w-full aspect-square flex flex-col justify-between transition-all hover:border-white/20">
       
-      {/* Thinking / Progress Percentage Indicator */}
-      {!loaded && (
-        <div className="absolute inset-0 bg-neutral-950/95 flex flex-col items-center justify-center p-3 text-center space-y-2 z-10">
-          <Loader2 size={22} className="text-purple-400 animate-spin" />
+      {/* Loading Shimmer State */}
+      {!loaded && !hasError && (
+        <div className="absolute inset-0 bg-[#1e1e1e] flex flex-col items-center justify-center p-3 text-center space-y-2 z-10 animate-pulse">
+          <Loader2 size={24} className="text-[#8057ff] animate-spin" />
           <div className="space-y-0.5">
-            <span className="text-[11px] font-semibold text-neutral-300 block">Thinking...</span>
-            <span className="text-[10px] font-mono text-purple-400 font-bold">{progress}%</span>
+            <span className="text-[11px] font-semibold text-white block">Generating AI Visual...</span>
+            <span className="text-[10px] text-neutral-400 font-mono">Rendering high-res render</span>
           </div>
         </div>
       )}
 
+      {/* Error Fallback State */}
+      {hasError && (
+        <div className="absolute inset-0 bg-[#282828] flex flex-col items-center justify-center p-3 text-center space-y-2 z-10">
+          <span className="text-xs text-neutral-400">Rendering took longer than expected</span>
+          <button
+            onClick={() => {
+              setHasError(false);
+              setLoaded(false);
+              setRetryCount(0);
+              const newSeed = Math.floor(Math.random() * 999999);
+              setImgSrc(src.replace(/seed=\d+/, `seed=${newSeed}`));
+            }}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold text-white transition cursor-pointer"
+          >
+            <RefreshCw size={11} />
+            <span>Regenerate</span>
+          </button>
+        </div>
+      )}
+
       {/* Top Right Action Overlay */}
-      <div className="absolute top-2 right-2 z-20 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition duration-150">
-        <button
-          onClick={handleCopy}
-          className="p-1.5 rounded-lg bg-neutral-950/85 hover:bg-neutral-900 text-white backdrop-blur-md border border-white/20 transition cursor-pointer"
-          title="Copy Image URL"
-        >
-          {copied ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} />}
-        </button>
+      {loaded && !hasError && (
+        <div className="absolute top-2 right-2 z-20 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition duration-150">
+          <button
+            onClick={handleCopy}
+            className="p-1.5 rounded-lg bg-black/80 hover:bg-black text-white backdrop-blur-md border border-white/20 transition cursor-pointer"
+            title="Copy Image URL"
+          >
+            {copied ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} />}
+          </button>
 
-        <a
-          href={imgSrc}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="p-1.5 rounded-lg bg-neutral-950/85 hover:bg-neutral-900 text-white backdrop-blur-md border border-white/20 transition cursor-pointer"
-          title="Full Resolution"
-        >
-          <ExternalLink size={11} />
-        </a>
+          <a
+            href={imgSrc}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-1.5 rounded-lg bg-black/80 hover:bg-black text-white backdrop-blur-md border border-white/20 transition cursor-pointer"
+            title="Full Resolution"
+          >
+            <ExternalLink size={11} />
+          </a>
 
-        <button
-          onClick={handleDownload}
-          className="p-1.5 rounded-lg bg-neutral-950/85 hover:bg-neutral-900 text-white backdrop-blur-md border border-white/20 transition cursor-pointer"
-          title="Download"
-        >
-          <Download size={11} />
-        </button>
-      </div>
+          <button
+            onClick={handleDownload}
+            className="p-1.5 rounded-lg bg-black/80 hover:bg-black text-white backdrop-blur-md border border-white/20 transition cursor-pointer"
+            title="Download"
+          >
+            <Download size={11} />
+          </button>
+        </div>
+      )}
 
       {/* The Image */}
       <img
@@ -111,13 +126,13 @@ const CompactImageCard = ({ src, alt }) => {
         alt={alt || "Marketing Creative"}
         onLoad={handleImageLoad}
         onError={handleImageError}
-        className={`w-full h-full object-cover bg-neutral-900 transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+        className={`w-full h-full object-cover bg-black/40 transition-opacity duration-300 ${loaded && !hasError ? 'opacity-100' : 'opacity-0'}`}
         loading="lazy"
       />
 
       {/* Bottom Caption Bar */}
-      {alt && (
-        <div className="absolute bottom-0 inset-x-0 px-2.5 py-1.5 bg-neutral-950/90 backdrop-blur-xs border-t border-white/10 text-[10px] text-neutral-300 truncate z-10">
+      {alt && loaded && !hasError && (
+        <div className="absolute bottom-0 inset-x-0 px-2.5 py-1.5 bg-black/80 backdrop-blur-xs border-t border-white/10 text-[10.5px] text-neutral-200 truncate z-10">
           <span className="truncate block font-medium">{alt}</span>
         </div>
       )}
@@ -136,7 +151,7 @@ const CodeBlock = ({ inline, children }) => {
 
   if (isShortOrSingleLine) {
     return (
-      <code className="inline-flex items-center gap-1 font-mono text-[11.5px] font-semibold text-purple-900 bg-purple-50/90 border border-purple-200/80 px-2 py-0.5 rounded-md align-baseline shadow-2xs">
+      <code className="inline-flex items-center gap-1 font-mono text-[11.5px] font-semibold text-purple-300 bg-purple-950/40 border border-purple-800/40 px-2 py-0.5 rounded-md align-baseline shadow-2xs">
         {textContent}
       </code>
     );
@@ -150,15 +165,15 @@ const CodeBlock = ({ inline, children }) => {
   };
 
   return (
-    <div className="my-3 rounded-2xl overflow-hidden border border-neutral-800 bg-[#121214] text-neutral-100 shadow-sm">
-      <div className="flex items-center justify-between px-3.5 py-1.5 bg-[#1a1a1e] border-b border-neutral-800/80 text-[10.5px] text-neutral-400 font-mono">
+    <div className="my-3 rounded-2xl overflow-hidden border border-white/10 bg-[#1a1a1a] text-neutral-100 shadow-md">
+      <div className="flex items-center justify-between px-3.5 py-1.5 bg-[#222222] border-b border-white/10 text-[10.5px] text-neutral-400 font-mono">
         <span className="flex items-center gap-1.5">
-          <Terminal size={11} className="text-purple-400" />
-          <span>Code / Payload</span>
+          <Terminal size={11} className="text-[#8057ff]" />
+          <span>Code / Snippet</span>
         </span>
         <button
           onClick={handleCopyCode}
-          className="flex items-center gap-1 text-[10.5px] text-neutral-400 hover:text-white px-2 py-0.5 rounded hover:bg-neutral-800 transition cursor-pointer"
+          className="flex items-center gap-1 text-[10.5px] text-neutral-400 hover:text-white px-2 py-0.5 rounded hover:bg-white/10 transition cursor-pointer"
         >
           {copied ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} />}
           <span>{copied ? 'Copied' : 'Copy'}</span>
@@ -175,44 +190,10 @@ export const MarkdownRenderer = ({ content }) => {
   if (!content) return null;
   const clean = typeof content === 'string' ? content : String(content);
 
-  // Extract consecutive images to group into a 3-in-a-row grid
+  // Extract consecutive images to group into a responsive grid
   const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
   const matches = [...clean.matchAll(imageRegex)];
 
-  if (matches.length >= 2) {
-    const textWithoutImages = clean.replace(imageRegex, '').trim();
-
-    return (
-      <div className="text-[13px] sm:text-[13.5px] text-neutral-800 leading-[1.65] space-y-3.5 text-left select-text font-sans">
-        
-        {/* Intro text if exists */}
-        {textWithoutImages.split('\n\n###')[0] && (
-          <p className="text-[13px] sm:text-[13.5px] text-neutral-900 font-medium leading-relaxed">
-            {textWithoutImages.split('\n\n###')[0].trim()}
-          </p>
-        )}
-
-        {/* 3-IN-A-ROW RESPONSIVE GRID */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 my-3 w-full max-w-4xl">
-          {matches.map((m, idx) => (
-            <CompactImageCard key={idx} alt={m[1]} src={m[2]} />
-          ))}
-        </div>
-
-        {/* Rest of the markdown guidance */}
-        {textWithoutImages.includes('###') && (
-          <div className="pt-2 border-t border-neutral-100">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {'### ' + textWithoutImages.split('###')[1]}
-            </ReactMarkdown>
-          </div>
-        )}
-
-      </div>
-    );
-  }
-
-  // Standard Single Image / General Markdown Renderer
   return (
     <div className="text-[13px] sm:text-[13.5px] text-[#f4f4ee] leading-[1.65] space-y-3 text-left select-text font-sans antialiased">
       <ReactMarkdown
@@ -225,7 +206,7 @@ export const MarkdownRenderer = ({ content }) => {
           ),
           h2: ({ children }) => (
             <h3 className="text-sm font-bold text-white pt-2 pb-0.5 tracking-tight flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-purple-400 inline-block shrink-0" />
+              <span className="w-2 h-2 rounded-full bg-[#8057ff] inline-block shrink-0" />
               <span>{children}</span>
             </h3>
           ),
@@ -235,7 +216,7 @@ export const MarkdownRenderer = ({ content }) => {
             </h4>
           ),
           p: ({ children }) => (
-            <p className="text-[13px] sm:text-[13.5px] text-[#f4f4ee] leading-[1.65] my-2">
+            <p className="text-[13px] sm:text-[13.5px] text-[#f4f4ee] leading-[1.65] my-2 font-normal">
               {children}
             </p>
           ),
@@ -253,12 +234,12 @@ export const MarkdownRenderer = ({ content }) => {
           ),
           li: ({ children }) => (
             <li className="text-[13px] sm:text-[13.5px] text-[#f4f4ee] flex items-start gap-2 leading-relaxed">
-              <span className="text-purple-400 font-bold text-xs mt-0.5 shrink-0">•</span>
+              <span className="text-[#8057ff] font-bold text-xs mt-0.5 shrink-0">•</span>
               <div className="flex-1">{children}</div>
             </li>
           ),
           img: ({ src, alt }) => (
-            <div className="w-52 sm:w-60 aspect-square my-2.5">
+            <div className="w-56 sm:w-64 aspect-square my-2.5 inline-block mr-3">
               <CompactImageCard src={src} alt={alt} />
             </div>
           ),
@@ -289,7 +270,7 @@ export const MarkdownRenderer = ({ content }) => {
             </td>
           ),
           blockquote: ({ children }) => (
-            <div className="border-l-2 border-purple-500 pl-3.5 py-2 bg-purple-950/20 rounded-r-xl my-2.5 text-[12.5px] text-neutral-300 shadow-2xs">
+            <div className="border-l-2 border-[#8057ff] pl-3.5 py-2 bg-[#8057ff]/10 rounded-r-xl my-2.5 text-[12.5px] text-neutral-200 shadow-2xs">
               {children}
             </div>
           ),
