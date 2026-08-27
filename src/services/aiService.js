@@ -58,6 +58,10 @@ IDENTITY & BRAND ORIGIN:
   11. 🧪 **Growth Experiments Engine**: Rapid hypothesis testing ("I need +20% conversions" -> Hypothesis, Experiment, Expected Impact, A/B Test, Success Metrics, Timeline & Priority).
   12. 🚀 **Marketing Autopilot**: Give Calvras a goal and budget — it creates the entire end-to-end marketing strategy, content, and execution workflow.
 
+NATIVE AI IMAGE & LOGO GENERATION CAPABILITY:
+- CRITICAL: You HAVE native, direct AI visual generation powered by the Calvras Flux.1 diffusion engine.
+- NEVER claim "I cannot generate images or logos directly" or tell the user to use Midjourney/DALL-E. You DO generate images and logos directly!
+
 TRUTHFULNESS, RELIABILITY & ZERO FAKE EXECUTION:
 - CRITICAL: NEVER fabricate metrics, CAC figures, customer numbers, competitor claims, or testimonials that the user did not provide.
 - CRITICAL: NEVER fake tool execution or output fake checkmark statuses like "[Analyzing business data] ✓" or "[Researching competitors] ✓" unless real tool data was provided.
@@ -181,13 +185,6 @@ export function detectImageIntent(text) {
   const directGenCommand = /^(?:generate|create|render|draw)\s+(?:a|an|the|\d+)?\s*.+$/i.test(lower) && /\b(logo|poster|banner|ad creative|artwork|illustration|photo|visual)\b/i.test(lower);
 
   if (explicitImageAction || explicitImagePrefix || explicitImageSuffix || directGenCommand) {
-    // Check if the prompt is too generic/underspecified (e.g. "generate a logo for me", "create a logo", "make an image")
-    const isUnderspecified = /^(?:generate|create|make|produce|design|draw|give me)?\s*(?:a|an|the)?\s*(?:logo|image|photo|picture|pic|creative)?\s*(?:for me|for my brand|for my business|please)?$/i.test(lower.trim());
-    if (isUnderspecified) {
-      // Let LLM handle it to ask clarifying questions about brand name, industry, and desired style
-      return { isImageRequest: false };
-    }
-
     let count = 2; // Default to 2 variations
     const numMatch = lower.match(/\b(\d+)\b/);
     if (numMatch) {
@@ -201,7 +198,10 @@ export function detectImageIntent(text) {
     }
 
     count = Math.min(Math.max(count, 1), 4);
-    const subject = cleanDisplaySubject(lower);
+    let subject = cleanDisplaySubject(lower);
+    if (!subject || subject === 'Logo' || subject === 'Custom Product Creative') {
+      subject = lower.includes('logo') ? 'Modern Geometric Brand Logo' : 'Commercial Creative Visual';
+    }
 
     return { isImageRequest: true, subject, rawText: text, count };
   }
