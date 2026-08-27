@@ -177,13 +177,13 @@ function App() {
       {isRefreshing && (
         <div 
           style={{ zIndex: 99999999 }}
-          className="fixed inset-0 bg-white text-neutral-900 flex flex-col items-center justify-center gap-4 select-none animate-in fade-in duration-200"
+          className="fixed inset-0 bg-[#1c1c1c] text-white flex flex-col items-center justify-center gap-4 select-none animate-in fade-in duration-200"
         >
           <div className="relative flex items-center justify-center">
-            <div className="w-9 h-9 rounded-full border-[2.5px] border-neutral-200 border-t-[#ff5e28] animate-spin" />
-            <div className="absolute w-2 h-2 rounded-full bg-[#ff5e28] animate-ping" />
+            <div className="w-9 h-9 rounded-full border-[2.5px] border-white/10 border-t-[#8057ff] animate-spin" />
+            <div className="absolute w-2 h-2 rounded-full bg-[#8057ff] animate-ping" />
           </div>
-          <span className="text-xs font-semibold text-neutral-700 tracking-tight animate-pulse">
+          <span className="text-xs font-semibold text-neutral-300 tracking-tight animate-pulse">
             Loading Calvras...
           </span>
         </div>
@@ -191,9 +191,9 @@ function App() {
 
       {/* Full Screen Loading Spinner + Signing in text */}
       {isSigningIn && (
-        <div className="fixed inset-0 bg-white text-neutral-900 flex flex-col items-center justify-center gap-3.5 z-50 select-none animate-in fade-in duration-150">
-          <div className="w-8 h-8 rounded-full border-2 border-neutral-200 border-t-[#ff5e28] animate-spin" />
-          <span className="text-xs font-semibold text-neutral-800 tracking-tight animate-pulse">
+        <div className="fixed inset-0 bg-[#1c1c1c] text-white flex flex-col items-center justify-center gap-3.5 z-50 select-none animate-in fade-in duration-150">
+          <div className="w-8 h-8 rounded-full border-2 border-white/10 border-t-[#8057ff] animate-spin" />
+          <span className="text-xs font-semibold text-neutral-300 tracking-tight animate-pulse">
             Signing in...
           </span>
         </div>
@@ -201,9 +201,9 @@ function App() {
 
       {/* Full Screen Loading Spinner + Signing out text */}
       {isSigningOut && (
-        <div className="fixed inset-0 bg-white text-neutral-900 flex flex-col items-center justify-center gap-3 z-50 select-none animate-in fade-in duration-150">
-          <div className="w-7 h-7 rounded-full border-2 border-neutral-200 border-t-neutral-600 animate-spin" />
-          <span className="text-xs font-semibold text-neutral-600 tracking-tight animate-pulse">
+        <div className="fixed inset-0 bg-[#1c1c1c] text-white flex flex-col items-center justify-center gap-3 z-50 select-none animate-in fade-in duration-150">
+          <div className="w-7 h-7 rounded-full border-2 border-white/10 border-t-neutral-400 animate-spin" />
+          <span className="text-xs font-semibold text-neutral-400 tracking-tight animate-pulse">
             Signing out...
           </span>
         </div>
