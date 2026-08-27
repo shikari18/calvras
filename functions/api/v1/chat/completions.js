@@ -173,11 +173,29 @@ export async function onRequestPost({ request, env }) {
       throw new Error('All AI inference engines are currently busy. Please retry shortly.');
     }
 
-    // Record & increment API key usage
-    let currentUsage = GLOBAL_KEY_USAGE.get(token) || { promptsUsed: 0, lastUsed: null };
-    currentUsage.promptsUsed = (currentUsage.promptsUsed || 0) + 1;
-    currentUsage.lastUsed = new Date().toISOString();
-    GLOBAL_KEY_USAGE.set(token, currentUsage);
+    // Record & increment API key usage using persistent Cloudflare caches.default & global state
+    let currentUsage = { promptsUsed: 1, lastUsed: new Date().toISOString() };
+    try {
+      if (typeof caches !== 'undefined' && caches.default) {
+        const cacheUrl = new Request(`https://calvras.com/internal-key-cache/${encodeURIComponent(token)}`);
+        const cachedRes = await caches.default.match(cacheUrl);
+        if (cachedRes) {
+          const cachedJson = await cachedRes.json();
+          currentUsage.promptsUsed = (cachedJson.promptsUsed || 0) + 1;
+        }
+        await caches.default.put(
+          cacheUrl,
+          new Response(JSON.stringify(currentUsage), {
+            headers: {
+              'Content-Type': 'application/json',
+              'Cache-Control': 'public, max-age=604800',
+            }
+          })
+        );
+      }
+    } catch (cacheErr) {
+      console.warn('Cache error:', cacheErr);
+    }
 
     if (env?.CALVRAS_KV) {
       try {

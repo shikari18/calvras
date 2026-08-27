@@ -1,6 +1,3 @@
-// Global in-memory edge cache for API key usage tracking
-export const GLOBAL_KEY_USAGE = globalThis.__CALVRAS_KEY_USAGE__ || (globalThis.__CALVRAS_KEY_USAGE__ = new Map());
-
 export async function onRequestOptions() {
   return new Response(null, {
     status: 200,
@@ -10,6 +7,32 @@ export async function onRequestOptions() {
       'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key',
     },
   });
+}
+
+async function getUsageForKey(token, env) {
+  const trimmed = (token || '').trim();
+  if (!trimmed) return { promptsUsed: 0, lastUsed: null };
+
+  // 1. Check Cloudflare KV if configured
+  if (env?.CALVRAS_KV) {
+    try {
+      const kvVal = await env.CALVRAS_KV.get(`key_usage_${trimmed}`);
+      if (kvVal) return JSON.parse(kvVal);
+    } catch (e) {}
+  }
+
+  // 2. Check Cloudflare caches.default
+  try {
+    if (typeof caches !== 'undefined' && caches.default) {
+      const cacheUrl = new Request(`https://calvras.com/internal-key-cache/${encodeURIComponent(trimmed)}`);
+      const cachedRes = await caches.default.match(cacheUrl);
+      if (cachedRes) {
+        return await cachedRes.json();
+      }
+    }
+  } catch (e) {}
+
+  return { promptsUsed: 0, lastUsed: null };
 }
 
 export async function onRequestGet({ request, env }) {
@@ -37,32 +60,12 @@ export async function onRequestGet({ request, env }) {
     }
 
     const results = {};
-
     for (const k of keyList) {
-      const trimmed = (k || '').trim();
-      if (!trimmed) continue;
-
-      let usageData = GLOBAL_KEY_USAGE.get(trimmed);
-
-      // Check KV if configured
-      if (!usageData && env?.CALVRAS_KV) {
-        try {
-          const kvVal = await env.CALVRAS_KV.get(`key_usage_${trimmed}`);
-          if (kvVal) usageData = JSON.parse(kvVal);
-        } catch (e) {}
-      }
-
-      results[trimmed] = usageData || {
-        promptsUsed: 0,
-        lastUsed: null,
-      };
+      results[k] = await getUsageForKey(k, env);
     }
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        usage: results,
-      }),
+      JSON.stringify({ success: true, usage: results }),
       { status: 200, headers: corsHeaders }
     );
   } catch (error) {
@@ -86,30 +89,12 @@ export async function onRequestPost({ request, env }) {
     const keys = Array.isArray(body.keys) ? body.keys : (body.key ? [body.key] : []);
 
     const results = {};
-
     for (const k of keys) {
-      const trimmed = (k || '').trim();
-      if (!trimmed) continue;
-
-      let usageData = GLOBAL_KEY_USAGE.get(trimmed);
-      if (!usageData && env?.CALVRAS_KV) {
-        try {
-          const kvVal = await env.CALVRAS_KV.get(`key_usage_${trimmed}`);
-          if (kvVal) usageData = JSON.parse(kvVal);
-        } catch (e) {}
-      }
-
-      results[trimmed] = usageData || {
-        promptsUsed: 0,
-        lastUsed: null,
-      };
+      results[k] = await getUsageForKey(k, env);
     }
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        usage: results,
-      }),
+      JSON.stringify({ success: true, usage: results }),
       { status: 200, headers: corsHeaders }
     );
   } catch (error) {
