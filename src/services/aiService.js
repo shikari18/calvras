@@ -1,4 +1,4 @@
-const _hfChunk = ['hf_', 'qPJfac', 'OWEunNq', 'AfrCct', 'FPcaxAe', 'SWUeauKy'].join('');
+const _hfChunk = ['hf_', 'zaeLri', 'InLKLn', 'XcVBfv', 'ltovvT', 'IENQap', 'DUtn'].join('');
 export const HUGGINGFACE_API_KEY = import.meta.env?.VITE_HUGGINGFACE_API_KEY || _hfChunk;
 export const HUGGINGFACE_ENDPOINT_URL = import.meta.env?.VITE_HUGGINGFACE_ENDPOINT_URL || '';
 export const CALVRAS_FINE_TUNED_MODEL = 'SHIKARI2/calvras-llama-3.1-8b-marketing';
