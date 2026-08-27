@@ -93,6 +93,63 @@ export const CyDevelopersPage = ({ userName = 'SHIKARI' }) => {
     } catch (e) {}
   }, [developerPlan]);
 
+  // Real-time API key usage syncing with backend edge
+  useEffect(() => {
+    let isMounted = true;
+
+    const syncLiveUsage = async () => {
+      if (!keys || keys.length === 0) return;
+      try {
+        const keyStrings = keys.map(k => k.key);
+        const res = await fetch('/api/v1/developer/usage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ keys: keyStrings })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.usage && isMounted) {
+            setKeys(prevKeys => {
+              let hasChanged = false;
+              const updated = prevKeys.map(k => {
+                const live = data.usage[k.key];
+                if (live && (live.promptsUsed > (k.promptsUsed || 0) || live.lastUsed)) {
+                  hasChanged = true;
+                  let formattedLastUsed = k.lastUsed;
+                  if (live.lastUsed) {
+                    const d = new Date(live.lastUsed);
+                    formattedLastUsed = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', ' + d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+                  }
+                  return {
+                    ...k,
+                    promptsUsed: Math.max(k.promptsUsed || 0, live.promptsUsed || 0),
+                    lastUsed: formattedLastUsed || k.lastUsed
+                  };
+                }
+                return k;
+              });
+              return hasChanged ? updated : prevKeys;
+            });
+          }
+        }
+      } catch (e) {}
+    };
+
+    // Initial sync
+    syncLiveUsage();
+
+    // Poll every 3 seconds to reflect live API usage in real-time
+    const interval = setInterval(syncLiveUsage, 3000);
+    window.addEventListener('focus', syncLiveUsage);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+      window.removeEventListener('focus', syncLiveUsage);
+    };
+  }, [keys.length]);
+
   const activeKey = keys[0]?.key || 'cv_live_sk_sample_key_here';
   
   // Total usage stats

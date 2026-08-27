@@ -1,4 +1,7 @@
-const _hfChunk = ['hf_', 'zaeLri', 'InLKLn', 'XcVBfv', 'ltovvT', 'IENQap', 'DUtn'].join('');
+// Global in-memory edge cache for API key usage tracking
+export const GLOBAL_KEY_USAGE = globalThis.__CALVRAS_KEY_USAGE__ || (globalThis.__CALVRAS_KEY_USAGE__ = new Map());
+
+const _hfChunk = ['hf_', 'zaeLri', 'InLKLn', 'XcVBfv', 'ltovvT', 'IENQap', 'DUtn'].join(''); ['hf_', 'zaeLri', 'InLKLn', 'XcVBfv', 'ltovvT', 'IENQap', 'DUtn'].join('');
 const HUGGINGFACE_API_KEY = _hfChunk;
 const OPENROUTER_KEY = (typeof atob !== 'undefined' ? atob('c2stb3ItdjEtMWM1YmJlYjk0ODNiNzlmODVhODdlN2IzNzNlZmE2NDViMjcyMGJkMDg4NTMzZTVhOTY5Y2I0MGQzZTc0MDZhNQ==') : '');
 
@@ -170,6 +173,18 @@ export async function onRequestPost({ request, env }) {
       throw new Error('All AI inference engines are currently busy. Please retry shortly.');
     }
 
+    // Record & increment API key usage
+    let currentUsage = GLOBAL_KEY_USAGE.get(token) || { promptsUsed: 0, lastUsed: null };
+    currentUsage.promptsUsed = (currentUsage.promptsUsed || 0) + 1;
+    currentUsage.lastUsed = new Date().toISOString();
+    GLOBAL_KEY_USAGE.set(token, currentUsage);
+
+    if (env?.CALVRAS_KV) {
+      try {
+        await env.CALVRAS_KV.put(`key_usage_${token}`, JSON.stringify(currentUsage));
+      } catch (e) {}
+    }
+
     const responsePayload = {
       id: `chatcmpl-cv-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       object: 'chat.completion',
@@ -194,7 +209,11 @@ export async function onRequestPost({ request, env }) {
 
     return new Response(JSON.stringify(responsePayload), {
       status: 200,
-      headers: corsHeaders,
+      headers: {
+        ...corsHeaders,
+        'x-calvras-prompts-used': String(currentUsage.promptsUsed),
+        'x-calvras-last-used': String(currentUsage.lastUsed),
+      },
     });
   } catch (error) {
     return new Response(
