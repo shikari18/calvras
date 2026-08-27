@@ -183,17 +183,15 @@ export const CyChatThreadPage = ({
 
     } catch (err) {
       setIsWorking(false);
-      const fallbackResponse = `To give you the best strategy or copy, what product or business are you marketing? (e.g. sneakers, skincare, fashion, watches, electronics) — tell me what you're selling and I'll generate a high-converting plan for you!`;
-
-      const fallbackMsg = {
-        id: `calvras-fallback-${Date.now() + 1}`,
+      const errorMsg = {
+        id: `calvras-err-${Date.now() + 1}`,
         sender: 'ai',
         name: 'Calvras',
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        text: fallbackResponse
+        text: `⚠️ **Request Timeout or Connection Interrupted**: ${err?.message || 'The AI engine took longer than expected to formulate the full campaign strategy.'}\n\nPlease click your prompt below to retry.`
       };
 
-      addChatMessage(fallbackMsg);
+      addChatMessage(errorMsg);
       isSubmittingRef.current = false;
     }
   };

@@ -4,13 +4,13 @@ export const HUGGINGFACE_ENDPOINT_URL = import.meta.env?.VITE_HUGGINGFACE_ENDPOI
 export const CALVRAS_FINE_TUNED_MODEL = 'SHIKARI2/calvras-llama-3.1-8b-marketing';
 export const OPENROUTER_API_KEY = import.meta.env?.VITE_OPENROUTER_API_KEY || (typeof atob !== 'undefined' ? atob('c2stb3ItdjEtMWM1YmJlYjk0ODNiNzlmODVhODdlN2IzNzNlZmE2NDViMjcyMGJkMDg4NTMzZTVhOTY5Y2I0MGQzZTc0MDZhNQ==') : '');
 
-// Active high-throughput LLM engines
+// Active high-throughput LLM engines (fastest first)
 const ACTIVE_ENGINES = [
-  'nvidia/nemotron-3.5-lightning:free',
   'minimax/minimax-m3:free',
   'poolside/laguna-s-2.1:free',
-  'nvidia/nemotron-3-super-120b-a12b:free',
-  'google/gemma-4-31b-it:free'
+  'nvidia/nemotron-3.5-lightning:free',
+  'google/gemma-4-31b-it:free',
+  'nvidia/nemotron-3-super-120b-a12b:free'
 ];
 
 export const SYSTEM_PROMPT = `You are Calvras, an elite AI marketing strategist and autonomous growth OS for modern brands (calvras.com).
@@ -400,7 +400,7 @@ export async function callCalvrasAI({ messages, userPrompt = '' }) {
           temperature: 0.7,
           max_tokens: 1500
         }),
-        signal: AbortSignal.timeout(9000)
+        signal: AbortSignal.timeout(35000)
       });
 
       if (response.ok) {
