@@ -31,6 +31,7 @@ export const CyLayout = ({
   });
   const [threadTitle, setThreadTitle] = useState('Help Making Product Popular');
   const [initialPrompt, setInitialPrompt] = useState('');
+  const [initialImage, setInitialImage] = useState(null);
   const [initialMode, setInitialMode] = useState('chat');
 
   // Persist activeTab on changes
@@ -84,6 +85,7 @@ export const CyLayout = ({
     const shortTitle = prompt.length > 28 ? prompt.slice(0, 28) + '...' : prompt;
     setThreadTitle(shortTitle);
     setInitialPrompt(formattedPrompt);
+    setInitialImage(attachedImg || null);
     setInitialMode(mode);
     setActiveTab('threads');
     setMobileMenuOpen(false);
@@ -161,6 +163,7 @@ export const CyLayout = ({
         {activeTab === 'threads' && (
           <CyChatThreadPage 
             initialPrompt={initialPrompt}
+            initialImage={initialImage}
             initialMode={initialMode}
             channelName="general"
             threadTitle={currentTitle}

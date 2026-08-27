@@ -83,7 +83,7 @@ export const CyNewChatPage = ({
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       if (promptText.trim() || attachedImage) {
-        onSendMessage(promptText, attachedImage);
+        onSendMessage(promptText, attachedImage, chatMode);
       }
     }
   };

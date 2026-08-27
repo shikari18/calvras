@@ -22,6 +22,7 @@ import { BrandBurstLogo } from '../../components/cy/CySidebar';
 
 export const CyChatThreadPage = ({ 
   initialPrompt, 
+  initialImage = null,
   initialMode = 'chat',
   channelName = 'general', 
   threadTitle = 'Strategy Workspace', 
@@ -100,9 +101,9 @@ export const CyChatThreadPage = ({
   useEffect(() => {
     if (initialPrompt && initialPrompt.trim() && !hasProcessedInitialPrompt.current) {
       hasProcessedInitialPrompt.current = true;
-      handleSendMessage(initialPrompt);
+      handleSendMessage(initialPrompt, initialImage, true);
     }
-  }, [initialPrompt]);
+  }, [initialPrompt, initialImage]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -119,9 +120,10 @@ export const CyChatThreadPage = ({
     reader.readAsDataURL(file);
   };
 
-  const handleSendMessage = async (customPrompt) => {
+  const handleSendMessage = async (customPrompt, customImage = null, isInitial = false) => {
     const query = customPrompt || inputVal;
-    if ((!query || !query.trim()) && !attachedImage) return;
+    const currentImg = customImage || attachedImage;
+    if ((!query || !query.trim()) && !currentImg) return;
     if (isSubmittingRef.current) return;
     isSubmittingRef.current = true;
 
@@ -131,24 +133,25 @@ export const CyChatThreadPage = ({
       return;
     }
 
-    const userText = query.trim();
-    const currentImg = attachedImage;
+    const userText = (query || '').trim();
     setInputVal('');
     setAttachedImage(null);
 
-    // Add User Message
-    const userMsgId = `user-${Date.now()}`;
-    const userMsg = {
-      id: userMsgId,
-      sender: 'user',
-      name: userProfile?.name || userName || 'SHIKARI',
-      avatar: userProfile?.picture || null,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      text: userText,
-      image: currentImg
-    };
+    // Only add user message if not initial
+    if (!isInitial) {
+      const userMsgId = `user-${Date.now()}`;
+      const userMsg = {
+        id: userMsgId,
+        sender: 'user',
+        name: userProfile?.name || userName || 'SHIKARI',
+        avatar: userProfile?.picture || null,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        text: userText || 'Please inspect and analyze this attached image / creative.',
+        image: currentImg
+      };
+      addChatMessage(userMsg);
+    }
 
-    addChatMessage(userMsg);
     setIsWorking(true);
     setWorkingSeconds(0);
 
@@ -158,9 +161,9 @@ export const CyChatThreadPage = ({
 
     try {
       const response = await chatWithMarketingCopilot({
-        userMessage: userText,
-        prompt: userText,
-        message: userText,
+        userMessage: userText || 'Please inspect and analyze this attached image / creative.',
+        prompt: userText || 'Please inspect and analyze this attached image / creative.',
+        message: userText || 'Please inspect and analyze this attached image / creative.',
         isPlanMode: chatMode === 'plan',
         history: chatMessages || [],
         userProfile,

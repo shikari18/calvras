@@ -4,13 +4,23 @@ export const HUGGINGFACE_ENDPOINT_URL = import.meta.env?.VITE_HUGGINGFACE_ENDPOI
 export const CALVRAS_FINE_TUNED_MODEL = 'SHIKARI2/calvras-llama-3.1-8b-marketing';
 export const OPENROUTER_API_KEY = import.meta.env?.VITE_OPENROUTER_API_KEY || (typeof atob !== 'undefined' ? atob('c2stb3ItdjEtMWM1YmJlYjk0ODNiNzlmODVhODdlN2IzNzNlZmE2NDViMjcyMGJkMDg4NTMzZTVhOTY5Y2I0MGQzZTc0MDZhNQ==') : '');
 
-// High-speed fallback engines to ensure 100% uptime
+// High-speed text and vision engines to ensure 100% uptime & vision analysis
 const ACTIVE_ENGINES = [
   'minimax/minimax-m3:free',
   'poolside/laguna-s-2.1:free',
   'nvidia/nemotron-3.5-lightning:free',
   'nvidia/nemotron-3-super-120b-a12b:free',
   'google/gemma-4-31b-it:free'
+];
+
+// Multimodal Computer Vision engines for image inspection, ad reviews, and design teardowns
+const VISION_ENGINES = [
+  'meta-llama/llama-3.2-11b-vision-instruct:free',
+  'meta-llama/llama-3.2-90b-vision-instruct:free',
+  'google/gemini-2.0-flash-exp:free',
+  'google/gemini-2.0-flash-thinking-exp:free',
+  'qwen/qwen-2.5-vl-72b-instruct:free',
+  'mistralai/pixtral-12b:free'
 ];
 
 export const SYSTEM_PROMPT = `You are Calvras, an elite AI marketing strategist and autonomous growth OS for modern brands (calvras.com).
@@ -306,46 +316,50 @@ export async function generateMarketingImageBatch(subject, count = 2) {
 /**
  * Exclusively calls your fine-tuned Llama 3.1 8B marketing model (SHIKARI2/calvras-llama-3.1-8b-marketing)
  */
-export async function callCalvrasAI({ messages, userPrompt = '' }) {
-  const targetUrl = HUGGINGFACE_ENDPOINT_URL 
-    ? (HUGGINGFACE_ENDPOINT_URL.endsWith('/v1/chat/completions') ? HUGGINGFACE_ENDPOINT_URL : `${HUGGINGFACE_ENDPOINT_URL}/v1/chat/completions`)
-    : `https://router.huggingface.co/hf-inference/models/${CALVRAS_FINE_TUNED_MODEL}/v1/chat/completions`;
+export async function callCalvrasAI({ messages, userPrompt = '', hasImage = false }) {
+  // If an image is attached, prioritize specialized Multimodal Vision Models
+  const candidateEngines = hasImage ? [...VISION_ENGINES, ...ACTIVE_ENGINES] : ACTIVE_ENGINES;
 
-  const fallbackHfUrl = `https://api-inference.huggingface.co/models/${CALVRAS_FINE_TUNED_MODEL}/v1/chat/completions`;
+  if (!hasImage) {
+    const targetUrl = HUGGINGFACE_ENDPOINT_URL 
+      ? (HUGGINGFACE_ENDPOINT_URL.endsWith('/v1/chat/completions') ? HUGGINGFACE_ENDPOINT_URL : `${HUGGINGFACE_ENDPOINT_URL}/v1/chat/completions`)
+      : `https://router.huggingface.co/hf-inference/models/${CALVRAS_FINE_TUNED_MODEL}/v1/chat/completions`;
 
-  const endpoints = [targetUrl, fallbackHfUrl];
+    const fallbackHfUrl = `https://api-inference.huggingface.co/models/${CALVRAS_FINE_TUNED_MODEL}/v1/chat/completions`;
+    const endpoints = [targetUrl, fallbackHfUrl];
 
-  for (const endpoint of endpoints) {
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${HUGGINGFACE_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: CALVRAS_FINE_TUNED_MODEL,
-          messages: messages,
-          temperature: 0.7,
-          max_tokens: 1500
-        }),
-        signal: AbortSignal.timeout(10000)
-      });
+    for (const endpoint of endpoints) {
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${HUGGINGFACE_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: CALVRAS_FINE_TUNED_MODEL,
+            messages: messages,
+            temperature: 0.7,
+            max_tokens: 1500
+          }),
+          signal: AbortSignal.timeout(10000)
+        });
 
-      if (response.ok) {
-        const data = await response.json();
-        const content = data?.choices?.[0]?.message?.content;
-        if (content && content.trim().length > 0) {
-          return cleanAiResponse(content, userPrompt);
+        if (response.ok) {
+          const data = await response.json();
+          const content = data?.choices?.[0]?.message?.content;
+          if (content && content.trim().length > 0) {
+            return cleanAiResponse(content, userPrompt);
+          }
         }
+      } catch (err) {
+        // Endpoint currently inactive, smoothly proceed to high-speed engine
       }
-    } catch (err) {
-      // Endpoint currently inactive, smoothly proceed to high-speed engine
     }
   }
 
-  // Active high-speed fallback engine executing Calvras direct-response marketing directives
-  for (const engine of ACTIVE_ENGINES) {
+  // Active high-speed engine pool (vision or text)
+  for (const engine of candidateEngines) {
     try {
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
@@ -438,6 +452,17 @@ export async function chatWithMarketingCopilot(params = {}) {
       }
       return details;
     }).join('\n');
+  }
+
+  if (attachedImage) {
+    systemContent += `\n\n[MULTIMODAL COMPUTER VISION ACTIVATED]
+The user attached an image (e.g. ad creative, landing page screenshot, product photo, branding design, or UI mockup).
+You can inspect and see this image in detail.
+- Closely analyze the visual elements:
+  1. 👁️ **Visual Hook & Stopping Power**: Analyze the focal point, color palette, visual hierarchy, and contrast for feed stopping power.
+  2. 🎯 **Message Match & Typography**: Review the text readability, core value proposition, and headline clarity.
+  3. ⚡ **Conversion Optimization (CRO)**: Identify CTA button prominence, trust badges, and friction points.
+  4. 🚀 **Actionable Creative Feedback**: Provide specific visual & copy improvements to maximize engagement and conversions.\n`;
   }
 
   const isPlanMode = Boolean(params.isPlanMode || params.mode === 'plan' || promptText.startsWith('[MODE: PLAN]'));
@@ -576,6 +601,7 @@ Table modeling hypothetical outcome scenarios clearly marked as conditional simu
 
   return callCalvrasAI({
     messages: formattedMessages,
-    userPrompt: userMessage
+    userPrompt: userMessage,
+    hasImage: Boolean(attachedImage)
   });
 }

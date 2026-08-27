@@ -10,6 +10,15 @@ const ACTIVE_ENGINES = [
   'google/gemma-4-31b-it:free'
 ];
 
+const VISION_ENGINES = [
+  'meta-llama/llama-3.2-11b-vision-instruct:free',
+  'meta-llama/llama-3.2-90b-vision-instruct:free',
+  'google/gemini-2.0-flash-exp:free',
+  'google/gemini-2.0-flash-thinking-exp:free',
+  'qwen/qwen-2.5-vl-72b-instruct:free',
+  'mistralai/pixtral-12b:free'
+];
+
 const SYSTEM_PROMPT = `You are Calvras, an elite AI marketing strategist and autonomous growth OS for modern brands (calvras.com).
 
 DIRECT ANSWERS & ZERO REPETITIVE GREETINGS / NAME SPAM:
@@ -123,7 +132,10 @@ export async function onRequestPost({ request, env }) {
     let completionText = '';
     let usedModel = 'calvras-llama-3.1-8b-marketing';
 
-    for (const engine of ACTIVE_ENGINES) {
+    const hasVisionContent = formattedMessages.some(m => Array.isArray(m.content) && m.content.some(c => c.type === 'image_url' || c.image_url));
+    const enginePool = hasVisionContent ? [...VISION_ENGINES, ...ACTIVE_ENGINES] : ACTIVE_ENGINES;
+
+    for (const engine of enginePool) {
       try {
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST',
