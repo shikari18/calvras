@@ -30,7 +30,7 @@ export const WallOfLove = () => {
   ];
 
   return (
-    <section className="py-24 md:py-36 border-t border-white/10 bg-[#0d0e0c] text-white text-left">
+    <section className="py-24 md:py-36 border-t border-white/10 bg-[#1c1c1c] text-white text-left">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}

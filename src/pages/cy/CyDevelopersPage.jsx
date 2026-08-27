@@ -241,7 +241,7 @@ print(f"Campaign ID: {campaign.id}")`
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
                 
                 {/* Publishable Key */}
-                <div className="bg-[#131412] border border-white/10 rounded-xl p-3 space-y-1.5 shadow-2xs">
+                <div className="bg-[#282828] border border-white/10 rounded-xl p-3 space-y-1.5 shadow-2xs">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider font-mono">
                       PUBLISHABLE KEY (CLIENT-SIDE)
@@ -261,7 +261,7 @@ print(f"Campaign ID: {campaign.id}")`
                 </div>
 
                 {/* Secret Key */}
-                <div className="bg-[#131412] border border-white/10 rounded-xl p-3 space-y-1.5 shadow-2xs">
+                <div className="bg-[#282828] border border-white/10 rounded-xl p-3 space-y-1.5 shadow-2xs">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider font-mono">
                       SECRET KEY (BACKEND ONLY)
@@ -320,7 +320,7 @@ print(f"Campaign ID: {campaign.id}")`
               </div>
 
               {/* Endpoint 1: POST /api/v1/generate-creative */}
-              <div className="bg-[#131412] border border-white/10 rounded-2xl overflow-hidden shadow-2xs">
+              <div className="bg-[#282828] border border-white/10 rounded-2xl overflow-hidden shadow-2xs">
                 <div className="p-4 bg-neutral-50/70 border-b border-white/10/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="flex items-center gap-2.5">
                     <span className="px-2 py-0.5 rounded bg-emerald-600 text-white font-mono text-[11px] font-bold">
@@ -350,7 +350,7 @@ print(f"Campaign ID: {campaign.id}")`
               </div>
 
               {/* Endpoint 2: POST /api/v1/campaign */}
-              <div className="bg-[#131412] border border-white/10 rounded-2xl overflow-hidden shadow-2xs">
+              <div className="bg-[#282828] border border-white/10 rounded-2xl overflow-hidden shadow-2xs">
                 <div className="p-4 bg-neutral-50/70 border-b border-white/10/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="flex items-center gap-2.5">
                     <span className="px-2 py-0.5 rounded bg-purple-600 text-white font-mono text-[11px] font-bold">
@@ -451,7 +451,7 @@ export default function Dashboard() {
                     </button>
                   </div>
 
-                  <div className="p-3 bg-[#181916] border border-white/10 rounded-xl font-mono text-[11px] text-neutral-200 overflow-x-auto">
+                  <div className="p-3 bg-[#282828] border border-white/10 rounded-xl font-mono text-[11px] text-neutral-200 overflow-x-auto">
                     <code>{`<script src="https://cdn.calvras.com/copilot.v1.js" data-api-key="${publicKey}" data-theme="${widgetTheme}"></script>`}</code>
                   </div>
                 </div>
@@ -469,7 +469,7 @@ export default function Dashboard() {
                         type="text" 
                         value={widgetTitle}
                         onChange={(e) => setWidgetTitle(e.target.value)}
-                        className="w-full bg-[#131412] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none"
+                        className="w-full bg-[#282828] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none"
                       />
                     </div>
 
@@ -478,7 +478,7 @@ export default function Dashboard() {
                       <select
                         value={widgetTheme}
                         onChange={(e) => setWidgetTheme(e.target.value)}
-                        className="w-full bg-[#131412] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none"
+                        className="w-full bg-[#282828] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none"
                       >
                         <option value="dark">Dark Theme</option>
                         <option value="light">Light Theme</option>
@@ -511,7 +511,7 @@ export default function Dashboard() {
 
                   {/* Open Widget Window */}
                   {widgetOpen && (
-                    <div className={`w-full bg-[#131412] border border-white/10 rounded-2xl shadow-2xl flex flex-col h-[360px] z-20 animate-in slide-in-from-bottom-4 duration-200 overflow-hidden ${
+                    <div className={`w-full bg-[#282828] border border-white/10 rounded-2xl shadow-2xl flex flex-col h-[360px] z-20 animate-in slide-in-from-bottom-4 duration-200 overflow-hidden ${
                       widgetTheme === 'dark' ? 'bg-neutral-950 text-white border-neutral-800' : 'bg-white text-white'
                     }`}>
                       

@@ -225,7 +225,7 @@ export const CyChatThreadPage = ({
   });
 
   return (
-    <div className="flex-1 min-h-screen bg-[#0d0e0c] flex flex-col justify-between font-sans antialiased text-[#f4f4ee] select-none">
+    <div className="flex-1 min-h-screen bg-[#1c1c1c] flex flex-col justify-between font-sans antialiased text-[#f4f4ee] select-none">
       
       {/* Hidden File Input */}
       <input 
@@ -237,7 +237,7 @@ export const CyChatThreadPage = ({
       />
 
       {/* Top Header (Clean / Minimal) */}
-      <header className="px-4 sm:px-6 py-2.5 border-b border-white/10 flex items-center justify-between bg-[#0d0e0c]/90 backdrop-blur-md sticky top-0 z-20">
+      <header className="px-4 sm:px-6 py-2.5 border-b border-white/10 flex items-center justify-between bg-[#1c1c1c]/90 backdrop-blur-md sticky top-0 z-20">
         <div className="flex items-center gap-2">
           {onToggleSidebar && (
             <button
@@ -277,7 +277,7 @@ export const CyChatThreadPage = ({
                 <div className="flex items-center justify-end gap-2">
                   <span className="text-[10.5px] text-neutral-500 font-normal">{msg.time}</span>
                   <span className="text-xs font-bold text-neutral-300">{msg.name}</span>
-                  <div className="w-6 h-6 rounded-md bg-[#1c1d1a] border border-white/10 text-white flex items-center justify-center text-[10px] font-bold shrink-0 overflow-hidden shadow-2xs">
+                  <div className="w-6 h-6 rounded-md bg-[#282828] border border-white/10 text-white flex items-center justify-center text-[10px] font-bold shrink-0 overflow-hidden shadow-2xs">
                     {(msg.avatar || userProfile?.picture) ? (
                       <img 
                         src={msg.avatar || userProfile?.picture} 
@@ -295,7 +295,7 @@ export const CyChatThreadPage = ({
                 {/* User Uploaded Image Card */}
                 {msg.image && (
                   <div className="flex justify-end pt-1">
-                    <div className="max-w-xs rounded-2xl border border-white/10 overflow-hidden bg-[#151614] shadow-xs p-2">
+                    <div className="max-w-xs rounded-2xl border border-white/10 overflow-hidden bg-[#282828] shadow-xs p-2">
                       <img 
                         src={msg.image} 
                         alt="Uploaded Creative" 
@@ -306,7 +306,7 @@ export const CyChatThreadPage = ({
                 )}
 
                 {/* User Message Bubble */}
-                <div className="inline-block text-left bg-[#1c1d1a] border border-white/10 text-white px-4 py-2.5 rounded-2xl rounded-tr-xs shadow-xs text-[13.5px] leading-[1.6]">
+                <div className="inline-block text-left bg-[#282828] border border-white/10 text-white px-4 py-2.5 rounded-2xl rounded-tr-xs shadow-xs text-[13.5px] leading-[1.6]">
                   <p className="whitespace-pre-wrap">{msg.text}</p>
                 </div>
               </div>
@@ -315,7 +315,7 @@ export const CyChatThreadPage = ({
               <div className="w-full max-w-3xl space-y-1.5 text-left">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-md bg-[#151614] border border-white/10 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                    <div className="w-6 h-6 rounded-md bg-[#282828] border border-white/10 text-white flex items-center justify-center shrink-0 shadow-2xs">
                       <BrandBurstLogo size={16} />
                     </div>
                     <span className="text-xs font-bold text-white">{msg.name}</span>
@@ -361,7 +361,7 @@ export const CyChatThreadPage = ({
         {isWorking && (
           <div className="space-y-1.5 text-left animate-in fade-in duration-150">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md bg-[#151614] border border-white/10 text-white flex items-center justify-center shrink-0 shadow-2xs">
+              <div className="w-6 h-6 rounded-md bg-[#282828] border border-white/10 text-white flex items-center justify-center shrink-0 shadow-2xs">
                 <BrandBurstLogo size={16} />
               </div>
               <span className="text-xs font-bold text-white">Calvras</span>
@@ -378,12 +378,12 @@ export const CyChatThreadPage = ({
       </main>
 
       {/* Bottom Sticky Reply Input Box */}
-      <footer className="p-6 max-w-4xl w-full mx-auto bg-[#0d0e0c]">
+      <footer className="p-6 max-w-4xl w-full mx-auto bg-[#1c1c1c]">
         
         {/* Attached Image Preview Card */}
         {attachedImage && (
           <div className="mb-2 relative inline-block">
-            <div className="w-16 h-16 rounded-xl border border-white/10 overflow-hidden bg-[#151614] shadow-xs relative">
+            <div className="w-16 h-16 rounded-xl border border-white/10 overflow-hidden bg-[#282828] shadow-xs relative">
               <img src={attachedImage} alt="Attachment" className="w-full h-full object-cover" />
             </div>
             <button
@@ -395,7 +395,7 @@ export const CyChatThreadPage = ({
           </div>
         )}
 
-        <div className="bg-[#151614] border border-white/10 hover:border-white/20 focus-within:border-white/40 rounded-2xl p-3 shadow-lg transition text-left space-y-2 relative">
+        <div className="bg-[#282828] border border-white/10 hover:border-white/20 focus-within:border-white/40 rounded-2xl p-3 shadow-lg transition text-left space-y-2 relative">
           
           <textarea
             ref={textareaRef}

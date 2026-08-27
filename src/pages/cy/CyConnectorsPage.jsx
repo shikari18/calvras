@@ -361,7 +361,7 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
   };
 
   return (
-    <div className="flex-1 min-h-screen bg-[#0d0e0c] text-[#f4f4ee] p-6 sm:p-10 font-sans antialiased text-white select-none text-left overflow-y-auto">
+    <div className="flex-1 min-h-screen bg-[#1c1c1c] text-[#f4f4ee] p-6 sm:p-10 font-sans antialiased text-white select-none text-left overflow-y-auto">
       <div className="max-w-7xl mx-auto space-y-6 pt-2 sm:pt-4">
         
         {/* Title Header */}
@@ -412,7 +412,7 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search store apps & connectors..."
-              className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#131412] border border-white/10 hover:border-neutral-400 focus:border-neutral-900 rounded-xl text-white placeholder:text-neutral-400 focus:outline-none transition"
+              className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#282828] border border-white/10 hover:border-neutral-400 focus:border-neutral-900 rounded-xl text-white placeholder:text-neutral-400 focus:outline-none transition"
             />
           </div>
 
@@ -425,7 +425,7 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
             return (
               <div 
                 key={c.id} 
-                className="bg-[#131412] border border-white/10 hover:border-neutral-400 rounded-2xl p-4 shadow-2xs flex flex-col justify-between space-y-4 transition group"
+                className="bg-[#282828] border border-white/10 hover:border-neutral-400 rounded-2xl p-4 shadow-2xs flex flex-col justify-between space-y-4 transition group"
               >
                 <div className="space-y-2.5">
                   
@@ -499,7 +499,7 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
       {/* 100% FULLY CUSTOMIZABLE STORE AUTOMATIONS MODAL */}
       {selectedStoreApp && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
-          <div className="bg-[#131412] border border-white/10 rounded-3xl max-w-3xl w-full p-5 sm:p-7 space-y-6 shadow-2xl animate-in zoom-in-95 duration-200 text-left my-auto max-h-[92vh] overflow-y-auto">
+          <div className="bg-[#282828] border border-white/10 rounded-3xl max-w-3xl w-full p-5 sm:p-7 space-y-6 shadow-2xl animate-in zoom-in-95 duration-200 text-left my-auto max-h-[92vh] overflow-y-auto">
             
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-white/5 pb-4">
@@ -602,7 +602,7 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
                       value={upsellItemName}
                       onChange={(e) => setUpsellItemName(e.target.value)}
                       placeholder="e.g. 10m Booster Cable"
-                      className="w-full bg-[#131412] border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-purple-600"
+                      className="w-full bg-[#282828] border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-purple-600"
                     />
                   </div>
 
@@ -617,14 +617,14 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
                         value={upsellPrice}
                         onChange={(e) => setUpsellPrice(e.target.value)}
                         placeholder="40 GHS"
-                        className="w-1/2 bg-[#131412] border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-purple-600 font-medium"
+                        className="w-1/2 bg-[#282828] border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-purple-600 font-medium"
                       />
                       <input 
                         type="text"
                         value={originalPrice}
                         onChange={(e) => setOriginalPrice(e.target.value)}
                         placeholder="80 GHS"
-                        className="w-1/2 bg-[#131412] border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-neutral-400 line-through focus:outline-none focus:border-purple-600"
+                        className="w-1/2 bg-[#282828] border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-neutral-400 line-through focus:outline-none focus:border-purple-600"
                       />
                     </div>
                   </div>
@@ -637,7 +637,7 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
                     <select
                       value={offerTimer}
                       onChange={(e) => setOfferTimer(e.target.value)}
-                      className="w-full bg-[#131412] border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-purple-600"
+                      className="w-full bg-[#282828] border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-purple-600"
                     >
                       <option value="10 minutes">10 minutes</option>
                       <option value="15 minutes">15 minutes (Best)</option>
@@ -785,7 +785,7 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
                       type="text"
                       value={storeName}
                       onChange={(e) => setStoreName(e.target.value)}
-                      className="w-full bg-[#131412] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-600"
+                      className="w-full bg-[#282828] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-600"
                     />
                   </div>
 
@@ -794,7 +794,7 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
                     <select
                       value={sendDelay}
                       onChange={(e) => setSendDelay(e.target.value)}
-                      className="w-full bg-[#131412] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-600"
+                      className="w-full bg-[#282828] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-600"
                     >
                       <option value="15 seconds (Instant)">15 seconds (Instant after payment)</option>
                       <option value="2 minutes">2 minutes</option>
@@ -809,7 +809,7 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
                       type="text"
                       value={sampleCustomerName}
                       onChange={(e) => setSampleCustomerName(e.target.value)}
-                      className="w-full bg-[#131412] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-600"
+                      className="w-full bg-[#282828] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-600"
                     />
                   </div>
 
@@ -819,7 +819,7 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
                       type="text"
                       value={sampleProductBought}
                       onChange={(e) => setSampleProductBought(e.target.value)}
-                      className="w-full bg-[#131412] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-600"
+                      className="w-full bg-[#282828] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-600"
                     />
                   </div>
 

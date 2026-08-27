@@ -8,7 +8,7 @@
   html, body, #root {
     font-family: var(--font-sans);
     color: #f4f4ee;
-    background-color: #0d0e0c;
+    background-color: #1c1c1c;
     overflow-x: hidden;
   }
 }
@@ -71,7 +71,7 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #0d0e0c;
+  background: #1c1c1c;
 }
 
 ::-webkit-scrollbar-thumb {

@@ -263,7 +263,7 @@ export const MarkdownRenderer = ({ content }) => {
             </div>
           ),
           table: ({ children }) => (
-            <div className="my-3 overflow-x-auto rounded-2xl border border-white/10 shadow-lg bg-[#131412]">
+            <div className="my-3 overflow-x-auto rounded-2xl border border-white/10 shadow-lg bg-[#282828]">
               <table className="w-full text-left text-xs border-collapse divide-y divide-white/10">
                 {children}
               </table>
@@ -273,7 +273,7 @@ export const MarkdownRenderer = ({ content }) => {
             <thead className="bg-white/5">{children}</thead>
           ),
           tbody: ({ children }) => (
-            <tbody className="divide-y divide-white/5 bg-[#131412] text-[#e4e4dd]">{children}</tbody>
+            <tbody className="divide-y divide-white/5 bg-[#282828] text-[#e4e4dd]">{children}</tbody>
           ),
           tr: ({ children }) => (
             <tr className="hover:bg-white/5 transition">{children}</tr>

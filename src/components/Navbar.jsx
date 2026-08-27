@@ -24,7 +24,7 @@ export const Navbar = ({ onNavigate }) => {
     <header 
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled 
-          ? 'bg-[#0d0e0c]/90 backdrop-blur-md border-b border-white/10 py-3.5 shadow-2xl' 
+          ? 'bg-[#1c1c1c]/90 backdrop-blur-md border-b border-white/10 py-3.5 shadow-2xl' 
           : 'bg-transparent py-5'
       }`}
     >
@@ -142,7 +142,7 @@ export const Navbar = ({ onNavigate }) => {
 
       {/* Full-Screen Luxury Mobile Menu Overlay */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-[100] bg-[#0d0e0c]/98 backdrop-blur-2xl flex flex-col justify-between p-6 sm:p-8 animate-in fade-in duration-200">
+        <div className="md:hidden fixed inset-0 z-[100] bg-[#1c1c1c]/98 backdrop-blur-2xl flex flex-col justify-between p-6 sm:p-8 animate-in fade-in duration-200">
           
           {/* Top Bar with Logo & Close Button */}
           <div className="flex items-center justify-between pb-6 border-b border-white/10">

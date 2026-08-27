@@ -3,7 +3,7 @@ import { GitFork, Plus, Sparkles } from 'lucide-react';
 
 export const CyFlowsPage = ({ onNewChat }) => {
   return (
-    <div className="flex-1 min-h-screen bg-[#0d0e0c] text-[#f4f4ee] p-6 sm:p-10 font-sans antialiased text-white select-none text-left overflow-y-auto">
+    <div className="flex-1 min-h-screen bg-[#1c1c1c] text-[#f4f4ee] p-6 sm:p-10 font-sans antialiased text-white select-none text-left overflow-y-auto">
       <div className="max-w-5xl mx-auto space-y-8 pt-4 sm:pt-6">
         
         {/* Title Header */}
@@ -17,7 +17,7 @@ export const CyFlowsPage = ({ onNewChat }) => {
         </div>
 
         {/* Empty State Card */}
-        <div className="bg-[#131412] border border-white/10 rounded-3xl p-12 sm:p-16 shadow-2xs flex flex-col items-center justify-center text-center space-y-4 min-h-[320px]">
+        <div className="bg-[#282828] border border-white/10 rounded-3xl p-12 sm:p-16 shadow-2xs flex flex-col items-center justify-center text-center space-y-4 min-h-[320px]">
           <div className="w-12 h-12 rounded-2xl bg-neutral-100/80 border border-white/10 text-neutral-600 flex items-center justify-center mb-1 shadow-sm">
             <GitFork size={22} />
           </div>

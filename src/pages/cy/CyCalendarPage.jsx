@@ -167,7 +167,7 @@ export const CyCalendarPage = ({ onNewChat }) => {
   };
 
   return (
-    <div className="flex-1 min-h-screen bg-[#0d0e0c] text-[#f4f4ee] p-6 sm:p-10 font-sans antialiased text-white select-none text-left overflow-y-auto">
+    <div className="flex-1 min-h-screen bg-[#1c1c1c] text-[#f4f4ee] p-6 sm:p-10 font-sans antialiased text-white select-none text-left overflow-y-auto">
       <div className="max-w-6xl mx-auto space-y-6 pt-2 sm:pt-4">
         
         {/* Title Header */}
@@ -224,7 +224,7 @@ export const CyCalendarPage = ({ onNewChat }) => {
               <select
                 value={niche}
                 onChange={(e) => setNiche(e.target.value)}
-                className="w-full bg-[#131412] border border-white/10 rounded-xl px-3 py-2 text-xs font-medium text-white focus:outline-none focus:border-neutral-900 transition"
+                className="w-full bg-[#282828] border border-white/10 rounded-xl px-3 py-2 text-xs font-medium text-white focus:outline-none focus:border-neutral-900 transition"
               >
                 {niches.map(n => <option key={n} value={n}>{n}</option>)}
               </select>
@@ -240,7 +240,7 @@ export const CyCalendarPage = ({ onNewChat }) => {
                 value={productName}
                 onChange={(e) => setProductName(e.target.value)}
                 placeholder="e.g. Gourmet Burger & Wings"
-                className="w-full bg-[#131412] border border-white/10 rounded-xl px-3 py-2 text-xs font-medium text-white focus:outline-none focus:border-neutral-900 transition"
+                className="w-full bg-[#282828] border border-white/10 rounded-xl px-3 py-2 text-xs font-medium text-white focus:outline-none focus:border-neutral-900 transition"
               />
             </div>
 
@@ -252,7 +252,7 @@ export const CyCalendarPage = ({ onNewChat }) => {
               <select
                 value={goal}
                 onChange={(e) => setGoal(e.target.value)}
-                className="w-full bg-[#131412] border border-white/10 rounded-xl px-3 py-2 text-xs font-medium text-white focus:outline-none focus:border-neutral-900 transition"
+                className="w-full bg-[#282828] border border-white/10 rounded-xl px-3 py-2 text-xs font-medium text-white focus:outline-none focus:border-neutral-900 transition"
               >
                 {goals.map(g => <option key={g} value={g}>{g}</option>)}
               </select>
@@ -286,7 +286,7 @@ export const CyCalendarPage = ({ onNewChat }) => {
               return (
                 <div 
                   key={item.day}
-                  className="bg-[#131412] border border-white/10/90 rounded-2xl p-4 shadow-2xs hover:shadow-md hover:border-neutral-300 transition text-left flex flex-col justify-between space-y-3 group"
+                  className="bg-[#282828] border border-white/10/90 rounded-2xl p-4 shadow-2xs hover:shadow-md hover:border-neutral-300 transition text-left flex flex-col justify-between space-y-3 group"
                 >
                   <div className="space-y-2">
                     {/* Header: Day Number + Platform */}
@@ -344,7 +344,7 @@ export const CyCalendarPage = ({ onNewChat }) => {
 
         {/* Calendar View (List Mode) */}
         {viewMode === 'list' && (
-          <div className="bg-[#131412] border border-white/10 rounded-3xl divide-y divide-white/5 shadow-2xs overflow-hidden">
+          <div className="bg-[#282828] border border-white/10 rounded-3xl divide-y divide-white/5 shadow-2xs overflow-hidden">
             {calendarData.map((item) => (
               <div 
                 key={item.day}

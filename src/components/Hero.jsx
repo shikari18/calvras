@@ -131,7 +131,7 @@ export const Hero = ({ onNavigate }) => {
   };
 
   return (
-    <section id="hero" className="relative pt-28 pb-20 md:pt-36 md:pb-28 bg-[#0d0e0c] text-white overflow-hidden text-center select-none">
+    <section id="hero" className="relative pt-28 pb-20 md:pt-36 md:pb-28 bg-[#1c1c1c] text-white overflow-hidden text-center select-none">
       
       {/* Subtle Glow Background */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-cyan-500/[0.03] rounded-full blur-3xl pointer-events-none" />

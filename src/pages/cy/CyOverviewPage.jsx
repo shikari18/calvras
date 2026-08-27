@@ -3,7 +3,7 @@ import { ArrowRight, Hash } from 'lucide-react';
 
 export const CyOverviewPage = ({ onSelectTab, userName = 'SHIKARI', threadTitle = 'Help Making Product Popular' }) => {
   return (
-    <div className="flex-1 min-h-screen bg-[#0d0e0c] text-[#f4f4ee] p-6 sm:p-10 font-sans antialiased text-white select-none text-left overflow-y-auto">
+    <div className="flex-1 min-h-screen bg-[#1c1c1c] text-[#f4f4ee] p-6 sm:p-10 font-sans antialiased text-white select-none text-left overflow-y-auto">
       
       <div className="max-w-5xl mx-auto space-y-8 pt-4 sm:pt-6">
         
@@ -20,7 +20,7 @@ export const CyOverviewPage = ({ onSelectTab, userName = 'SHIKARI', threadTitle 
         {/* 4 Clean Metric Cards Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           
-          <div className="bg-[#131412] border border-white/10 rounded-2xl p-5 shadow-2xs space-y-1 hover:border-neutral-400 transition">
+          <div className="bg-[#282828] border border-white/10 rounded-2xl p-5 shadow-2xs space-y-1 hover:border-neutral-400 transition">
             <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider block">
               CONNECTORS
             </span>
@@ -32,7 +32,7 @@ export const CyOverviewPage = ({ onSelectTab, userName = 'SHIKARI', threadTitle 
             </span>
           </div>
 
-          <div className="bg-[#131412] border border-white/10 rounded-2xl p-5 shadow-2xs space-y-1 hover:border-neutral-400 transition">
+          <div className="bg-[#282828] border border-white/10 rounded-2xl p-5 shadow-2xs space-y-1 hover:border-neutral-400 transition">
             <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider block">
               FLOWS
             </span>
@@ -44,7 +44,7 @@ export const CyOverviewPage = ({ onSelectTab, userName = 'SHIKARI', threadTitle 
             </span>
           </div>
 
-          <div className="bg-[#131412] border border-white/10 rounded-2xl p-5 shadow-2xs space-y-1 hover:border-neutral-400 transition">
+          <div className="bg-[#282828] border border-white/10 rounded-2xl p-5 shadow-2xs space-y-1 hover:border-neutral-400 transition">
             <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider block">
               RUNS
             </span>
@@ -56,7 +56,7 @@ export const CyOverviewPage = ({ onSelectTab, userName = 'SHIKARI', threadTitle 
             </span>
           </div>
 
-          <div className="bg-[#131412] border border-white/10 rounded-2xl p-5 shadow-2xs space-y-1 hover:border-neutral-400 transition">
+          <div className="bg-[#282828] border border-white/10 rounded-2xl p-5 shadow-2xs space-y-1 hover:border-neutral-400 transition">
             <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider block">
               THREADS
             </span>
@@ -74,7 +74,7 @@ export const CyOverviewPage = ({ onSelectTab, userName = 'SHIKARI', threadTitle 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
           {/* Recent Activity Card (7 cols) */}
-          <div className="lg:col-span-7 bg-[#131412] border border-white/10 rounded-2xl p-5 shadow-2xs space-y-4">
+          <div className="lg:col-span-7 bg-[#282828] border border-white/10 rounded-2xl p-5 shadow-2xs space-y-4">
             <h3 className="text-xs font-semibold text-white">
               Recent activity
             </h3>
@@ -100,7 +100,7 @@ export const CyOverviewPage = ({ onSelectTab, userName = 'SHIKARI', threadTitle 
           </div>
 
           {/* Workspace Card (5 cols) */}
-          <div className="lg:col-span-5 bg-[#131412] border border-white/10 rounded-2xl p-5 shadow-2xs space-y-4">
+          <div className="lg:col-span-5 bg-[#282828] border border-white/10 rounded-2xl p-5 shadow-2xs space-y-4">
             <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider block">
               WORKSPACE
             </span>

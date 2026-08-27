@@ -31,7 +31,7 @@ export const LandingPage = ({ onGetStarted, onOpenLegal }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0d0e0c] text-[#f4f4ee] font-sans antialiased selection:bg-cyan-500/30 selection:text-white overflow-x-hidden text-left">
+    <div className="min-h-screen bg-[#1c1c1c] text-[#f4f4ee] font-sans antialiased selection:bg-cyan-500/30 selection:text-white overflow-x-hidden text-left">
       <Navbar onNavigate={handleNavigate} />
       <Hero onNavigate={handleNavigate} />
       <ProofTicker />

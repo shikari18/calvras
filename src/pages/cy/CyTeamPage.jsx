@@ -44,7 +44,7 @@ export const CyTeamPage = ({ userName = 'SHIKARI Ogar', userEmail = 'zenithzone1
   };
 
   return (
-    <div className="flex-1 min-h-screen bg-[#0d0e0c] text-[#f4f4ee] p-6 sm:p-10 font-sans antialiased text-white select-none text-left overflow-y-auto">
+    <div className="flex-1 min-h-screen bg-[#1c1c1c] text-[#f4f4ee] p-6 sm:p-10 font-sans antialiased text-white select-none text-left overflow-y-auto">
       <div className="max-w-5xl mx-auto space-y-10 pt-2 sm:pt-4">
         
         {/* Title Header */}
@@ -105,7 +105,7 @@ export const CyTeamPage = ({ userName = 'SHIKARI Ogar', userEmail = 'zenithzone1
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search"
-                className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#131412] border border-white/10 hover:border-neutral-400 focus:border-neutral-900 rounded-xl text-white placeholder:text-neutral-400 focus:outline-none transition"
+                className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#282828] border border-white/10 hover:border-neutral-400 focus:border-neutral-900 rounded-xl text-white placeholder:text-neutral-400 focus:outline-none transition"
               />
             </div>
 
@@ -176,7 +176,7 @@ export const CyTeamPage = ({ userName = 'SHIKARI Ogar', userEmail = 'zenithzone1
             Organization Settings
           </h2>
 
-          <div className="bg-[#131412] border border-white/10 rounded-2xl p-5 shadow-2xs space-y-4">
+          <div className="bg-[#282828] border border-white/10 rounded-2xl p-5 shadow-2xs space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-neutral-100 border border-white/10 flex items-center justify-center text-neutral-700 shadow-2xs">
@@ -254,7 +254,7 @@ export const CyTeamPage = ({ userName = 'SHIKARI Ogar', userEmail = 'zenithzone1
                   placeholder="colleague@company.com"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
-                  className="w-full bg-[#181916] border border-white/10 rounded-xl p-3 text-white placeholder:text-neutral-400 focus:outline-none focus:border-neutral-900 focus:bg-white"
+                  className="w-full bg-[#282828] border border-white/10 rounded-xl p-3 text-white placeholder:text-neutral-400 focus:outline-none focus:border-neutral-900 focus:bg-white"
                   required
                 />
               </div>
@@ -264,7 +264,7 @@ export const CyTeamPage = ({ userName = 'SHIKARI Ogar', userEmail = 'zenithzone1
                 <select 
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value)}
-                  className="w-full bg-[#181916] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-neutral-900 cursor-pointer"
+                  className="w-full bg-[#282828] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-neutral-900 cursor-pointer"
                 >
                   <option value="Admin">Admin (Full Workspace Access)</option>
                   <option value="Member">Member (Standard Access)</option>

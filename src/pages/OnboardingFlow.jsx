@@ -550,7 +550,7 @@ export const OnboardingFlow = ({ onComplete, userProfile }) => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-5xl mx-auto w-full my-auto py-2">
             
             {/* 1. BASIC PLAN ($10/mo) */}
-            <div className="bg-[#181916] hover:bg-[#1e1f1b] rounded-3xl border border-white/10 p-6 flex flex-col justify-between space-y-4 transition-all duration-200 hover:border-white/20 shadow-xl">
+            <div className="bg-[#282828] hover:bg-[#1e1f1b] rounded-3xl border border-white/10 p-6 flex flex-col justify-between space-y-4 transition-all duration-200 hover:border-white/20 shadow-xl">
               <div className="space-y-3.5">
                 <div className="flex items-center justify-between">
                   <div>

@@ -74,7 +74,7 @@ export const CyBillingPage = ({ userName = 'SHIKARI', onSelectTab }) => {
   ];
 
   return (
-    <div className="flex-1 min-h-screen bg-[#0d0e0c] text-[#f4f4ee] p-6 sm:p-10 font-sans antialiased text-white select-none text-left overflow-y-auto">
+    <div className="flex-1 min-h-screen bg-[#1c1c1c] text-[#f4f4ee] p-6 sm:p-10 font-sans antialiased text-white select-none text-left overflow-y-auto">
       <div className="max-w-5xl mx-auto space-y-6 pt-2 sm:pt-4">
         
         {/* Title Header */}
@@ -88,7 +88,7 @@ export const CyBillingPage = ({ userName = 'SHIKARI', onSelectTab }) => {
         </div>
 
         {/* Current Plan Card */}
-        <div className="bg-[#131412] border border-white/10 rounded-3xl p-6 shadow-xs space-y-4">
+        <div className="bg-[#282828] border border-white/10 rounded-3xl p-6 shadow-xs space-y-4">
           <span className="text-[10.5px] font-bold text-neutral-400 uppercase tracking-wider block font-mono">
             Active Workspace Plan
           </span>
@@ -112,7 +112,7 @@ export const CyBillingPage = ({ userName = 'SHIKARI', onSelectTab }) => {
         </div>
 
         {/* Credits Status Card */}
-        <div className="bg-[#131412] border border-white/10 rounded-3xl p-6 shadow-xs space-y-4">
+        <div className="bg-[#282828] border border-white/10 rounded-3xl p-6 shadow-xs space-y-4">
           <span className="text-[10.5px] font-bold text-neutral-400 uppercase tracking-wider block font-mono">
             Credit Telemetry
           </span>

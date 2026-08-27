@@ -91,7 +91,7 @@ export const CyNewChatPage = ({
   };
 
   return (
-    <div className="flex-1 min-h-screen bg-[#0d0e0c] flex flex-col justify-between items-center p-4 sm:p-8 lg:p-10 font-sans antialiased text-[#f4f4ee] select-none overflow-y-auto w-full min-w-0 relative">
+    <div className="flex-1 min-h-screen bg-[#1c1c1c] flex flex-col justify-between items-center p-4 sm:p-8 lg:p-10 font-sans antialiased text-[#f4f4ee] select-none overflow-y-auto w-full min-w-0 relative">
       
       {/* Subtle Ambient Radial Glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-80 bg-gradient-to-b from-purple-900/10 to-transparent blur-3xl pointer-events-none -z-10" />
@@ -223,7 +223,7 @@ export const CyNewChatPage = ({
           
           {/* Image Attachment Preview */}
           {attachedImage && (
-            <div className="relative inline-block border border-white/10 rounded-xl overflow-hidden shadow-2xs bg-[#151614] p-1 mb-1">
+            <div className="relative inline-block border border-white/10 rounded-xl overflow-hidden shadow-2xs bg-[#282828] p-1 mb-1">
               <img src={attachedImage} alt="Attachment" className="max-h-20 max-w-xs object-cover rounded-lg" />
               <button
                 onClick={() => setAttachedImage(null)}
@@ -234,7 +234,7 @@ export const CyNewChatPage = ({
             </div>
           )}
 
-          <div className="bg-[#151614] border border-white/10 hover:border-white/20 focus-within:border-white/40 rounded-3xl p-4 sm:p-5 shadow-2xl transition-all duration-200 text-left space-y-3 relative">
+          <div className="bg-[#282828] border border-white/10 hover:border-white/20 focus-within:border-white/40 rounded-3xl p-4 sm:p-5 shadow-2xl transition-all duration-200 text-left space-y-3 relative">
             <textarea
               ref={textareaRef}
               rows="1"
@@ -282,7 +282,7 @@ export const CyNewChatPage = ({
 
       {/* Connect Accounts Card (Pushed Down to Bottom with Generous Spacing) */}
       <div className="w-full max-w-xl mx-auto pt-10 pb-4">
-        <div className="bg-[#131412] border border-white/10 rounded-3xl p-4 sm:p-5 text-left space-y-3 shadow-xs">
+        <div className="bg-[#282828] border border-white/10 rounded-3xl p-4 sm:p-5 text-left space-y-3 shadow-xs">
           <div className="flex items-center justify-between text-xs">
             <span className="font-semibold text-neutral-300">
               Connect accounts to add posts & track reach.
@@ -304,7 +304,7 @@ export const CyNewChatPage = ({
                   onClick={() => handleConnectorClick(plat.id)}
                   className={`flex items-center justify-between p-3 rounded-2xl border transition-all duration-200 cursor-pointer shadow-2xs hover:border-white/30 active:scale-[0.98] ${
                     connected 
-                      ? 'bg-[#1c1d1a] border-white/30 text-white font-semibold' 
+                      ? 'bg-[#282828] border-white/30 text-white font-semibold' 
                       : 'bg-[#161715] border-white/10 text-neutral-300 font-medium'
                   }`}
                 >

@@ -205,7 +205,7 @@ export const CyAgentsPage = ({ onNewChat }) => {
         </div>
 
         {/* 1. Hero Goal Command Launcher: "What are we trying to achieve?" */}
-        <div className="bg-[#131412] border border-white/10 focus-within:border-neutral-900 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4 transition">
+        <div className="bg-[#282828] border border-white/10 focus-within:border-neutral-900 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4 transition">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <BrandBurstLogo size={18} />
@@ -225,7 +225,7 @@ export const CyAgentsPage = ({ onNewChat }) => {
                 onChange={(e) => setGoalPrompt(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleRunAutonomousGrowthAgent()}
                 placeholder="e.g. 'Get 500 new customers in 30 days with a $2,000 budget'..."
-                className="w-full bg-[#181916] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white font-medium placeholder:text-neutral-400 focus:outline-none focus:bg-white focus:border-purple-600 transition"
+                className="w-full bg-[#282828] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white font-medium placeholder:text-neutral-400 focus:outline-none focus:bg-white focus:border-purple-600 transition"
               />
               <button
                 onClick={handleRunAutonomousGrowthAgent}
@@ -388,7 +388,7 @@ export const CyAgentsPage = ({ onNewChat }) => {
                 {growthPlan.priorities.map((item) => (
                   <div 
                     key={item.id}
-                    className="bg-[#131412] border border-white/10 hover:border-neutral-300 rounded-2xl p-5 shadow-2xs transition space-y-3"
+                    className="bg-[#282828] border border-white/10 hover:border-neutral-300 rounded-2xl p-5 shadow-2xs transition space-y-3"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/5 pb-3">
                       <div className="flex items-center gap-3">
@@ -465,7 +465,7 @@ export const CyAgentsPage = ({ onNewChat }) => {
         )}
 
         {/* 3. Live Autonomous Loop Feed (Observe -> Decide -> Execute -> Measure -> Improve) */}
-        <div className="bg-[#131412] border border-white/10 rounded-3xl p-6 shadow-xs space-y-4">
+        <div className="bg-[#282828] border border-white/10 rounded-3xl p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-white/5 pb-3">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-lg bg-purple-50 border border-purple-100 flex items-center justify-center">
@@ -498,7 +498,7 @@ export const CyAgentsPage = ({ onNewChat }) => {
         </div>
 
         {/* 4. Specialized Under-the-Hood Sub-Agent Engines */}
-        <div className="bg-[#131412] border border-white/10 rounded-3xl p-6 shadow-xs space-y-4">
+        <div className="bg-[#282828] border border-white/10 rounded-3xl p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-white/5 pb-3">
             <div>
               <h3 className="text-sm font-bold text-white">
@@ -534,7 +534,7 @@ export const CyAgentsPage = ({ onNewChat }) => {
       {/* Review & Launch Confirmation Modal */}
       {isLaunchModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
-          <div className="bg-[#131412] border border-white/10 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-5 text-left">
+          <div className="bg-[#282828] border border-white/10 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-5 text-left">
             <div className="flex items-center justify-between border-b border-white/5 pb-3">
               <div className="flex items-center gap-2">
                 <BrandBurstLogo size={18} />

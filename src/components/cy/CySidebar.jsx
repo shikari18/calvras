@@ -94,7 +94,7 @@ export const CySidebar = ({
   // Collapsed Rail View (Luxury Dark Mode)
   if (isCollapsed) {
     return (
-      <aside className="w-14 bg-[#0d0e0c] border-r border-white/10 flex flex-col justify-between h-screen shrink-0 text-left select-none text-[13px] font-sans antialiased py-3 items-center transition-all duration-300 relative z-30 overflow-visible text-white">
+      <aside className="w-14 bg-[#1c1c1c] border-r border-white/10 flex flex-col justify-between h-screen shrink-0 text-left select-none text-[13px] font-sans antialiased py-3 items-center transition-all duration-300 relative z-30 overflow-visible text-white">
         
         {/* Top Logo & Expand Button */}
         <div className="space-y-4 flex flex-col items-center">
@@ -165,7 +165,7 @@ export const CySidebar = ({
               {/* Flyout for Collapsed Sidebar */}
               {isRecentHovered && (
                 <div 
-                  className="absolute left-full top-0 ml-2 w-64 bg-[#131412] border border-white/10 rounded-2xl shadow-2xl p-2.5 z-50 animate-in fade-in slide-in-from-left-2 duration-150 space-y-1.5 text-white"
+                  className="absolute left-full top-0 ml-2 w-64 bg-[#282828] border border-white/10 rounded-2xl shadow-2xl p-2.5 z-50 animate-in fade-in slide-in-from-left-2 duration-150 space-y-1.5 text-white"
                   onMouseEnter={handleMouseEnterRecent}
                   onMouseLeave={handleMouseLeaveRecent}
                 >
@@ -305,7 +305,7 @@ export const CySidebar = ({
 
   // Expanded Sidebar View (Luxury Dark Mode)
   return (
-    <aside className="w-60 bg-[#0d0e0c] border-r border-white/10 flex flex-col justify-between h-screen shrink-0 text-left select-none text-[13px] font-sans antialiased relative transition-all duration-300 z-40 overflow-visible text-white">
+    <aside className="w-60 bg-[#1c1c1c] border-r border-white/10 flex flex-col justify-between h-screen shrink-0 text-left select-none text-[13px] font-sans antialiased relative transition-all duration-300 z-40 overflow-visible text-white">
       
       {/* Top Section */}
       <div className="p-3 space-y-2 flex-1 overflow-visible">
@@ -339,7 +339,7 @@ export const CySidebar = ({
 
         {/* Notifications Dropdown Modal */}
         {showNotifications && (
-          <div className="absolute top-12 left-3 right-3 bg-[#131412] border border-white/10 rounded-2xl shadow-2xl p-5 z-50 text-left space-y-4 animate-in slide-in-from-top-2 duration-150 text-white">
+          <div className="absolute top-12 left-3 right-3 bg-[#282828] border border-white/10 rounded-2xl shadow-2xl p-5 z-50 text-left space-y-4 animate-in slide-in-from-top-2 duration-150 text-white">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold text-white">Notifications</h3>
               <button 
@@ -351,7 +351,7 @@ export const CySidebar = ({
             </div>
 
             <div className="flex flex-col items-center justify-center py-6 text-center space-y-2">
-              <div className="w-10 h-10 rounded-full bg-[#181916] border border-white/10 flex items-center justify-center text-neutral-400 relative">
+              <div className="w-10 h-10 rounded-full bg-[#282828] border border-white/10 flex items-center justify-center text-neutral-400 relative">
                 <Bell size={18} />
                 <span className="absolute -top-1 -right-1 text-[9px] font-bold text-emerald-400">zZ</span>
               </div>
@@ -376,7 +376,7 @@ export const CySidebar = ({
         </button>
 
         {/* Search Bar */}
-        <div className="flex items-center justify-between px-2.5 py-1.5 text-neutral-400 bg-[#131412] border border-white/10 hover:border-white/20 rounded-xl cursor-pointer transition">
+        <div className="flex items-center justify-between px-2.5 py-1.5 text-neutral-400 bg-[#282828] border border-white/10 hover:border-white/20 rounded-xl cursor-pointer transition">
           <div className="flex items-center gap-2">
             <Search size={13} />
             <span className="text-xs text-neutral-400 font-normal">Search</span>
@@ -416,7 +416,7 @@ export const CySidebar = ({
                   {/* Dropout Flyout Card to the Right of Sidebar */}
                   {isRecentHovered && (
                     <div 
-                      className="absolute left-full top-0 ml-2 w-64 bg-[#131412] border border-white/10 rounded-2xl shadow-2xl p-2.5 z-50 animate-in fade-in slide-in-from-left-2 duration-150 space-y-1.5 text-white"
+                      className="absolute left-full top-0 ml-2 w-64 bg-[#282828] border border-white/10 rounded-2xl shadow-2xl p-2.5 z-50 animate-in fade-in slide-in-from-left-2 duration-150 space-y-1.5 text-white"
                       onMouseEnter={handleMouseEnterRecent}
                       onMouseLeave={handleMouseLeaveRecent}
                     >
@@ -536,10 +536,10 @@ export const CySidebar = ({
       </div>
 
       {/* Bottom User & Credits Section */}
-      <div className="p-3 border-t border-white/10 space-y-2.5 bg-[#0d0e0c] relative">
+      <div className="p-3 border-t border-white/10 space-y-2.5 bg-[#1c1c1c] relative">
         
         {/* Credits Remaining Card */}
-        <div className="p-2.5 rounded-xl bg-[#131412] border border-white/10 space-y-1.5">
+        <div className="p-2.5 rounded-xl bg-[#282828] border border-white/10 space-y-1.5">
           <div className="flex items-center justify-between text-[11px]">
             <span className="text-neutral-400 font-medium">Credits Remaining</span>
             <span className="text-white font-bold font-mono text-xs">{credits?.remaining ?? 1000}</span>
@@ -559,7 +559,7 @@ export const CySidebar = ({
           onClick={() => setShowProfileMenu(!showProfileMenu)}
           className="flex items-center gap-2.5 px-1 p-1 rounded-xl hover:bg-white/5 transition cursor-pointer"
         >
-          <div className="w-7 h-7 rounded-full bg-[#181916] border border-white/10 text-white flex items-center justify-center text-xs font-semibold shrink-0 overflow-hidden shadow-2xs">
+          <div className="w-7 h-7 rounded-full bg-[#282828] border border-white/10 text-white flex items-center justify-center text-xs font-semibold shrink-0 overflow-hidden shadow-2xs">
             {userProfile?.picture ? (
               <img 
                 src={userProfile.picture} 
@@ -580,7 +580,7 @@ export const CySidebar = ({
 
         {/* Profile Popup Menu */}
         {showProfileMenu && (
-          <div className="absolute bottom-16 left-3 right-3 bg-[#131412] border border-white/10 rounded-2xl shadow-2xl p-2 z-50 text-xs space-y-1.5 animate-in slide-in-from-bottom-2 duration-150 text-white">
+          <div className="absolute bottom-16 left-3 right-3 bg-[#282828] border border-white/10 rounded-2xl shadow-2xl p-2 z-50 text-xs space-y-1.5 animate-in slide-in-from-bottom-2 duration-150 text-white">
             <div className="px-2 py-1 border-b border-white/10 pb-2">
               <span className="font-bold text-white block">{userProfile.name}</span>
               <span className="text-[10px] text-neutral-400 block">{userProfile.email}</span>

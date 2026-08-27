@@ -80,7 +80,7 @@ export const CyContentsPage = ({ onNewChat }) => {
   };
 
   return (
-    <div className="flex-1 min-h-screen bg-[#0d0e0c] text-[#f4f4ee] p-6 sm:p-10 font-sans antialiased text-white select-none text-left overflow-y-auto">
+    <div className="flex-1 min-h-screen bg-[#1c1c1c] text-[#f4f4ee] p-6 sm:p-10 font-sans antialiased text-white select-none text-left overflow-y-auto">
       <div className="max-w-6xl mx-auto space-y-8 pt-4 sm:pt-6">
         
         {/* Header Title with Action Button */}
@@ -128,7 +128,7 @@ export const CyContentsPage = ({ onNewChat }) => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search captions & products..."
-              className="w-full text-xs pl-8 pr-3 py-1.5 rounded-xl bg-[#181916] border border-white/10 focus:outline-none focus:border-neutral-900 transition"
+              className="w-full text-xs pl-8 pr-3 py-1.5 rounded-xl bg-[#282828] border border-white/10 focus:outline-none focus:border-neutral-900 transition"
             />
           </div>
         </div>
@@ -143,7 +143,7 @@ export const CyContentsPage = ({ onNewChat }) => {
               return (
                 <div
                   key={item.id}
-                  className="bg-[#131412] border border-white/10 hover:border-neutral-400 rounded-3xl overflow-hidden shadow-2xs transition flex flex-col justify-between group"
+                  className="bg-[#282828] border border-white/10 hover:border-neutral-400 rounded-3xl overflow-hidden shadow-2xs transition flex flex-col justify-between group"
                 >
                   <div>
                     {/* Media Thumbnail */}
@@ -197,7 +197,7 @@ export const CyContentsPage = ({ onNewChat }) => {
                   </div>
 
                   {/* Card Bottom Actions */}
-                  <div className="p-3 border-t border-white/5 flex items-center justify-between bg-[#131412]">
+                  <div className="p-3 border-t border-white/5 flex items-center justify-between bg-[#282828]">
                     <button
                       onClick={() => handleCopyCaption(item.id, item.caption)}
                       className="text-xs font-semibold text-neutral-700 hover:text-white flex items-center gap-1 cursor-pointer transition"
@@ -250,7 +250,7 @@ export const CyContentsPage = ({ onNewChat }) => {
           </div>
         ) : (
           /* Clean Empty State */
-          <div className="bg-[#131412] border border-white/10 rounded-3xl p-12 sm:p-16 shadow-2xs flex flex-col items-center justify-center text-center space-y-3 min-h-[320px]">
+          <div className="bg-[#282828] border border-white/10 rounded-3xl p-12 sm:p-16 shadow-2xs flex flex-col items-center justify-center text-center space-y-3 min-h-[320px]">
             <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mb-1">
               <Sparkles size={24} />
             </div>

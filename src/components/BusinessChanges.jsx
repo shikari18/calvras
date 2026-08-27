@@ -32,7 +32,7 @@ export const BusinessChanges = () => {
   const active = recommendations[selectedRec];
 
   return (
-    <section className="py-24 md:py-36 border-t border-white/10 bg-[#0d0e0c] text-white">
+    <section className="py-24 md:py-36 border-t border-white/10 bg-[#1c1c1c] text-white">
       <div className="max-w-6xl mx-auto px-6 md:px-12">
         <div className="grid lg:grid-cols-12 gap-12 items-center">
           

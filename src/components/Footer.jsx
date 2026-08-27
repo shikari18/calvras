@@ -2,7 +2,7 @@ import React from 'react';
 
 export const Footer = ({ onOpenLegal }) => {
   return (
-    <footer className="border-t border-white/10 bg-[#0d0e0c] py-12 text-white">
+    <footer className="border-t border-white/10 bg-[#1c1c1c] py-12 text-white">
       <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-2.5">
           <img 

@@ -147,7 +147,7 @@ export const TermsOfServicePage = ({ onBack }) => {
       </main>
 
       {/* Footer */}
-      <footer className="w-full py-8 px-6 text-center text-xs text-neutral-500 border-t border-white/10 bg-[#0d0e0c]">
+      <footer className="w-full py-8 px-6 text-center text-xs text-neutral-500 border-t border-white/10 bg-[#1c1c1c]">
         <span>© {new Date().getFullYear()} Calvras (calvras.com). All rights reserved.</span>
       </footer>
 

@@ -3,7 +3,7 @@ import { ArrowRight } from 'lucide-react';
 
 export const FinalCTA = ({ onNavigate }) => {
   return (
-    <section className="py-32 md:py-44 border-t border-white/10 bg-[#0d0e0c] text-white text-center relative overflow-hidden">
+    <section className="py-32 md:py-44 border-t border-white/10 bg-[#1c1c1c] text-white text-center relative overflow-hidden">
       <div className="max-w-4xl mx-auto px-6 md:px-12 relative z-10 space-y-6">
         <p className="text-xs font-mono font-semibold tracking-[0.2em] uppercase text-neutral-400">
           START TODAY

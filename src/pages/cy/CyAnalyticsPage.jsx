@@ -146,7 +146,7 @@ export const CyAnalyticsPage = ({ userName = 'SHIKARI', onNewChat }) => {
         </div>
 
         {/* 1. "Ask Your Marketing Data" Conversational Query Engine */}
-        <div className="bg-[#131412] border border-white/10 rounded-2xl p-5 shadow-xs space-y-4">
+        <div className="bg-[#282828] border border-white/10 rounded-2xl p-5 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-lg bg-neutral-100 flex items-center justify-center">
@@ -167,7 +167,7 @@ export const CyAnalyticsPage = ({ userName = 'SHIKARI', onNewChat }) => {
               onChange={(e) => setDataQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAskData()}
               placeholder="e.g. 'Why did sales drop 18% this week?' or 'Detect wasted spend on Meta'..."
-              className="w-full bg-[#181916] border border-white/10 rounded-xl px-4 py-2.5 pl-10 text-xs sm:text-[13px] text-white placeholder:text-neutral-400 focus:outline-none focus:border-neutral-900 focus:bg-white transition"
+              className="w-full bg-[#282828] border border-white/10 rounded-xl px-4 py-2.5 pl-10 text-xs sm:text-[13px] text-white placeholder:text-neutral-400 focus:outline-none focus:border-neutral-900 focus:bg-white transition"
             />
             <Search size={15} className="absolute left-3.5 text-neutral-400" />
             <button
@@ -236,7 +236,7 @@ export const CyAnalyticsPage = ({ userName = 'SHIKARI', onNewChat }) => {
         {/* 2. KPI Overview Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           
-          <div className="bg-[#131412] border border-white/10 rounded-2xl p-4 shadow-2xs space-y-2">
+          <div className="bg-[#282828] border border-white/10 rounded-2xl p-4 shadow-2xs space-y-2">
             <div className="flex items-center justify-between text-neutral-400 text-xs">
               <span>Total Revenue</span>
               <DollarSign size={15} className="text-neutral-400" />
@@ -248,7 +248,7 @@ export const CyAnalyticsPage = ({ userName = 'SHIKARI', onNewChat }) => {
             </div>
           </div>
 
-          <div className="bg-[#131412] border border-white/10 rounded-2xl p-4 shadow-2xs space-y-2">
+          <div className="bg-[#282828] border border-white/10 rounded-2xl p-4 shadow-2xs space-y-2">
             <div className="flex items-center justify-between text-neutral-400 text-xs">
               <span>Blended ROAS</span>
               <Target size={15} className="text-neutral-400" />
@@ -260,7 +260,7 @@ export const CyAnalyticsPage = ({ userName = 'SHIKARI', onNewChat }) => {
             </div>
           </div>
 
-          <div className="bg-[#131412] border border-white/10 rounded-2xl p-4 shadow-2xs space-y-2">
+          <div className="bg-[#282828] border border-white/10 rounded-2xl p-4 shadow-2xs space-y-2">
             <div className="flex items-center justify-between text-neutral-400 text-xs">
               <span>Blended CAC</span>
               <Layers size={15} className="text-neutral-400" />
@@ -272,7 +272,7 @@ export const CyAnalyticsPage = ({ userName = 'SHIKARI', onNewChat }) => {
             </div>
           </div>
 
-          <div className="bg-[#131412] border border-white/10 rounded-2xl p-4 shadow-2xs space-y-2">
+          <div className="bg-[#282828] border border-white/10 rounded-2xl p-4 shadow-2xs space-y-2">
             <div className="flex items-center justify-between text-neutral-400 text-xs">
               <span>Store Conversion Rate</span>
               <Zap size={15} className="text-neutral-400" />
@@ -287,7 +287,7 @@ export const CyAnalyticsPage = ({ userName = 'SHIKARI', onNewChat }) => {
         </div>
 
         {/* 3. Multi-Channel Revenue Attribution & Spend Efficiency */}
-        <div className="bg-[#131412] border border-white/10 rounded-2xl p-5 shadow-xs space-y-4">
+        <div className="bg-[#282828] border border-white/10 rounded-2xl p-5 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-sm font-bold text-white">
@@ -333,7 +333,7 @@ export const CyAnalyticsPage = ({ userName = 'SHIKARI', onNewChat }) => {
         </div>
 
         {/* 4. Predictive Growth Simulator */}
-        <div className="bg-[#131412] border border-white/10 rounded-2xl p-5 shadow-xs space-y-4">
+        <div className="bg-[#282828] border border-white/10 rounded-2xl p-5 shadow-xs space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h2 className="text-sm font-bold text-white flex items-center gap-1.5">

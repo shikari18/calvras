@@ -2,7 +2,7 @@ import React from 'react';
 
 export const BuiltAroundBusiness = () => {
   return (
-    <section className="py-24 md:py-36 border-t border-white/10 bg-[#0d0e0c] text-white relative overflow-hidden">
+    <section className="py-24 md:py-36 border-t border-white/10 bg-[#1c1c1c] text-white relative overflow-hidden">
       <div className="max-w-5xl mx-auto px-6 md:px-12 text-center">
         
         <div className="space-y-4 mb-16">
