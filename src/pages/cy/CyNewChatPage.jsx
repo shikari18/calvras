@@ -91,10 +91,10 @@ export const CyNewChatPage = ({
   };
 
   return (
-    <div className="flex-1 min-h-screen bg-white flex flex-col justify-between items-center p-4 sm:p-8 lg:p-10 font-sans antialiased text-neutral-900 select-none overflow-y-auto w-full min-w-0 relative">
+    <div className="flex-1 min-h-screen bg-[#0d0e0c] flex flex-col justify-between items-center p-4 sm:p-8 lg:p-10 font-sans antialiased text-[#f4f4ee] select-none overflow-y-auto w-full min-w-0 relative">
       
       {/* Subtle Ambient Radial Glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-80 bg-gradient-to-b from-neutral-100 to-transparent blur-3xl pointer-events-none -z-10" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-80 bg-gradient-to-b from-purple-900/10 to-transparent blur-3xl pointer-events-none -z-10" />
 
       {/* Hidden File Input */}
       <input 

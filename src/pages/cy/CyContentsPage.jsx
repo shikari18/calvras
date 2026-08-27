@@ -197,7 +197,7 @@ export const CyContentsPage = ({ onNewChat }) => {
                   </div>
 
                   {/* Card Bottom Actions */}
-                  <div className="p-3 border-t border-white/5 flex items-center justify-between bg-white">
+                  <div className="p-3 border-t border-white/5 flex items-center justify-between bg-[#131412]">
                     <button
                       onClick={() => handleCopyCaption(item.id, item.caption)}
                       className="text-xs font-semibold text-neutral-700 hover:text-white flex items-center gap-1 cursor-pointer transition"
