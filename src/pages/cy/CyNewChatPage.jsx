@@ -278,7 +278,7 @@ export const CyNewChatPage = ({
                   <Paperclip size={15} />
                 </button>
 
-                {/* Mode Selector Pill Button (Ask / Chat vs Plan) */}
+                {/* Mode Selector Pill Button (Chat vs Plan) */}
                 <div className="relative" ref={modeDropdownRef}>
                   <button
                     type="button"
@@ -294,7 +294,7 @@ export const CyNewChatPage = ({
                     ) : (
                       <>
                         <MessageSquare size={14} className="text-white" />
-                        <span className="font-semibold text-white">Ask</span>
+                        <span className="font-semibold text-white">Chat</span>
                       </>
                     )}
                     <ChevronDown size={12} className="text-neutral-400" />
@@ -304,7 +304,7 @@ export const CyNewChatPage = ({
                   {showModeDropdown && (
                     <div className="absolute bottom-full left-0 mb-2 w-64 bg-[#1c1c1c] border border-white/10 rounded-2xl shadow-2xl p-2 z-50 text-left space-y-1 animate-in fade-in zoom-in-95 duration-150">
                       
-                      {/* Ask / Chat Option */}
+                      {/* Chat Option */}
                       <button
                         type="button"
                         onClick={() => {
@@ -318,10 +318,10 @@ export const CyNewChatPage = ({
                         <MessageSquare size={17} className="text-neutral-300 shrink-0 mt-0.5" />
                         <div className="min-w-0 flex-1">
                           <span className="text-sm font-semibold text-white block">
-                            Ask
+                            Chat
                           </span>
                           <span className="text-xs text-neutral-400 block mt-0.5 leading-snug">
-                            Ask your marketing questions
+                            Fast direct answers, ad copy & hooks
                           </span>
                         </div>
                       </button>

@@ -22,6 +22,7 @@ import { BrandBurstLogo } from '../../components/cy/CySidebar';
 
 export const CyChatThreadPage = ({ 
   initialPrompt, 
+  initialMode = 'chat',
   channelName = 'general', 
   threadTitle = 'Strategy Workspace', 
   userName = 'SHIKARI Ogar', 
@@ -45,10 +46,22 @@ export const CyChatThreadPage = ({
   } = useMarketing();
 
   const [inputVal, setInputVal] = useState('');
-  const [chatMode, setChatMode] = useState('chat'); // 'chat' | 'plan'
+  const [chatMode, setChatMode] = useState(
+    initialMode === 'plan' || (typeof initialPrompt === 'string' && initialPrompt.includes('[MODE: PLAN]'))
+      ? 'plan'
+      : 'chat'
+  );
   const [showModeDropdown, setShowModeDropdown] = useState(false);
   const [attachedImage, setAttachedImage] = useState(null);
   const modeDropdownRef = useRef(null);
+
+  useEffect(() => {
+    if (typeof initialPrompt === 'string' && initialPrompt.includes('[MODE: PLAN]')) {
+      setChatMode('plan');
+    } else if (initialMode) {
+      setChatMode(initialMode);
+    }
+  }, [initialPrompt, initialMode]);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -440,7 +453,7 @@ export const CyChatThreadPage = ({
                 <Paperclip size={14} />
               </button>
 
-              {/* Mode Selector Pill (Ask / Chat vs Plan) */}
+              {/* Mode Selector Pill (Chat vs Plan) */}
               <div className="relative" ref={modeDropdownRef}>
                 <button
                   type="button"
@@ -456,7 +469,7 @@ export const CyChatThreadPage = ({
                   ) : (
                     <>
                       <MessageSquare size={13} className="text-white" />
-                      <span className="font-semibold text-white">Ask</span>
+                      <span className="font-semibold text-white">Chat</span>
                     </>
                   )}
                   <ChevronDown size={11} className="text-neutral-400" />
@@ -478,10 +491,10 @@ export const CyChatThreadPage = ({
                       <MessageSquare size={16} className="text-neutral-300 shrink-0 mt-0.5" />
                       <div className="min-w-0 flex-1">
                         <span className="text-sm font-semibold text-white block">
-                          Ask
+                          Chat
                         </span>
                         <span className="text-xs text-neutral-400 block mt-0.5 leading-snug">
-                          Ask your marketing questions
+                          Fast direct answers, ad copy & hooks
                         </span>
                       </div>
                     </button>
