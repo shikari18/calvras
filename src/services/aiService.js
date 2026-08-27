@@ -293,7 +293,7 @@ Your CPMs and targeting are delivering eyeballs, but traffic is stalling before 
 }
 
 /**
- * Generate high-definition AI diffusion images (Flux.1 / State-of-the-Art Generative Diffusion)
+ * Generate high-definition AI diffusion images (Multi-Model Parallel Generation: Flux.1 + Realism + Turbo)
  */
 export async function generateMarketingImageBatch(promptText, count = 2) {
   const cleanSubject = cleanDisplaySubject(promptText) || 'Commercial Creative';
@@ -301,21 +301,25 @@ export async function generateMarketingImageBatch(promptText, count = 2) {
 
   // Construct visual prompt
   let styleEnhancement = isLogo
-    ? 'vector logo design, minimalist, clean geometric vector art, high contrast, brand identity symbol, white background, modern graphic design'
+    ? 'vector logo design, clean minimalist geometric vector art, high contrast, brand identity symbol, clean white background, modern graphic design'
     : 'commercial advertising photography, professional studio lighting, 8k resolution, ultra-detailed, photorealistic, cinematic depth of field, award-winning visual composition';
 
   const basePrompt = `${promptText}, ${styleEnhancement}`;
-  const totalCount = Math.min(Math.max(count, 1), 4);
+  const totalCount = Math.min(Math.max(count, 1), 3);
+
+  // Distinct model pipelines to avoid per-model concurrency rate limits
+  const modelPipelines = ['flux', 'flux-realism', 'turbo'];
 
   const items = Array.from({ length: totalCount }, (_, idx) => {
-    const seed = Math.floor(Math.random() * 9999999) + (idx * 1013);
+    const seed = Math.floor(Math.random() * 9999999) + (idx * 7919) + Date.now().toString().slice(-4);
     const variationLabel = idx === 0 
-      ? 'Hero Primary Visual' 
-      : (idx === 1 ? 'Alternative Dynamic Angle' : (idx === 2 ? 'Minimalist High-Contrast Angle' : 'In-Context Lifestyle Variation'));
+      ? 'Hero Concept 1' 
+      : (idx === 1 ? 'Dynamic Concept 2' : 'Minimalist Concept 3');
 
-    const variationPrompt = `${basePrompt}, variation ${idx + 1}`;
+    const modelName = modelPipelines[idx % modelPipelines.length];
+    const variationPrompt = idx === 0 ? basePrompt : `${basePrompt}, creative angle variation ${idx + 1}`;
     const encoded = encodeURIComponent(variationPrompt);
-    const url = `https://image.pollinations.ai/prompt/${encoded}?width=1024&height=1024&model=flux&nologo=true&seed=${seed}`;
+    const url = `https://image.pollinations.ai/prompt/${encoded}?width=1024&height=1024&model=${modelName}&nologo=true&seed=${seed}`;
 
     return {
       title: `${cleanSubject} - ${variationLabel}`,
@@ -329,10 +333,10 @@ export async function generateMarketingImageBatch(promptText, count = 2) {
     markdown += `![${item.title}](${item.url})\n\n`;
   });
 
-  markdown += `\n### 🎯 Creative Deployment Strategy:
-- **Feed Stopping Power**: Engineered with high focal contrast to capture user attention within the first 1.5 seconds in social feeds.
-- **Message Alignment**: Pair with direct-response headline copy and a single clear call-to-action button.
-- **A/B Split Testing**: Deploy Variation 1 vs. Variation 2 in your paid ad set to empirically determine the lowest Cost Per Click (CPC).`;
+  markdown += `\n### 🎯 Creative Strategy & Angles:
+- **Visual Impact**: High-contrast focal point designed for immediate feed stopping power.
+- **Copy & Headline Pairing**: Deploy alongside a strong direct-response headline and a clear 1-click CTA.
+- **A/B Split Test**: Test Concept 1 vs. Concept 2 in your campaign ad set to optimize CTR.`;
 
   return markdown;
 }

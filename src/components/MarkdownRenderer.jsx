@@ -239,7 +239,7 @@ export const MarkdownRenderer = ({ content }) => {
             </li>
           ),
           img: ({ src, alt }) => (
-            <div className="w-56 sm:w-64 aspect-square my-2.5 inline-block mr-3">
+            <div className="w-full max-w-[270px] sm:max-w-[290px] aspect-square my-2 inline-block mr-3 align-top">
               <CompactImageCard src={src} alt={alt} />
             </div>
           ),
