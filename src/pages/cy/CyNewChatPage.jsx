@@ -278,82 +278,76 @@ export const CyNewChatPage = ({
                   <Paperclip size={15} />
                 </button>
 
-                {/* Mode Selector Pill Button (Chat vs Plan) */}
+                {/* Mode Selector Pill Button (Ask / Chat vs Plan) */}
                 <div className="relative" ref={modeDropdownRef}>
                   <button
                     type="button"
                     onClick={() => setShowModeDropdown(!showModeDropdown)}
-                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition cursor-pointer active:scale-95 ${
-                      chatMode === 'plan'
-                        ? 'bg-purple-950/40 border-purple-500/40 text-purple-200 hover:bg-purple-900/50'
-                        : 'bg-[#1c1c1c] border-white/10 text-neutral-300 hover:text-white hover:border-white/20'
-                    }`}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium bg-[#1c1c1c] border border-white/10 hover:border-white/20 text-neutral-200 hover:text-white transition cursor-pointer active:scale-95 shadow-xs"
                     title="Switch execution mode"
                   >
                     {chatMode === 'plan' ? (
                       <>
-                        <Compass size={13} className="text-purple-400" />
-                        <span>Plan</span>
+                        <Compass size={14} className="text-white" />
+                        <span className="font-semibold text-white">Plan</span>
                       </>
                     ) : (
                       <>
-                        <MessageSquare size={13} className="text-neutral-400" />
-                        <span>Chat</span>
+                        <MessageSquare size={14} className="text-white" />
+                        <span className="font-semibold text-white">Ask</span>
                       </>
                     )}
-                    <ChevronDown size={11} className="text-neutral-400" />
+                    <ChevronDown size={12} className="text-neutral-400" />
                   </button>
 
-                  {/* Dropdown Popup Menu */}
+                  {/* Dropdown Popup Menu (Styled exactly like Image 2) */}
                   {showModeDropdown && (
-                    <div className="absolute bottom-full left-0 mb-2 w-56 bg-[#1c1c1c] border border-white/10 rounded-2xl shadow-2xl p-1.5 z-50 text-left space-y-1 animate-in fade-in zoom-in-95 duration-150 text-white">
+                    <div className="absolute bottom-full left-0 mb-2 w-64 bg-[#1c1c1c] border border-white/10 rounded-2xl shadow-2xl p-2 z-50 text-left space-y-1 animate-in fade-in zoom-in-95 duration-150">
+                      
+                      {/* Ask / Chat Option */}
                       <button
                         type="button"
                         onClick={() => {
                           setChatMode('chat');
                           setShowModeDropdown(false);
                         }}
-                        className={`w-full flex items-start gap-2.5 p-2 rounded-xl text-left transition cursor-pointer ${
-                          chatMode === 'chat' ? 'bg-white/10 text-white' : 'hover:bg-white/5 text-neutral-300'
+                        className={`w-full flex items-start gap-3 p-2.5 rounded-xl text-left transition cursor-pointer ${
+                          chatMode === 'chat' ? 'bg-white/10' : 'hover:bg-white/5'
                         }`}
                       >
-                        <div className="p-1 rounded-lg bg-[#282828] border border-white/10 text-white shrink-0 mt-0.5">
-                          <MessageSquare size={13} />
-                        </div>
+                        <MessageSquare size={17} className="text-neutral-300 shrink-0 mt-0.5" />
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-white">Chat</span>
-                            {chatMode === 'chat' && <Check size={12} className="text-emerald-400" />}
-                          </div>
-                          <p className="text-[10.5px] text-neutral-400 leading-tight">
-                            Fast direct answers, ad copy, hooks & ideas.
-                          </p>
+                          <span className="text-sm font-semibold text-white block">
+                            Ask
+                          </span>
+                          <span className="text-xs text-neutral-400 block mt-0.5 leading-snug">
+                            Ask your marketing questions
+                          </span>
                         </div>
                       </button>
 
+                      {/* Plan Option */}
                       <button
                         type="button"
                         onClick={() => {
                           setChatMode('plan');
                           setShowModeDropdown(false);
                         }}
-                        className={`w-full flex items-start gap-2.5 p-2 rounded-xl text-left transition cursor-pointer ${
-                          chatMode === 'plan' ? 'bg-purple-950/40 text-purple-200 border border-purple-500/30' : 'hover:bg-white/5 text-neutral-300'
+                        className={`w-full flex items-start gap-3 p-2.5 rounded-xl text-left transition cursor-pointer ${
+                          chatMode === 'plan' ? 'bg-white/10' : 'hover:bg-white/5'
                         }`}
                       >
-                        <div className="p-1 rounded-lg bg-purple-900/40 border border-purple-500/30 text-purple-300 shrink-0 mt-0.5">
-                          <Compass size={13} />
-                        </div>
+                        <Compass size={17} className="text-neutral-300 shrink-0 mt-0.5" />
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-white">Plan</span>
-                            {chatMode === 'plan' && <Check size={12} className="text-purple-400" />}
-                          </div>
-                          <p className="text-[10.5px] text-neutral-400 leading-tight">
-                            Full blueprint, back-to-back questions, corrections & 30-day roadmap.
-                          </p>
+                          <span className="text-sm font-semibold text-white block">
+                            Plan
+                          </span>
+                          <span className="text-xs text-neutral-400 block mt-0.5 leading-snug">
+                            Full blueprint, diagnostics & roadmap
+                          </span>
                         </div>
                       </button>
+
                     </div>
                   )}
                 </div>
