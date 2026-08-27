@@ -8374,5 +8374,185 @@
         "content": "### The 10 Fatal CTA Mistakes (And How to Fix Them)\n\n| Fatal CTA Mistake | Why It Murders Conversions | The High-Converting Fix |\n| :--- | :--- | :--- |\n| **1. The Passive \"Submit\" Button** | Sounds like labor and administrative data surrender | Use value verbs (*\"Claim My Credits\"*, *\"Start Scaling\"*) |\n| **2. Low Visual Contrast** (Grey button on dark grey page) | Invisible; fails the squint test | Use bright emerald, obsidian glow, or amber contrast |\n| **3. Too Many Competing Buttons** | Triggers analysis paralysis | Use ONE primary action button per section |\n| **4. Missing Risk Reversal Micro-Copy** | Leaves purchase fear unresolved | Place *\"30-Day Guarantee • Cancel Anytime\"* directly below |\n| **5. Using Second-Person (\"Your\")** | Creates psychological distance | Use First-Person (*\"Start My Plan\"*) for a 90% lift |\n| **6. Tiny Mobile Touch Targets (<40px)** | Frustrating on mobile thumbs | Maintain 48px–56px height with full-width touch areas |\n| **7. Vague Abstract Promises** (*\"Discover More\"*) | User doesn't know what happens next | State exact outcome (*\"Launch 15 Ads in 90 Seconds\"*) |\n| **8. High-Friction Demands** (*\"Book a 1-Hour Call\"*) | Scares busy executives away | Offer a *\"2-Minute Video Audit\"* or instant sandbox |\n| **9. No Mobile Sticky CTA** | Users lose button when scrolling long pages | Implement a sleek docked bottom mobile CTA bar |\n| **10. Broken Links or Sluggish JS Modals** | 100% loss of hot traffic | Optimize frontend bundle and test checkout webhooks |\n\n```\nTHE CTA IS NOT AN AFTERTHOUGHT. IT IS THE REVENUE GATEWAY OF YOUR BUSINESS. 💎\n```"
       }
     ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "How do you write high-converting SMS marketing copy under 160 characters that drives immediate clicks without getting flagged as carrier spam? Give 4 examples."
+      },
+      {
+        "role": "assistant",
+        "content": "### High-Converting SMS Marketing Copy (The 160-Character Standard)\nSMS has a **98% open rate within 3 minutes**. Because character limits are strict (160 characters per SMS segment), every word must deliver maximum punch:\n\n```\n[ BRAND NAME ] + [ VISCERAL REASON-WHY / HOOK ] + [ CODE / OFFER ] + [ SHORT LINK ] + [ OPT-OUT ]\n```\n\n---\n\n### 4 High-Converting SMS Copy Templates (Under 160 Characters):\n\n1. **The Cart Abandonment Text (142 chars):**\n   > Calvras: Hey {FirstName}, your 1,000 bonus credits are waiting! Use code FINISH10 for 10% off before midnight: calvras.com/c/cart Stop2End\n\n2. **The Flash 24-Hour Drop (148 chars):**\n   > Calvras: ⚡ FLASH SALE: 20% off all growth plans for the next 24h. Launch 15 ad angles in 90s. Claim here: calvras.com/c/flash Reply STOP to opt out.\n\n3. **The Credit Top-Up Surprise (139 chars):**\n   > Calvras: 🎉 We just dropped 500 bonus credits into your account on the house! Log in and launch your weekend ads: calvras.com/app Stop2Unsub\n\n4. **The Grandfathered Price Warning (154 chars):**\n   > Calvras: ⚠️ FINAL 6 HOURS: Lock in $10/mo for life before our pricing increases to $25/mo tonight. Secure rate: calvras.com/lock Reply STOP to opt out."
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "How do you write Push Notifications (under 45 characters title, under 90 characters body) that achieve a 12%+ click-through rate? Give 4 examples."
+      },
+      {
+        "role": "assistant",
+        "content": "### Push Notification Copywriting (Micro-Attention Triggers)\nPush notifications pop up on locked mobile screens alongside personal messages. **They must be curiosity-driven, highly relevant, and under 40 characters in title to prevent truncation on iOS/Android!**\n\n---\n\n### 4 High-CTR Push Notification Templates:\n\n```\n┌────────────────────────┬────────────────────────────────────────┬────────────────────────────────────────┐\n│ TRIGGER TYPE           │ TITLE (UNDER 40 CHARS)                 │ BODY (UNDER 80 CHARS)                  │\n├────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┤\n│ 1. Telemetry Alert     │ 🚀 Your ROAS just hit 4.2x!            │ 3 of your generated TikTok ads are     │\n│                        │                                        │ scaling fast. Check your telemetry.    │\n├────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┤\n│ 2. Surprise Bonus      │ 🎉 500 free credits added!             │ Settle into your weekend with 5 fresh  │\n│                        │                                        │ ad angles on us.                       │\n├────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┤\n│ 3. Ad Fatigue Warning  │ ⚠️ Creative fatigue detected           │ Meta CPA is creeping up on Campaign #2.│\n│                        │                                        │ Tap to generate 10 new hooks in 60s.   │\n├────────────────────────┼────────────────────────────────────────┼────────────────────────────────────────┤\n│ 4. Expiring Offer      │ ⏰ Final 2 hours: $10/mo rate          │ Founder discount ends at midnight.     │\n│                        │                                        │ Don't lose your locked pricing!        │\n└────────────────────────┴────────────────────────────────────────┴────────────────────────────────────────┘\n```"
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "How do you write punchy 280-character Twitter/X posts that stop the feed and drive hundreds of outbound clicks?"
+      },
+      {
+        "role": "assistant",
+        "content": "### The 3-Beat Twitter/X Direct-Response Post (Under 280 Characters)\n\n```\nBEAT 1: CONTRARIAN HOOK (Line 1) ➔ BEAT 2: THE LESSON / DATA PROOF (Line 2-3) ➔ BEAT 3: THE ACTION LINK (Line 4)\n```\n\n---\n\n### 3 High-Performing 280-Character Post Examples:\n\n1. **The Agency Disruption Post (234 chars):**\n   > We stopped paying our $5,000/mo marketing agency 90 days ago.\n   >\n   > Result? Blended Meta ROAS jumped from 1.8x to 4.2x and our creative speed increased by 20x.\n   >\n   > Here is the autonomous AI system we used (starts at $10):\n   > 🔗 calvras.com\n\n2. **The Data Insight Post (246 chars):**\n   > We analyzed 14,280 winning Meta ads across $45M in spend.\n   >\n   > 92% of top-scaling campaigns tested at least 15 creative hooks in week 1.\n   >\n   > Here is how to generate 20 multivariate ad angles in under 90 seconds on autopilot:\n   > 🔗 calvras.com/os\n\n3. **The Micro-Swipe File Post (218 chars):**\n   > Steal our private swipe file of the Top 50 direct-response ad hooks that generated $12.4M in e-commerce sales.\n   >\n   > Plug-and-play templates for TikTok & Meta.\n   >\n   > Grab it 100% free here:\n   > 🔗 calvras.com/hooks"
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "How do you structure Instagram captions so the first 3 lines stop the scroll and drive massive DM automation ('Comment SCALE to get the link')?"
+      },
+      {
+        "role": "assistant",
+        "content": "### The 3-Line Instagram Caption & DM Automation Funnel\nOn Instagram mobile feeds, **only the first 125 characters (approx. 2–3 lines) are visible before the `...more` button**.\n\n---\n\n### The 3-Part Instagram Caption Blueprint:\n\n> **[LINE 1 - THE SHOCK HOOK]:**\n> Why traditional $5k/mo marketing agencies are officially obsolete in 2026 👇\n>\n> **[LINE 2-4 - THE PROOF & CONTEXT (VISIBLE AFTER EXPANDING)]:**\n> Creative ad fatigue is the #1 reason Shopify stores stall at $20k/mo. If you're still spending 15 hours designing Canva banners by hand, you're competing with brands that launch 20 AI variations in 90 seconds.\n>\n> We built Calvras to automate the entire direct-response creative pipeline for just $10/month.\n>\n> **[THE DM AUTOMATION TRIGGER]:**\n> 💬 **Comment \"SCALE\" below** and our automated system will DM you our private swipe file of the Top 50 winning ad hooks + 1,000 free starter credits instantly! 🚀"
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is UI/UX Micro-Copy? Show 4 examples of turning dry system messages into conversion-boosting, delightful touchpoints."
+      },
+      {
+        "role": "assistant",
+        "content": "### UI/UX Micro-Copy (The Persuasive Touchpoints)\nMicro-copy refers to the **small bits of text inside buttons, tooltips, form inputs, and system error states**. Great micro-copy eliminates user anxiety and injects personality!\n\n---\n\n### 4 Micro-Copy Transformations:\n\n```\n┌────────────────────────┬────────────────────────┬────────────────────────────────────────┐\n│ UI ELEMENT             │ BORING SYSTEM COPY     │ PERSUASIVE UX MICRO-COPY               │\n├────────────────────────┼────────────────────────┼────────────────────────────────────────┤\n│ 1. URL Input Box       │ \"Enter website URL\"    │ \"Paste your store URL (We auto-detect  │\n│    (Placeholder)       │                        │  your brand colors & products in 45s)\" │\n├────────────────────────┼────────────────────────┼────────────────────────────────────────┤\n│ 2. Tooltip on API Sync │ \"OAuth connection\"     │ \"🔒 Official 256-bit Meta Partner API. │\n│                        │                        │  Zero password access. 100% safe.\"     │\n├────────────────────────┼────────────────────────┼────────────────────────────────────────┤\n│ 3. Empty State (No Ads)│ \"No campaigns created\" │ \"Your ad account is hungry! 🚀 Launch  │\n│                        │                        │  your first 5 ads in under 90 seconds.\"│\n├────────────────────────┼────────────────────────┼────────────────────────────────────────┤\n│ 4. Payment Error State │ \"Card declined\"        │ \"Uh oh! Your bank paused the charge.   │\n│                        │                        │  Try another card or use Apple Pay!\"   │\n└────────────────────────┴────────────────────────┴────────────────────────────────────────┘\n```"
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "Write 4 high-converting Short-Form Meta ad copy variations (under 120 characters) designed for fast-scrolling mobile users."
+      },
+      {
+        "role": "assistant",
+        "content": "### Ultra-Short Meta Ad Primary Text (Under 120 Characters)\nFor low-ticket subscriptions ($10–$25) and warm retargeting, **short-form copy visible above the mobile 'See More' fold achieves 30% higher click-to-purchase velocity**:\n\n---\n\n### 4 Ultra-Short Variations:\n\n1. **The 90-Second Speed Angle (108 chars):**\n   > 🚀 Launch 15 winning ad campaigns across TikTok & Meta in 90s. Starting at $10/mo with a 30-day money-back guarantee.\n\n2. **The Agency Replacement Angle (112 chars):**\n   > Stop paying $5k/mo agency retainers. Put your creative marketing on autonomous autopilot today for just $10/mo.\n\n3. **The Loss Avoidance Angle (114 chars):**\n   > Stop leaking $1,400/wk on fatigued ad copy. Generate 20 high-ROAS creative angles in seconds. 1,000 free credits!\n\n4. **The Pure Proof Angle (104 chars):**\n   > Over 10,480+ brands use Calvras to scale their ad ROAS to 4.15x. Try it 100% risk-free today for just $10."
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "Give me 10 scroll-stopping 4-to-6 word On-Screen Text Stickers for short-form performance video ads."
+      },
+      {
+        "role": "assistant",
+        "content": "### 10 High-Impact 4-to-6 Word On-Screen Text Stickers\n\n1. `⚠️ HOW TO FIRE YOUR AGENCY` (5 words)\n2. `SECRET TO 4.2X AD ROAS` (5 words)\n3. `LAUNCH 15 ADS IN 90s` (5 words)\n4. `STOP PAYING $5K/MO FOR ADS` (5 words)\n5. `WHY YOUR META ADS FATIGUED` (5 words)\n6. `THE $10 MARKETING OPERATING SYSTEM` (5 words)\n7. `HOW 8-FIGURE BRANDS SCALE CREATIVE` (5 words)\n8. `NEVER OPEN CANVA AGAIN 🚀` (4 words)\n9. `THE 90-SECOND CPA FIX` (4 words)\n10. `1,000 FREE AD CREDITS TODAY` (5 words)\n\n**Visual Styling:** Place in the **upper-middle third of the vertical screen** with bold black text on high-contrast neon yellow background (`bg-yellow-400 text-black font-extrabold px-4 py-2 rounded-lg`)."
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "How do you write a memorable 10-word brand tagline that positions a company as the undisputed leader in its category? Give 5 examples for Calvras."
+      },
+      {
+        "role": "assistant",
+        "content": "### The 10-Word Brand Positioning One-Liner\nA great brand tagline doesn't use empty poetry (*\"Think different\"*); **it communicates the category, the unique mechanism, and the ultimate transformation in a single breath.**\n\n---\n\n### 5 High-Impact Brand Taglines for Calvras:\n\n1. **\"The autonomous AI marketing operating system for fast-growing modern brands.\"** (10 words)\n2. **\"Generate 15 high-converting ad campaigns in 90 seconds on autopilot.\"** (10 words)\n3. **\"Autonomous creative intelligence that replaces $5,000/month marketing agency retainers.\"** (9 words)\n4. **\"The direct-response creative engine powered by $45M+ in verified ad spend.\"** (10 words)\n5. **\"Launch winning multi-channel ads in 90 seconds starting at $10.\"** (9 words)"
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "Write a high-energy, skimmable Discord / Slack community announcement for the launch of a new product feature."
+      },
+      {
+        "role": "assistant",
+        "content": "### Skimmable Community Announcement Copy\n\n> 🚀 **V4 DIRECT TIKTOK SHOP SYNC IS LIVE!** @everyone\n>\n> Hey growth operators! You asked for it in #feature-requests, and our engineering team just shipped it ahead of schedule:\n>\n> **What's New in Your Dashboard:**\n> • ⚡ **1-Click TikTok Shop Deployment:** Push multivariate video hook variations directly to your TikTok Ads Manager without CSV uploads.\n> • 🪝 **20 New Short-Form Hook Frameworks:** Trained on the top-performing TikTok Shop Spark Ads from Q1.\n> • 📊 **Real-Time CPA Telemetry:** Track which hook variation converts best with sub-second accuracy.\n>\n> 🎁 **COMMUNITY PERK:** We just credited **500 bonus marketing credits** to all active community members to test the new connector this weekend!\n>\n> 👉 **[ Launch Your First TikTok Campaign Now ➔ ](https://calvras.com/dashboard)**\n>\n> Let us know what you think in the #feedback channel! 💬"
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "Write a 2-part SMS sequence for abandoned checkouts (15-min and 2-hour triggers) that recovers 25%+ of lost orders."
+      },
+      {
+        "role": "assistant",
+        "content": "### 2-Part Abandoned Checkout SMS Flow\n\n```\nSMS 1 (15 Minutes Post-Abandonment): THE CASUAL FRICTION CHECK (Helpful)\nSMS 2 (2 Hours Post-Abandonment): THE 10% DISCOUNT CODE + CART EXPIRY\n```\n\n---\n\n### SMS 1 (15 Minutes Later - 138 Chars):\n> Calvras: Hey {FirstName}, did your browser freeze? We saved your 1,000 starter credits! Complete your setup in 1 click: calvras.com/c/cart Stop2End\n\n---\n\n### SMS 2 (2 Hours Later - 152 Chars):\n> Calvras: Want 10% off? Use code FINISH10 to start for just $9/mo. Protected by our 30-day money-back guarantee. Lock it in: calvras.com/c/finish Stop2OptOut"
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "Give me 8 high-CTR Google Ads headlines under 30 characters each for an AI marketing platform."
+      },
+      {
+        "role": "assistant",
+        "content": "### 8 Google Ads Headlines (Under 30 Characters Each)\n\n1. `Launch Ads in 90 Seconds` (23 chars - Speed Outcome)\n2. `Autonomous AI Marketing OS` (26 chars - Exact Category)\n3. `Replace Your $5k Agency` (22 chars - Price Contrast)\n4. `15 Ad Variations in 90s` (22 chars - Specific Volume)\n5. `Plans Start at Just $10/mo` (26 chars - Low Price Anchor)\n6. `1,000 Free Starter Credits` (26 chars - Free Incentive)\n7. `30-Day Money-Back Guarantee` (27 chars - Risk Reversal)\n8. `Scale TikTok & Meta ROAS` (23 chars - Core Business Result)"
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is the universal One-Sentence Elevator Pitch formula? Write 3 variations for Calvras targeting founders, media buyers, and agencies."
+      },
+      {
+        "role": "assistant",
+        "content": "### The Universal One-Sentence Elevator Pitch\n\n```\n\"We help [TARGET ICP] achieve [DESIRED TRANSFORMATION] without [PAINFUL SACRIFICE] in [TIMEFRAME].\"\n```\n\n---\n\n### 3 High-Impact Elevator Pitch Variations:\n\n1. **For E-Commerce Founders:**\n   * *\"We help Shopify brand founders launch 15 high-converting ad campaigns in under 90 seconds without hiring an expensive $5,000/month marketing agency.\"*\n2. **For Performance Media Buyers:**\n   * *\"We help growth media buyers eliminate creative ad fatigue by generating and testing 50 multivariate hooks a week with 1-click Meta and TikTok sync.\"*\n3. **For Marketing Agencies:**\n   * *\"We help boutique marketing agencies 10x their creative production and scale client ROAS to 4.0x+ with zero additional design headcount.\"*"
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "Write a punchy 3-line LinkedIn 'Micro-Insight' post that builds founder authority and drives inbound profile views."
+      },
+      {
+        "role": "assistant",
+        "content": "### LinkedIn Short-Form Micro-Insight Post\n\n> The fastest way to double your customer acquisition cost in 2026 is to let your creative ad copy run for more than 7 days without testing new angles.\n>\n> High ad spend doesn't fix creative fatigue. **Creative testing velocity does.**\n>\n> Test 15 hooks a week, find the 1 winning angle, and let the algorithm do the heavy lifting.\n>\n> (How many fresh creative angles is your team testing this week?)"
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "Write a high-urgency SMS for a 60-minute limited flash drop that generates immediate sales."
+      },
+      {
+        "role": "assistant",
+        "content": "### 60-Minute Flash Drop SMS (Under 160 Characters)\n\n> Calvras: ⚡ FLASH 60-MIN DROP: 50 extra VIP Agency accounts just opened with 10,000 credits for $25. Only 14 left. Claim yours: calvras.com/flash Stop2End"
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "What are the 10 Golden Rules of Short-Form Copywriting? How do you maximize persuasion in under 50 words?"
+      },
+      {
+        "role": "assistant",
+        "content": "### The 10 Golden Rules of Short-Form Copywriting\n\n| Golden Short-Form Rule | The Writing Technique | Why It Multiplies Persuasion |\n| :--- | :--- | :--- |\n| **1. Ruthless Trimming** | Cut 30% of your words on your second draft | Increases reading speed and cognitive fluency |\n| **2. Lead with the Benefit** | State the payoff in the first 4 words | Captures attention before the user scrolls past |\n| **3. Kill Weak Adverbs** | Replace *\"very fast\"* with *\"in 90 seconds\"* | Precision builds instant credibility |\n| **4. Use Active Imperative Verbs** | Use *\"Launch\"*, *\"Claim\"*, *\"Scale\"* | Compels immediate physical action |\n| **5. The Single-Link Standard** | Only include ONE destination link | Prevents decision paralysis |\n| **6. Front-Load Hook Words** | Place power words before character cutoffs | Survives mobile ellipses and fold truncation |\n| **7. Sensory & Metric Specifics** | Use `$10/mo`, `4.15x ROAS`, `90s` | Hard numbers stop the eyes instantly |\n| **8. One Thought Per Line** | Use clean line breaks and white space | Highly scannable on mobile viewports |\n| **9. Always Include Risk Reversal** | Add *\"30-day guarantee\"* or *\"Cancel anytime\"* | Erases last-second click hesitation |\n| **10. Write in the Rhythm of Speech** | Read your copy aloud; if you stumble, rewrite | Sounds like a human speaking, not a robot |\n\n```\nBREVITY IS NOT THE ABSENCE OF DETAIL. IT IS THE PURITY OF PERSUASION. 💎\n```"
+      }
+    ]
   }
 ]
