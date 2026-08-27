@@ -142,33 +142,15 @@ const CompactImageCard = ({ src, alt }) => {
         </div>
       )}
 
-      {/* Top Right Action Overlay */}
+      {/* Bottom Right Download Button ONLY on Hover */}
       {loaded && !hasError && (
-        <div className="absolute top-2 right-2 z-20 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition duration-150">
-          <button
-            onClick={handleCopy}
-            className="p-1.5 rounded-lg bg-black/80 hover:bg-black text-white backdrop-blur-md border border-white/20 transition cursor-pointer"
-            title="Copy Image URL"
-          >
-            {copied ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} />}
-          </button>
-
-          <a
-            href={imgSrc}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-1.5 rounded-lg bg-black/80 hover:bg-black text-white backdrop-blur-md border border-white/20 transition cursor-pointer"
-            title="Full Resolution"
-          >
-            <ExternalLink size={11} />
-          </a>
-
+        <div className="absolute bottom-2.5 right-2.5 z-20 opacity-0 group-hover:opacity-100 transition duration-150 pointer-events-auto">
           <button
             onClick={handleDownload}
-            className="p-1.5 rounded-lg bg-black/80 hover:bg-black text-white backdrop-blur-md border border-white/20 transition cursor-pointer"
-            title="Download"
+            className="w-8 h-8 rounded-full bg-black/80 hover:bg-black text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition cursor-pointer shadow-lg hover:scale-105"
+            title="Download Image"
           >
-            <Download size={11} />
+            <Download size={14} />
           </button>
         </div>
       )}
@@ -182,13 +164,6 @@ const CompactImageCard = ({ src, alt }) => {
         className={`w-full h-full object-cover bg-black/40 transition-opacity duration-300 ${loaded && !hasError ? 'opacity-100' : 'opacity-0'}`}
         loading="lazy"
       />
-
-      {/* Bottom Caption Bar */}
-      {alt && loaded && !hasError && (
-        <div className="absolute bottom-0 inset-x-0 px-2.5 py-1.5 bg-black/85 backdrop-blur-xs border-t border-white/10 text-[10.5px] text-neutral-200 truncate z-10">
-          <span className="truncate block font-medium">{alt}</span>
-        </div>
-      )}
 
     </div>
   );

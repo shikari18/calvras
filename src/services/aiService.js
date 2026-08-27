@@ -306,7 +306,7 @@ export async function generateMarketingImageBatch(promptText, count = 1) {
   let cleanSubject = cleanDisplaySubject(promptText);
   const isLogo = /\b(logo|icon|emblem|symbol|brandmark)\b/i.test(promptText);
   if (!cleanSubject || cleanSubject.length < 2 || cleanSubject === 'Logo' || cleanSubject === 'Custom Product Creative') {
-    cleanSubject = isLogo ? 'Modern Brand Logo' : 'Commercial Creative Visual';
+    cleanSubject = isLogo ? 'Brand Logo' : 'Creative Visual';
   }
 
   // Construct visual prompt
@@ -319,29 +319,17 @@ export async function generateMarketingImageBatch(promptText, count = 1) {
 
   const items = Array.from({ length: totalCount }, (_, idx) => {
     const seed = Math.floor(Math.random() * 9999999) + (idx * 7919) + Date.now().toString().slice(-4);
-    const variationLabel = idx === 0 
-      ? 'Hero Concept' 
-      : `Concept Variation ${idx + 1}`;
-
     const encoded = encodeURIComponent(basePrompt);
     const url = `https://image.pollinations.ai/prompt/${encoded}?width=1024&height=1024&model=flux&nologo=true&seed=${seed}`;
 
     return {
-      title: `${cleanSubject} - ${variationLabel}`,
+      title: cleanSubject,
       url
     };
   });
 
-  let markdown = `### 🎨 Generated AI Visual for **${cleanSubject}**\n\n`;
-
-  // Render images separated by space to ensure single-row horizontal flex rendering
-  markdown += items.map(item => `![${item.title}](${item.url})`).join(' ') + '\n\n';
-
-  markdown += `\n### 🎯 Creative Strategy:
-- **Visual Hook**: Clean high-contrast focal point designed for immediate visual recognition.
-- **Deployment**: Ready for app icon, social feed, landing page header, or brand identity.`;
-
-  return markdown;
+  // Return strictly the generated image(s) with zero hardcoded boilerplate text
+  return items.map(item => `![${item.title}](${item.url})`).join(' ');
 }
 
 /**
