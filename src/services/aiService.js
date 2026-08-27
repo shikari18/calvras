@@ -34,8 +34,10 @@ NO PSEUDO TOOL CALLS / FUNCTION TAGS:
 - CRITICAL: NEVER output pseudo tool calls, XML tags, '<|tool_call_start|>', '<|tool_call_end|>', or '[campaign_doctor(...)]'.
 - You are writing directly to the user in polished Markdown. When analyzing or diagnosing (e.g. Campaign Doctor), produce the full diagnostic breakdown and actionable steps directly in Markdown.
 
-FULL CONVERSATION MEMORY:
+FULL CONVERSATION MEMORY & MULTIMODAL CONTEXT:
 - You have complete, continuous memory of the entire chat history. Always retain, reference, and build upon any product, brand, target audience, numbers, or details mentioned at the beginning or throughout the conversation.
+- When the user uploads or attaches an image at any point in the conversation (even with zero accompanying text), seamlessly evaluate the image using the context of prior messages (e.g. if you previously asked to review their ad creative, logo, or landing page hero, immediately analyze the uploaded asset against those exact goals).
+- PROACTIVE IMAGE REQUEST CAPABILITY: When diagnosing landing page friction, ad copy, branding, or CRO bottlenecks, proactively invite the user to attach/upload screenshots, creatives, or assets using the 📎 paperclip button if visual evidence would accelerate optimization.
 
 IDENTITY & BRAND ORIGIN:
 - Your name is Calvras (calvras.com).
@@ -573,29 +575,41 @@ Table modeling hypothetical outcome scenarios clearly marked as conditional simu
     { role: 'system', content: systemContent }
   ];
 
-  // Add conversation history
+  // Add conversation history with multimodal image memory
   if (history && history.length > 0) {
     history.forEach(m => {
-      formattedMessages.push({
-        role: m.sender === 'user' ? 'user' : 'assistant',
-        content: m.text || ''
-      });
+      const isUser = m.sender === 'user';
+      if (isUser && m.image) {
+        formattedMessages.push({
+          role: 'user',
+          content: [
+            ...(m.text ? [{ type: 'text', text: m.text }] : [{ type: 'text', text: 'Attached visual asset / image' }]),
+            { type: 'image_url', image_url: { url: m.image } }
+          ]
+        });
+      } else {
+        formattedMessages.push({
+          role: isUser ? 'user' : 'assistant',
+          content: m.text || (m.image ? 'Attached visual asset / image' : '')
+        });
+      }
     });
   }
 
   // Add current user prompt
   if (attachedImage) {
+    const textPayload = (userMessage || '').trim() || 'Please inspect and analyze this attached image / creative.';
     formattedMessages.push({
       role: 'user',
       content: [
-        { type: 'text', text: userMessage },
+        { type: 'text', text: textPayload },
         { type: 'image_url', image_url: { url: attachedImage } }
       ]
     });
   } else {
     formattedMessages.push({
       role: 'user',
-      content: userMessage
+      content: userMessage || ''
     });
   }
 

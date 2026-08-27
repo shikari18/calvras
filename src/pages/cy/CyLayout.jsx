@@ -69,7 +69,8 @@ export const CyLayout = ({
   };
 
   const handleSendMessageFromNewChat = (prompt, attachedImg, mode = 'chat') => {
-    const formattedPrompt = mode === 'plan' ? `[MODE: PLAN]\n${prompt}` : prompt;
+    const cleanPrompt = (prompt || '').trim();
+    const formattedPrompt = mode === 'plan' ? `[MODE: PLAN]\n${cleanPrompt}` : cleanPrompt;
     const userMsgId = `user-${Date.now()}`;
     const userMsg = {
       id: userMsgId,
@@ -77,12 +78,12 @@ export const CyLayout = ({
       name: userProfile?.name || userName || 'SHIKARI',
       avatar: userProfile?.picture || null,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      text: prompt || 'What do you think of this image / logo?',
+      text: cleanPrompt,
       image: attachedImg || null
     };
 
-    createNewChatThread(prompt, userMsg);
-    const shortTitle = prompt.length > 28 ? prompt.slice(0, 28) + '...' : prompt;
+    createNewChatThread(cleanPrompt || 'Image Creative Review', userMsg);
+    const shortTitle = cleanPrompt ? (cleanPrompt.length > 28 ? cleanPrompt.slice(0, 28) + '...' : cleanPrompt) : 'Creative Review';
     setThreadTitle(shortTitle);
     setInitialPrompt(formattedPrompt);
     setInitialImage(attachedImg || null);

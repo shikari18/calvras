@@ -146,7 +146,7 @@ export const CyChatThreadPage = ({
         name: userProfile?.name || userName || 'SHIKARI',
         avatar: userProfile?.picture || null,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        text: userText || 'Please inspect and analyze this attached image / creative.',
+        text: userText,
         image: currentImg
       };
       addChatMessage(userMsg);
@@ -161,9 +161,9 @@ export const CyChatThreadPage = ({
 
     try {
       const response = await chatWithMarketingCopilot({
-        userMessage: userText || 'Please inspect and analyze this attached image / creative.',
-        prompt: userText || 'Please inspect and analyze this attached image / creative.',
-        message: userText || 'Please inspect and analyze this attached image / creative.',
+        userMessage: userText,
+        prompt: userText,
+        message: userText,
         isPlanMode: chatMode === 'plan',
         history: chatMessages || [],
         userProfile,
@@ -326,23 +326,25 @@ export const CyChatThreadPage = ({
                   </div>
                 </div>
 
-                {/* User Uploaded Image Card */}
+                {/* User Uploaded Image Card (100px x 100px compact) */}
                 {msg.image && (
                   <div className="flex justify-end pt-1">
-                    <div className="max-w-[170px] sm:max-w-[190px] rounded-xl border border-white/10 overflow-hidden bg-[#242424] shadow-md p-1.5 transition-all">
+                    <div className="w-[100px] h-[100px] rounded-xl border border-white/10 overflow-hidden bg-[#242424] shadow-md p-1 shrink-0 transition-all hover:scale-[1.03]">
                       <img 
                         src={msg.image} 
                         alt="Uploaded Creative" 
-                        className="w-full h-auto max-h-36 sm:max-h-40 object-contain rounded-lg bg-black/40"
+                        className="w-full h-full object-cover rounded-lg bg-black/40"
                       />
                     </div>
                   </div>
                 )}
 
-                {/* User Message Bubble */}
-                <div className="inline-block text-left bg-[#282828] border border-white/10 text-white px-4 py-2.5 rounded-2xl rounded-tr-xs shadow-xs text-[13.5px] leading-[1.6]">
-                  <p className="whitespace-pre-wrap">{msg.text}</p>
-                </div>
+                {/* User Message Bubble (Only rendered if text is present) */}
+                {msg.text && msg.text.trim() && (
+                  <div className="inline-block text-left bg-[#282828] border border-white/10 text-white px-4 py-2.5 rounded-2xl rounded-tr-xs shadow-xs text-[13.5px] leading-[1.6]">
+                    <p className="whitespace-pre-wrap">{msg.text}</p>
+                  </div>
+                )}
               </div>
             ) : (
               /* AI Message (Left Aligned) */
