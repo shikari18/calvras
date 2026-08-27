@@ -79,21 +79,14 @@ export async function onRequestPost({ request, env }) {
       );
     }
 
-    // Check if developer provided a custom system prompt (White-label persona support)
+    // Check if developer provided a custom system prompt (Universal task & custom persona support: coding, chatbots, marketing, etc.)
     const developerSystemMsg = incomingMessages.find(m => m.role === 'system');
     const nonSystemMessages = incomingMessages.filter(m => m.role !== 'system');
 
-    let effectiveSystemPrompt = SYSTEM_PROMPT;
-
-    if (developerSystemMsg && developerSystemMsg.content) {
-      // Developer defined their own custom name/identity/persona
-      effectiveSystemPrompt = `${developerSystemMsg.content}
-
-MARKETING INTELLIGENCE DIRECTIVES:
-- Follow the exact identity, persona, and brand name instructed above. Never mention Calvras if a custom identity is requested.
-- Apply high-converting direct-response copywriting (PAS, AIDA, BAB, hooks, CRO audits).
-- Provide crisp, high-impact answers in clean Markdown without filler conversational spam.`;
-    }
+    // If developer provided their own system prompt, obey it 100% directly
+    const effectiveSystemPrompt = (developerSystemMsg && developerSystemMsg.content) 
+      ? developerSystemMsg.content 
+      : SYSTEM_PROMPT;
 
     const formattedMessages = [
       { role: 'system', content: effectiveSystemPrompt },

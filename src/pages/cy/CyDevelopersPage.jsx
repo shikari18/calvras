@@ -18,24 +18,26 @@ import {
   RefreshCw,
   CreditCard,
   AlertCircle,
-  DollarSign,
-  Activity
+  Zap,
+  Building2,
+  Infinity as InfinityIcon,
+  Bot
 } from 'lucide-react';
 import { useMarketing } from '../../context/MarketingContext';
 import confetti from 'canvas-confetti';
 
-const PROMPT_COST_USD = 0.50; // $0.500 per prompt (2 prompts = $1.00)
+const FREE_TIER_PROMPT_LIMIT = 100;
 
 export const CyDevelopersPage = ({ userName = 'SHIKARI' }) => {
   const { userProfile } = useMarketing();
   
-  // Payment Card state (persisted in localStorage)
-  const [paymentMethod, setPaymentMethod] = useState(() => {
+  // Developer Subscription Plan state (persisted in localStorage)
+  const [developerPlan, setDeveloperPlan] = useState(() => {
     try {
-      const saved = localStorage.getItem('calvras_developer_payment_method');
+      const saved = localStorage.getItem('calvras_developer_plan');
       if (saved) return JSON.parse(saved);
     } catch (e) {}
-    return { hasCard: false, brand: 'Visa', last4: '', exp: '' };
+    return { planKey: 'free', name: 'Free Developer Tier', isPaid: false };
   });
 
   // API Keys state (persisted in localStorage)
@@ -47,7 +49,7 @@ export const CyDevelopersPage = ({ userName = 'SHIKARI' }) => {
     return [
       {
         id: 'key-1',
-        name: 'Default Production Key',
+        name: 'Default API Key',
         key: 'cv_live_sk_' + Math.random().toString(36).substring(2, 12) + Math.random().toString(36).substring(2, 12),
         created: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
         lastUsed: 'Just now',
@@ -58,22 +60,24 @@ export const CyDevelopersPage = ({ userName = 'SHIKARI' }) => {
 
   // Modals state
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showAddCardModal, setShowAddCardModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' | 'annual'
+  const [selectedPlanForUpgrade, setSelectedPlanForUpgrade] = useState('pro'); // 'pro' | 'agency'
   const [newKeyName, setNewKeyName] = useState('');
   const [newlyCreatedKey, setNewlyCreatedKey] = useState(null);
   const [copiedKeyId, setCopiedKeyId] = useState(null);
 
-  // Card Form State
+  // Upgrade Card Form State
   const [cardNumber, setCardNumber] = useState('');
   const [cardExp, setCardExp] = useState('');
   const [cardCvc, setCardCvc] = useState('');
   const [cardHolder, setCardHolder] = useState('');
-  const [isVerifyingCard, setIsVerifyingCard] = useState(false);
-  const [cardError, setCardError] = useState('');
+  const [isProcessingUpgrade, setIsProcessingUpgrade] = useState(false);
+  const [upgradeError, setUpgradeError] = useState('');
 
   // Playground test state
   const [selectedLanguage, setSelectedLanguage] = useState('curl'); // 'curl' | 'python' | 'node'
-  const [testPrompt, setTestPrompt] = useState('Write 3 Meta ad copy hooks for my luxury hoodie using PAS framework');
+  const [testPrompt, setTestPrompt] = useState('Write a Python function to calculate ROAS and 3 Meta ad hooks');
   const [testResponse, setTestResponse] = useState('');
   const [isTesting, setIsTesting] = useState(false);
 
@@ -85,68 +89,55 @@ export const CyDevelopersPage = ({ userName = 'SHIKARI' }) => {
 
   useEffect(() => {
     try {
-      localStorage.setItem('calvras_developer_payment_method', JSON.stringify(paymentMethod));
+      localStorage.setItem('calvras_developer_plan', JSON.stringify(developerPlan));
     } catch (e) {}
-  }, [paymentMethod]);
+  }, [developerPlan]);
 
   const activeKey = keys[0]?.key || 'cv_live_sk_sample_key_here';
   
   // Total usage stats
   const totalPromptsUsed = keys.reduce((acc, k) => acc + (k.promptsUsed || 0), 0);
-  const totalSpentUsd = (totalPromptsUsed * PROMPT_COST_USD).toFixed(2);
+  const isFreeLimitReached = !developerPlan.isPaid && totalPromptsUsed >= FREE_TIER_PROMPT_LIMIT;
+  const freePromptsRemaining = Math.max(0, FREE_TIER_PROMPT_LIMIT - totalPromptsUsed);
+  const progressPercent = developerPlan.isPaid ? 100 : Math.min(100, Math.round((totalPromptsUsed / FREE_TIER_PROMPT_LIMIT) * 100));
 
   const handleOpenCreateKey = () => {
-    if (!paymentMethod.hasCard) {
-      setCardError('');
-      setShowAddCardModal(true);
-      return;
-    }
     setNewlyCreatedKey(null);
     setNewKeyName('');
     setShowCreateModal(true);
   };
 
-  const handleSaveCard = (e) => {
+  const handleProcessUpgrade = (e) => {
     e.preventDefault();
-    setCardError('');
+    setUpgradeError('');
     
     const cleanNum = cardNumber.replace(/\s+/g, '');
     if (cleanNum.length < 15) {
-      setCardError('Please enter a valid 16-digit credit card number.');
+      setUpgradeError('Please enter a valid 16-digit credit card number.');
       return;
     }
 
-    setIsVerifyingCard(true);
+    setIsProcessingUpgrade(true);
 
     setTimeout(() => {
-      setIsVerifyingCard(false);
-      const last4 = cleanNum.slice(-4);
-      const newPayment = {
-        hasCard: true,
-        brand: cleanNum.startsWith('4') ? 'Visa' : (cleanNum.startsWith('5') ? 'Mastercard' : 'Amex'),
-        last4: last4,
-        exp: cardExp || '12/28'
+      setIsProcessingUpgrade(false);
+      const isPro = selectedPlanForUpgrade === 'pro';
+      const newPlan = {
+        planKey: isPro ? 'pro' : 'agency',
+        name: isPro ? 'Developer Pro ($20/mo - Unlimited)' : 'Agency & Scale ($60/mo - Unlimited)',
+        isPaid: true,
+        billingCycle: billingCycle,
+        last4: cleanNum.slice(-4)
       };
 
-      setPaymentMethod(newPayment);
-      setShowAddCardModal(false);
-      
-      // Auto open Create Key modal
-      setNewlyCreatedKey(null);
-      setNewKeyName('');
-      setShowCreateModal(true);
-      try { confetti({ particleCount: 40, spread: 50 }); } catch (err) {}
+      setDeveloperPlan(newPlan);
+      setShowUpgradeModal(false);
+      try { confetti({ particleCount: 60, spread: 70 }); } catch (err) {}
     }, 1200);
   };
 
   const handleCreateKey = (e) => {
     e.preventDefault();
-    if (!paymentMethod.hasCard) {
-      setShowCreateModal(false);
-      setShowAddCardModal(true);
-      return;
-    }
-
     const cleanName = newKeyName.trim() || 'Secret Key ' + (keys.length + 1);
     const fullKey = 'cv_live_sk_' + Array.from({length: 32}, () => Math.floor(Math.random() * 36).toString(36)).join('');
     
@@ -166,7 +157,7 @@ export const CyDevelopersPage = ({ userName = 'SHIKARI' }) => {
   };
 
   const handleDeleteKey = (id) => {
-    if (confirm('Are you sure you want to revoke this secret key? Any backend applications using it will immediately lose access.')) {
+    if (confirm('Are you sure you want to revoke this secret key? Any backend applications or code using it will immediately lose access.')) {
       setKeys(prev => prev.filter(k => k.id !== id));
     }
   };
@@ -178,8 +169,13 @@ export const CyDevelopersPage = ({ userName = 'SHIKARI' }) => {
   };
 
   const handleRunLiveTest = async () => {
+    if (isFreeLimitReached) {
+      setShowUpgradeModal(true);
+      return;
+    }
+
     setIsTesting(true);
-    setTestResponse('Sending request to /api/v1/chat/completions (Cost: $0.500)...');
+    setTestResponse('Sending request to /api/v1/chat/completions...');
 
     try {
       const res = await fetch('/api/v1/chat/completions', {
@@ -232,6 +228,10 @@ export const CyDevelopersPage = ({ userName = 'SHIKARI' }) => {
     "model": "calvras-llama-3.1-8b-marketing",
     "messages": [
       {
+        "role": "system",
+        "content": "You are an elite coding & marketing copilot."
+      },
+      {
         "role": "user",
         "content": "${testPrompt}"
       }
@@ -239,7 +239,7 @@ export const CyDevelopersPage = ({ userName = 'SHIKARI' }) => {
   }'`,
     python: `from openai import OpenAI
 
-# Calvras is 100% compatible with the standard OpenAI SDK ($0.50 / prompt)
+# 100% compatible with standard OpenAI SDK (Coding, Chatbots, Marketing, etc.)
 client = OpenAI(
     api_key="${activeKey}",
     base_url="https://calvras.com/api/v1"
@@ -248,6 +248,7 @@ client = OpenAI(
 response = client.chat.completions.create(
     model="calvras-llama-3.1-8b-marketing",
     messages=[
+        {"role": "system", "content": "You are a senior full-stack AI engineer."},
         {"role": "user", "content": "${testPrompt}"}
     ]
 )
@@ -255,14 +256,15 @@ response = client.chat.completions.create(
 print(response.choices[0].message.content)`,
     node: `import OpenAI from "openai";
 
-const calvras = new OpenAI({
+const client = new OpenAI({
   apiKey: "${activeKey}",
   baseURL: "https://calvras.com/api/v1",
 });
 
-const completion = await calvras.chat.completions.create({
+const completion = await client.chat.completions.create({
   model: "calvras-llama-3.1-8b-marketing",
   messages: [
+    { role: "system", content: "You are a multi-purpose autonomous AI bot." },
     { role: "user", content: "${testPrompt}" }
   ],
 });
@@ -273,15 +275,15 @@ console.log(completion.choices[0].message.content);`
   return (
     <div className="flex-1 min-h-screen bg-[#1c1c1c] text-[#f4f4ee] p-6 sm:p-10 font-sans antialiased select-none text-left overflow-y-auto">
       
-      {/* 1. Add Payment Method Modal (Required to Generate Key) */}
-      {showAddCardModal && (
+      {/* 1. Upgrade Plan Modal ($20 Pro / $60 Agency Unlimited) */}
+      {showUpgradeModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
-          <div className="bg-[#282828] border border-white/10 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-5 text-left relative">
+          <div className="bg-[#282828] border border-white/10 rounded-3xl p-6 sm:p-8 max-w-xl w-full shadow-2xl space-y-5 text-left relative">
             
             <button
               onClick={() => {
-                setShowAddCardModal(false);
-                setCardError('');
+                setShowUpgradeModal(false);
+                setUpgradeError('');
               }}
               className="absolute top-5 right-5 text-neutral-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition cursor-pointer"
             >
@@ -289,31 +291,115 @@ console.log(completion.choices[0].message.content);`
             </button>
 
             <div className="space-y-1">
-              <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center mb-2">
-                <CreditCard size={20} />
+              <div className="flex items-center gap-2 text-purple-400 font-bold text-xs uppercase tracking-wider">
+                <Sparkles size={14} />
+                <span>Unlimited Developer API Plans</span>
               </div>
-              <h3 className="text-lg font-bold text-white tracking-tight">
-                Add payment method to generate API keys
+              <h3 className="text-xl font-bold text-white tracking-tight">
+                Unlock Unlimited API Calls
               </h3>
               <p className="text-xs text-neutral-400 leading-relaxed">
-                Developer API keys operate on usage-based metering at <strong className="text-white">$0.50 per prompt</strong> (2 prompts = $1.00). Invoiced automatically based on volume.
+                No prompt caps. Use for coding, conversational chatbots, marketing automation, or SaaS backends.
               </p>
             </div>
 
-            {/* Pricing Info Badge */}
-            <div className="p-3 rounded-2xl bg-[#1c1c1c] border border-white/10 flex items-center justify-between text-xs">
-              <span className="text-neutral-400">Prompt Metering Rate:</span>
-              <span className="font-mono font-bold text-emerald-400">$0.500 / request</span>
+            {/* Monthly / Annual Toggle */}
+            <div className="flex items-center justify-center pt-1">
+              <div className="bg-[#1c1c1c] border border-white/10 p-1 rounded-xl flex items-center gap-1 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setBillingCycle('monthly')}
+                  className={`px-3 py-1 rounded-lg font-semibold transition cursor-pointer ${
+                    billingCycle === 'monthly' ? 'bg-white text-neutral-950 shadow-xs' : 'text-neutral-400 hover:text-white'
+                  }`}
+                >
+                  Monthly Billing
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBillingCycle('annual')}
+                  className={`px-3 py-1 rounded-lg font-semibold transition cursor-pointer flex items-center gap-1 ${
+                    billingCycle === 'annual' ? 'bg-white text-neutral-950 shadow-xs' : 'text-neutral-400 hover:text-white'
+                  }`}
+                >
+                  <span>Annual Billing</span>
+                  <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-1 rounded">Save 20%</span>
+                </button>
+              </div>
             </div>
 
-            {cardError && (
+            {/* 2 Plan Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              
+              {/* Pro Plan ($20/mo) */}
+              <div
+                onClick={() => setSelectedPlanForUpgrade('pro')}
+                className={`p-4 rounded-2xl border transition cursor-pointer space-y-2 relative ${
+                  selectedPlanForUpgrade === 'pro'
+                    ? 'bg-purple-950/30 border-purple-500 text-white shadow-md'
+                    : 'bg-[#1c1c1c] border-white/10 hover:border-white/20 text-neutral-300'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white">Developer Pro</span>
+                  <InfinityIcon size={14} className="text-purple-400" />
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-bold font-mono text-white">
+                    ${billingCycle === 'annual' ? '16' : '20'}
+                  </span>
+                  <span className="text-xs text-neutral-400">/ month</span>
+                </div>
+                <p className="text-[11px] text-neutral-400 leading-tight">
+                  {billingCycle === 'annual' ? '$190 billed annually' : 'Billed monthly'}
+                </p>
+                <ul className="text-[11px] text-neutral-300 space-y-1 pt-1">
+                  <li className="flex items-center gap-1.5"><Check size={11} className="text-emerald-400" /> <strong>Unlimited</strong> API prompts</li>
+                  <li className="flex items-center gap-1.5"><Check size={11} className="text-emerald-400" /> Coding & Chatbot support</li>
+                  <li className="flex items-center gap-1.5"><Check size={11} className="text-emerald-400" /> Custom system prompts</li>
+                </ul>
+              </div>
+
+              {/* Agency Plan ($60/mo) */}
+              <div
+                onClick={() => setSelectedPlanForUpgrade('agency')}
+                className={`p-4 rounded-2xl border transition cursor-pointer space-y-2 relative ${
+                  selectedPlanForUpgrade === 'agency'
+                    ? 'bg-purple-950/30 border-purple-500 text-white shadow-md'
+                    : 'bg-[#1c1c1c] border-white/10 hover:border-white/20 text-neutral-300'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white">Agency & Scale</span>
+                  <Building2 size={14} className="text-purple-400" />
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-bold font-mono text-white">
+                    ${billingCycle === 'annual' ? '48' : '60'}
+                  </span>
+                  <span className="text-xs text-neutral-400">/ month</span>
+                </div>
+                <p className="text-[11px] text-neutral-400 leading-tight">
+                  {billingCycle === 'annual' ? '$580 billed annually' : 'Billed monthly'}
+                </p>
+                <ul className="text-[11px] text-neutral-300 space-y-1 pt-1">
+                  <li className="flex items-center gap-1.5"><Check size={11} className="text-emerald-400" /> <strong>Unlimited</strong> multi-client keys</li>
+                  <li className="flex items-center gap-1.5"><Check size={11} className="text-emerald-400" /> Dedicated high-throughput queue</li>
+                  <li className="flex items-center gap-1.5"><Check size={11} className="text-emerald-400" /> Webhook automations</li>
+                </ul>
+              </div>
+
+            </div>
+
+            {upgradeError && (
               <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
                 <AlertCircle size={14} className="shrink-0" />
-                <span>{cardError}</span>
+                <span>{upgradeError}</span>
               </div>
             )}
 
-            <form onSubmit={handleSaveCard} className="space-y-3.5 pt-1">
+            {/* Payment Fields */}
+            <form onSubmit={handleProcessUpgrade} className="space-y-3 pt-1">
               <div className="space-y-1">
                 <label className="text-[11px] font-semibold text-neutral-300">
                   Cardholder Name
@@ -324,15 +410,15 @@ console.log(completion.choices[0].message.content);`
                   placeholder="e.g. Alex Vance"
                   value={cardHolder}
                   onChange={(e) => setCardHolder(e.target.value)}
-                  className="w-full bg-[#1c1c1c] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-white transition"
+                  className="w-full bg-[#1c1c1c] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-white transition"
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-neutral-300">
-                  Card Number
-                </label>
-                <div className="relative">
+              <div className="grid grid-cols-3 gap-2">
+                <div className="col-span-2 space-y-1">
+                  <label className="text-[11px] font-semibold text-neutral-300">
+                    Card Number
+                  </label>
                   <input
                     type="text"
                     required
@@ -340,70 +426,50 @@ console.log(completion.choices[0].message.content);`
                     placeholder="4242 •••• •••• 4242"
                     value={cardNumber}
                     onChange={(e) => setCardNumber(e.target.value)}
-                    className="w-full bg-[#1c1c1c] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-neutral-500 font-mono focus:outline-none focus:border-white transition"
+                    className="w-full bg-[#1c1c1c] border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-neutral-500 font-mono focus:outline-none focus:border-white transition"
                   />
-                  <CreditCard size={15} className="absolute right-3 top-3 text-neutral-500" />
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="text-[11px] font-semibold text-neutral-300">
-                    Expiry Date
+                    Exp / CVC
                   </label>
                   <input
                     type="text"
                     required
-                    maxLength={5}
+                    maxLength={7}
                     placeholder="MM/YY"
                     value={cardExp}
                     onChange={(e) => setCardExp(e.target.value)}
-                    className="w-full bg-[#1c1c1c] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-neutral-500 font-mono focus:outline-none focus:border-white transition"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-neutral-300">
-                    CVC
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    maxLength={4}
-                    placeholder="•••"
-                    value={cardCvc}
-                    onChange={(e) => setCardCvc(e.target.value)}
-                    className="w-full bg-[#1c1c1c] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-neutral-500 font-mono focus:outline-none focus:border-white transition"
+                    className="w-full bg-[#1c1c1c] border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-neutral-500 font-mono focus:outline-none focus:border-white transition"
                   />
                 </div>
               </div>
 
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={isVerifyingCard}
-                  className="w-full py-3 rounded-xl bg-white hover:bg-neutral-200 disabled:opacity-50 text-neutral-950 font-bold text-xs transition cursor-pointer shadow-md flex items-center justify-center gap-2"
-                >
-                  {isVerifyingCard ? (
-                    <>
-                      <RefreshCw size={13} className="animate-spin" />
-                      <span>Verifying Card with Stripe...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Lock size={13} />
-                      <span>Save Card & Unlock API Keys</span>
-                    </>
-                  )}
-                </button>
-              </div>
+              <button
+                type="submit"
+                disabled={isProcessingUpgrade}
+                className="w-full py-3 rounded-xl bg-white hover:bg-neutral-200 disabled:opacity-50 text-neutral-950 font-bold text-xs transition cursor-pointer shadow-md flex items-center justify-center gap-2 mt-2"
+              >
+                {isProcessingUpgrade ? (
+                  <>
+                    <RefreshCw size={13} className="animate-spin" />
+                    <span>Activating Subscription...</span>
+                  </>
+                ) : (
+                  <>
+                    <Lock size={13} />
+                    <span>Upgrade to {selectedPlanForUpgrade === 'pro' ? 'Pro ($20/mo)' : 'Agency ($60/mo)'} — Unlimited</span>
+                  </>
+                )}
+              </button>
             </form>
 
           </div>
         </div>
       )}
 
-      {/* 2. Create Key Modal */}
+      {/* 2. Create Key Modal (100% Free to create) */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
           <div className="bg-[#282828] border border-white/10 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 text-left relative">
@@ -427,7 +493,7 @@ console.log(completion.choices[0].message.content);`
                     Create new secret key
                   </h3>
                   <p className="text-xs text-neutral-400">
-                    Enter a name to identify where this key will be used (e.g. backend server, cron job, or test app).
+                    Name your key for coding, conversational chatbots, marketing scripts, or production servers.
                   </p>
                 </div>
 
@@ -438,7 +504,7 @@ console.log(completion.choices[0].message.content);`
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Production Shopify Bot"
+                    placeholder="e.g. VSCode Assistant, Shopify Bot, Cron Job"
                     value={newKeyName}
                     onChange={(e) => setNewKeyName(e.target.value)}
                     className="w-full bg-[#1c1c1c] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-white transition"
@@ -446,9 +512,9 @@ console.log(completion.choices[0].message.content);`
                   />
                 </div>
 
-                <div className="p-3 rounded-xl bg-[#1c1c1c] border border-white/10 flex items-center justify-between text-xs">
-                  <span className="text-neutral-400">Rate:</span>
-                  <span className="font-mono text-white font-semibold">$0.50 / prompt (billed to card •••• {paymentMethod.last4})</span>
+                <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-200 text-xs flex items-start gap-2">
+                  <Sparkles size={15} className="shrink-0 mt-0.5 text-purple-400" />
+                  <span>Universal API: You can pass custom system prompts for coding, chatbots, or marketing.</span>
                 </div>
 
                 <div className="flex items-center justify-end gap-2 pt-2">
@@ -535,72 +601,102 @@ console.log(completion.choices[0].message.content);`
             <div className="flex items-center gap-2">
               <Key size={22} className="text-white" />
               <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-                API Keys & Metered Usage
+                API Keys & Developer Platform
               </h1>
             </div>
             <p className="text-xs sm:text-sm text-neutral-400">
-              Create and manage your secret API keys. Rate: <span className="font-mono text-emerald-400 font-semibold">$0.500 / prompt</span> (2 prompts = $1.00).
+              Generate keys freely for coding, chatbots, and marketing. 100 free prompts included, then $20/mo for unlimited prompts.
             </p>
           </div>
 
-          <button
-            onClick={handleOpenCreateKey}
-            className="flex items-center justify-center gap-2 bg-white hover:bg-neutral-200 text-neutral-950 font-bold px-4 py-2.5 rounded-xl text-xs transition cursor-pointer shadow-md active:scale-95 shrink-0"
-          >
-            <Plus size={15} />
-            <span>Create new secret key</span>
-          </button>
+          <div className="flex items-center gap-2.5">
+            {!developerPlan.isPaid && (
+              <button
+                onClick={() => setShowUpgradeModal(true)}
+                className="flex items-center justify-center gap-1.5 bg-purple-600 hover:bg-purple-500 text-white font-bold px-3.5 py-2.5 rounded-xl text-xs transition cursor-pointer shadow-md active:scale-95 shrink-0"
+              >
+                <Sparkles size={14} />
+                <span>Upgrade ($20/mo Unlimited)</span>
+              </button>
+            )}
+
+            <button
+              onClick={handleOpenCreateKey}
+              className="flex items-center justify-center gap-2 bg-white hover:bg-neutral-200 text-neutral-950 font-bold px-4 py-2.5 rounded-xl text-xs transition cursor-pointer shadow-md active:scale-95 shrink-0"
+            >
+              <Plus size={15} />
+              <span>Create new secret key</span>
+            </button>
+          </div>
         </div>
 
-        {/* 3 Metric Cards for Usage & Card Status */}
+        {/* 3 Metric Cards for Usage & Plan Status */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          
+          {/* Plan Status Card */}
           <div className="bg-[#282828] border border-white/10 rounded-2xl p-4 space-y-1.5 shadow-lg">
             <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider block">
-              PAYMENT METHOD
+              DEVELOPER PLAN
             </span>
             <div className="flex items-center justify-between pt-0.5">
-              {paymentMethod.hasCard ? (
-                <div className="flex items-center gap-2">
-                  <CreditCard size={15} className="text-emerald-400" />
-                  <span className="text-sm font-bold text-white font-mono">{paymentMethod.brand} •••• {paymentMethod.last4}</span>
-                </div>
-              ) : (
-                <span className="text-xs font-semibold text-amber-400">No card attached</span>
-              )}
+              <div className="flex items-center gap-2">
+                <Zap size={15} className={developerPlan.isPaid ? 'text-emerald-400' : 'text-purple-400'} />
+                <span className="text-xs font-bold text-white truncate max-w-[140px]">
+                  {developerPlan.isPaid ? developerPlan.name : 'Free (100 Prompts)'}
+                </span>
+              </div>
               <button
-                onClick={() => {
-                  setCardError('');
-                  setShowAddCardModal(true);
-                }}
-                className="text-[11px] text-white hover:underline font-semibold cursor-pointer"
+                onClick={() => setShowUpgradeModal(true)}
+                className="text-[11px] text-purple-400 hover:underline font-semibold cursor-pointer shrink-0"
               >
-                {paymentMethod.hasCard ? 'Edit' : 'Attach Card'}
+                {developerPlan.isPaid ? 'Manage' : 'Upgrade'}
               </button>
             </div>
           </div>
 
-          <div className="bg-[#282828] border border-white/10 rounded-2xl p-4 space-y-1.5 shadow-lg">
-            <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider block">
-              TOTAL PROMPTS PROCESSED
-            </span>
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold font-mono text-white">{totalPromptsUsed}</span>
-              <span className="text-xs text-neutral-400">requests</span>
+          {/* Usage Meter Card */}
+          <div className="bg-[#282828] border border-white/10 rounded-2xl p-4 space-y-2 shadow-lg">
+            <div className="flex items-center justify-between text-[10px] font-semibold text-neutral-400 uppercase tracking-wider">
+              <span>USAGE STATUS</span>
+              <span>{developerPlan.isPaid ? 'UNLIMITED' : `${totalPromptsUsed} / ${FREE_TIER_PROMPT_LIMIT}`}</span>
             </div>
+            
+            {developerPlan.isPaid ? (
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xl font-bold font-mono text-emerald-400">Unlimited Active</span>
+                <span className="text-[11px] text-neutral-400">({totalPromptsUsed} calls made)</span>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                <div className="w-full h-2 rounded-full bg-[#1c1c1c] overflow-hidden">
+                  <div 
+                    className={`h-full transition-all duration-300 ${progressPercent >= 90 ? 'bg-rose-500' : 'bg-purple-500'}`}
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-neutral-400 font-mono">
+                  <span>{freePromptsRemaining} free prompts left</span>
+                  <span>{progressPercent}%</span>
+                </div>
+              </div>
+            )}
           </div>
 
+          {/* Versatility Capability Card */}
           <div className="bg-[#282828] border border-white/10 rounded-2xl p-4 space-y-1.5 shadow-lg">
             <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider block">
-              CURRENT CYCLE SPEND
+              SUPPORTED CAPABILITIES
             </span>
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold font-mono text-emerald-400">${totalSpentUsd}</span>
-              <span className="text-xs text-neutral-400">USD</span>
+            <div className="flex items-center gap-2 pt-0.5 text-xs text-white font-medium">
+              <Bot size={15} className="text-purple-400" />
+              <span>Coding, Chatbots, Marketing & Logic</span>
             </div>
+            <span className="text-[10px] text-neutral-400 block">Obeys 100% of custom system prompts</span>
           </div>
+
         </div>
 
-        {/* Available Keys Table / List (with Usage Column) */}
+        {/* Available Keys Table / List */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
@@ -616,57 +712,52 @@ console.log(completion.choices[0].message.content);`
               <div className="divide-y divide-white/5">
                 <div className="grid grid-cols-12 px-4 py-3 bg-[#1c1c1c]/50 text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">
                   <div className="col-span-3 sm:col-span-3">NAME</div>
-                  <div className="col-span-4 sm:col-span-3">SECRET KEY</div>
+                  <div className="col-span-4 sm:col-span-4">SECRET KEY</div>
                   <div className="hidden sm:block sm:col-span-2">CREATED</div>
-                  <div className="hidden sm:block sm:col-span-2">LAST USED</div>
-                  <div className="col-span-3 sm:col-span-1 text-center">USAGE</div>
+                  <div className="hidden sm:block sm:col-span-1">LAST USED</div>
+                  <div className="col-span-3 sm:col-span-1 text-center">PROMPTS</div>
                   <div className="col-span-2 sm:col-span-1 text-right">ACTION</div>
                 </div>
 
-                {keys.map((k) => {
-                  const keyPrompts = k.promptsUsed || 0;
-                  const keyCost = (keyPrompts * PROMPT_COST_USD).toFixed(2);
-                  return (
-                    <div key={k.id} className="grid grid-cols-12 items-center px-4 py-3.5 hover:bg-white/5 transition text-xs">
-                      <div className="col-span-3 sm:col-span-3 font-semibold text-white truncate pr-2">
-                        {k.name}
-                      </div>
-                      <div className="col-span-4 sm:col-span-3 font-mono text-neutral-400 flex items-center gap-2 truncate">
-                        <span className="truncate">{k.key.slice(0, 12)}••••••••••••••••{k.key.slice(-4)}</span>
-                        <button
-                          onClick={() => handleCopy(k.key, k.id)}
-                          className="p-1 hover:text-white hover:bg-white/10 rounded transition cursor-pointer shrink-0"
-                          title="Copy full key"
-                        >
-                          {copiedKeyId === k.id ? (
-                            <Check size={13} className="text-emerald-400" />
-                          ) : (
-                            <Copy size={13} />
-                          )}
-                        </button>
-                      </div>
-                      <div className="hidden sm:block sm:col-span-2 text-neutral-400">
-                        {k.created}
-                      </div>
-                      <div className="hidden sm:block sm:col-span-2 text-neutral-400">
-                        {k.lastUsed}
-                      </div>
-                      <div className="col-span-3 sm:col-span-1 text-center font-mono">
-                        <span className="text-emerald-400 font-semibold">${keyCost}</span>
-                        <span className="text-[10px] text-neutral-500 block">({keyPrompts} reqs)</span>
-                      </div>
-                      <div className="col-span-2 sm:col-span-1 text-right">
-                        <button
-                          onClick={() => handleDeleteKey(k.id)}
-                          className="p-1.5 text-neutral-500 hover:text-rose-400 hover:bg-rose-950/30 rounded-lg transition cursor-pointer"
-                          title="Revoke key"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
+                {keys.map((k) => (
+                  <div key={k.id} className="grid grid-cols-12 items-center px-4 py-3.5 hover:bg-white/5 transition text-xs">
+                    <div className="col-span-3 sm:col-span-3 font-semibold text-white truncate pr-2">
+                      {k.name}
                     </div>
-                  );
-                })}
+                    <div className="col-span-4 sm:col-span-4 font-mono text-neutral-400 flex items-center gap-2 truncate">
+                      <span className="truncate">{k.key.slice(0, 12)}••••••••••••••••{k.key.slice(-4)}</span>
+                      <button
+                        onClick={() => handleCopy(k.key, k.id)}
+                        className="p-1 hover:text-white hover:bg-white/10 rounded transition cursor-pointer shrink-0"
+                        title="Copy full key"
+                      >
+                        {copiedKeyId === k.id ? (
+                          <Check size={13} className="text-emerald-400" />
+                        ) : (
+                          <Copy size={13} />
+                        )}
+                      </button>
+                    </div>
+                    <div className="hidden sm:block sm:col-span-2 text-neutral-400">
+                      {k.created}
+                    </div>
+                    <div className="hidden sm:block sm:col-span-1 text-neutral-400">
+                      {k.lastUsed}
+                    </div>
+                    <div className="col-span-3 sm:col-span-1 text-center font-mono text-white font-semibold">
+                      {k.promptsUsed || 0}
+                    </div>
+                    <div className="col-span-2 sm:col-span-1 text-right">
+                      <button
+                        onClick={() => handleDeleteKey(k.id)}
+                        className="p-1.5 text-neutral-500 hover:text-rose-400 hover:bg-rose-950/30 rounded-lg transition cursor-pointer"
+                        title="Revoke key"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="p-8 text-center space-y-2">
@@ -675,7 +766,7 @@ console.log(completion.choices[0].message.content);`
                   onClick={handleOpenCreateKey}
                   className="text-xs text-white font-bold underline cursor-pointer"
                 >
-                  Attach card and generate your first secret key
+                  Generate your first free secret key
                 </button>
               </div>
             )}
@@ -740,7 +831,7 @@ console.log(completion.choices[0].message.content);`
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Terminal size={16} className="text-white" />
-                <span className="text-xs font-bold text-white">Live API Endpoint Test ($0.500 Metered)</span>
+                <span className="text-xs font-bold text-white">Live API Endpoint Test</span>
               </div>
               <button
                 onClick={handleRunLiveTest}
@@ -750,7 +841,7 @@ console.log(completion.choices[0].message.content);`
                 {isTesting ? (
                   <>
                     <RefreshCw size={12} className="animate-spin" />
-                    <span>Sending...</span>
+                    <span>Executing Request...</span>
                   </>
                 ) : (
                   <>
@@ -763,7 +854,7 @@ console.log(completion.choices[0].message.content);`
 
             <div className="space-y-1.5">
               <label className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">
-                Test Prompt Payload
+                Test Prompt Payload (Coding, Chatbot, or Marketing)
               </label>
               <input
                 type="text"
