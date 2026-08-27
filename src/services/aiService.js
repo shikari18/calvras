@@ -2,16 +2,6 @@ const _hfChunk = ['hf_', 'qPJfac', 'OWEunNq', 'AfrCct', 'FPcaxAe', 'SWUeauKy'].j
 export const HUGGINGFACE_API_KEY = import.meta.env?.VITE_HUGGINGFACE_API_KEY || _hfChunk;
 export const HUGGINGFACE_ENDPOINT_URL = import.meta.env?.VITE_HUGGINGFACE_ENDPOINT_URL || '';
 export const CALVRAS_FINE_TUNED_MODEL = 'SHIKARI2/calvras-llama-3.1-8b-marketing';
-export const OPENROUTER_API_KEY = import.meta.env?.VITE_OPENROUTER_API_KEY || (typeof atob !== 'undefined' ? atob('c2stb3ItdjEtMWM1YmJlYjk0ODNiNzlmODVhODdlN2IzNzNlZmE2NDViMjcyMGJkMDg4NTMzZTVhOTY5Y2I0MGQzZTc0MDZhNQ==') : '');
-
-// Active high-throughput LLM engines (fastest first)
-const ACTIVE_ENGINES = [
-  'minimax/minimax-m3:free',
-  'poolside/laguna-s-2.1:free',
-  'nvidia/nemotron-3.5-lightning:free',
-  'google/gemma-4-31b-it:free',
-  'nvidia/nemotron-3-super-120b-a12b:free'
-];
 
 export const SYSTEM_PROMPT = `You are Calvras, an elite AI marketing strategist and autonomous growth OS for modern brands (calvras.com).
 
@@ -315,46 +305,19 @@ export async function generateMarketingImageBatch(subject, count = 2) {
  * Call fine-tuned Llama 3.1 8B model hosted exclusively on Hugging Face (SHIKARI2/calvras-llama-3.1-8b-marketing)
  */
 /**
- * Call fine-tuned Llama 3.1 8B model hosted on Hugging Face or active high-throughput engines
+ * Exclusively calls your fine-tuned Llama 3.1 8B marketing model (SHIKARI2/calvras-llama-3.1-8b-marketing)
  */
 export async function callCalvrasAI({ messages, userPrompt = '' }) {
-  // 1. If user provided a Dedicated Hugging Face Endpoint URL, query it first
-  if (HUGGINGFACE_ENDPOINT_URL) {
-    try {
-      const response = await fetch(HUGGINGFACE_ENDPOINT_URL.endsWith('/v1/chat/completions') ? HUGGINGFACE_ENDPOINT_URL : `${HUGGINGFACE_ENDPOINT_URL}/v1/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${HUGGINGFACE_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: CALVRAS_FINE_TUNED_MODEL,
-          messages: messages,
-          temperature: 0.7,
-          max_tokens: 1500
-        }),
-        signal: AbortSignal.timeout(20000)
-      });
+  const targetUrl = HUGGINGFACE_ENDPOINT_URL 
+    ? (HUGGINGFACE_ENDPOINT_URL.endsWith('/v1/chat/completions') ? HUGGINGFACE_ENDPOINT_URL : `${HUGGINGFACE_ENDPOINT_URL}/v1/chat/completions`)
+    : `https://router.huggingface.co/hf-inference/models/${CALVRAS_FINE_TUNED_MODEL}/v1/chat/completions`;
 
-      if (response.ok) {
-        const data = await response.json();
-        const content = data?.choices?.[0]?.message?.content;
-        if (content && content.trim().length > 0) {
-          return cleanAiResponse(content, userPrompt);
-        }
-      }
-    } catch (err) {
-      console.warn('Dedicated Hugging Face endpoint error:', err);
-    }
-  }
+  const fallbackHfUrl = `https://api-inference.huggingface.co/models/${CALVRAS_FINE_TUNED_MODEL}/v1/chat/completions`;
 
-  // 2. Query Hugging Face Router endpoints
-  const hfEndpoints = [
-    `https://router.huggingface.co/hf-inference/models/${CALVRAS_FINE_TUNED_MODEL}/v1/chat/completions`,
-    `https://api-inference.huggingface.co/models/${CALVRAS_FINE_TUNED_MODEL}/v1/chat/completions`
-  ];
+  const endpoints = [targetUrl, fallbackHfUrl];
+  let lastError = null;
 
-  for (const endpoint of hfEndpoints) {
+  for (const endpoint of endpoints) {
     try {
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -368,38 +331,6 @@ export async function callCalvrasAI({ messages, userPrompt = '' }) {
           temperature: 0.7,
           max_tokens: 1500
         }),
-        signal: AbortSignal.timeout(8000)
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const content = data?.choices?.[0]?.message?.content;
-        if (content && content.trim().length > 0) {
-          return cleanAiResponse(content, userPrompt);
-        }
-      }
-    } catch (err) {
-      // Continue to next available engine
-    }
-  }
-
-  // 3. Seamless active high-throughput engines running our full Calvras system prompt & dataset directives
-  for (const engine of ACTIVE_ENGINES) {
-    try {
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://calvras.com',
-          'X-Title': 'Calvras AI Marketing'
-        },
-        body: JSON.stringify({
-          model: engine,
-          messages: messages,
-          temperature: 0.7,
-          max_tokens: 1500
-        }),
         signal: AbortSignal.timeout(35000)
       });
 
@@ -409,13 +340,17 @@ export async function callCalvrasAI({ messages, userPrompt = '' }) {
         if (content && content.trim().length > 0) {
           return cleanAiResponse(content, userPrompt);
         }
+      } else {
+        const errText = await response.text().catch(() => '');
+        throw new Error(`[HuggingFace ${response.status}] ${errText || response.statusText}`);
       }
     } catch (err) {
-      // Continue to next candidate
+      lastError = err;
+      console.warn(`HuggingFace endpoint (${endpoint}) error:`, err);
     }
   }
 
-  throw new Error('Calvras AI engine is currently processing high traffic. Please retry your request in a moment.');
+  throw lastError || new Error(`Fine-tuned model '${CALVRAS_FINE_TUNED_MODEL}' failed to respond.`);
 }
 
 /**
