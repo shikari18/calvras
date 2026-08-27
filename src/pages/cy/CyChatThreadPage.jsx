@@ -329,11 +329,11 @@ export const CyChatThreadPage = ({
                 {/* User Uploaded Image Card */}
                 {msg.image && (
                   <div className="flex justify-end pt-1">
-                    <div className="max-w-xs rounded-2xl border border-white/10 overflow-hidden bg-[#282828] shadow-xs p-2">
+                    <div className="max-w-[170px] sm:max-w-[190px] rounded-xl border border-white/10 overflow-hidden bg-[#242424] shadow-md p-1.5 transition-all">
                       <img 
                         src={msg.image} 
                         alt="Uploaded Creative" 
-                        className="w-full h-auto max-h-64 object-contain rounded-xl"
+                        className="w-full h-auto max-h-36 sm:max-h-40 object-contain rounded-lg bg-black/40"
                       />
                     </div>
                   </div>
