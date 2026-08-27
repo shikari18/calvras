@@ -212,8 +212,15 @@ export const CyChatThreadPage = ({
   };
 
   const seenIds = new Set();
-  const displayMessages = (chatMessages || []).filter(msg => {
+  const displayMessages = (chatMessages || []).filter((msg, idx, arr) => {
     if (!msg || !msg.id || seenIds.has(msg.id)) return false;
+    // Filter out consecutive duplicate user messages
+    if (idx > 0) {
+      const prev = arr[idx - 1];
+      if (prev && prev.sender === msg.sender && (prev.text || '').trim() === (msg.text || '').trim()) {
+        return false;
+      }
+    }
     seenIds.add(msg.id);
     return true;
   });

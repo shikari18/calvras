@@ -268,6 +268,14 @@ export const MarketingProvider = ({ children, currentUserEmail = 'zenithzone18@g
             return thread;
           }
           
+          // Prevent identical consecutive user messages
+          if (msg.sender === 'user' && currentMsgs.length > 0) {
+            const lastMsg = currentMsgs[currentMsgs.length - 1];
+            if (lastMsg.sender === 'user' && (lastMsg.text || '').trim() === (msg.text || '').trim()) {
+              return thread;
+            }
+          }
+          
           // Auto-update thread title if it's the first user message
           let newTitle = thread.title;
           if (msg.sender === 'user' && (thread.title === 'Help Making Product Popular' || thread.title === 'New Chat' || thread.title.startsWith('New '))) {
