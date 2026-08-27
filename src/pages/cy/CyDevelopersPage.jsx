@@ -164,7 +164,7 @@ print(f"Campaign ID: {campaign.id}")`
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-white text-neutral-950 shadow-2xs">
+              <div className="p-1.5 rounded-lg bg-white text-white shadow-2xs">
                 <Code2 size={18} />
               </div>
               <h1 className="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight">
@@ -185,13 +185,13 @@ print(f"Campaign ID: {campaign.id}")`
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-2 border-b border-neutral-200/80">
+        <div className="flex items-center gap-2 border-b border-white/10/80">
           <button
             onClick={() => setActiveTab('api')}
             className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition cursor-pointer ${
               activeTab === 'api'
-                ? 'border-neutral-950 text-neutral-950'
-                : 'border-transparent text-neutral-500 hover:text-neutral-900'
+                ? 'border-neutral-950 text-white'
+                : 'border-transparent text-neutral-400 hover:text-white'
             }`}
           >
             <Terminal size={14} />
@@ -202,8 +202,8 @@ print(f"Campaign ID: {campaign.id}")`
             onClick={() => setActiveTab('widget')}
             className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition cursor-pointer ${
               activeTab === 'widget'
-                ? 'border-neutral-950 text-neutral-950'
-                : 'border-transparent text-neutral-500 hover:text-neutral-900'
+                ? 'border-neutral-950 text-white'
+                : 'border-transparent text-neutral-400 hover:text-white'
             }`}
           >
             <Bot size={14} />
@@ -216,21 +216,21 @@ print(f"Campaign ID: {campaign.id}")`
           <div className="space-y-6 animate-in fade-in duration-200">
             
             {/* API Keys Card */}
-            <div className="bg-neutral-50/80 border border-neutral-200/90 rounded-2xl p-5 sm:p-6 space-y-4 shadow-2xs">
+            <div className="bg-neutral-50/80 border border-white/10/90 rounded-2xl p-5 sm:p-6 space-y-4 shadow-2xs">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <h3 className="text-sm font-bold text-neutral-950 flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
                     <Key size={15} className="text-purple-600" />
                     <span>Workspace API Credentials</span>
                   </h3>
-                  <p className="text-xs text-neutral-500">
+                  <p className="text-xs text-neutral-400">
                     Use these keys to authenticate requests from your backend services.
                   </p>
                 </div>
 
                 <button
                   onClick={handleRegenerateSecret}
-                  className="flex items-center gap-1.5 text-xs font-medium text-neutral-600 hover:text-neutral-950 px-2.5 py-1.5 rounded-lg border border-neutral-200 hover:bg-white transition cursor-pointer shadow-2xs"
+                  className="flex items-center gap-1.5 text-xs font-medium text-neutral-600 hover:text-white px-2.5 py-1.5 rounded-lg border border-white/10 hover:bg-white transition cursor-pointer shadow-2xs"
                   title="Regenerate Secret Key"
                 >
                   <RefreshCw size={12} />
@@ -241,18 +241,18 @@ print(f"Campaign ID: {campaign.id}")`
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
                 
                 {/* Publishable Key */}
-                <div className="bg-white border border-neutral-200 rounded-xl p-3 space-y-1.5 shadow-2xs">
+                <div className="bg-[#131412] border border-white/10 rounded-xl p-3 space-y-1.5 shadow-2xs">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider font-mono">
                       PUBLISHABLE KEY (CLIENT-SIDE)
                     </span>
                     <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded">Safe for frontend</span>
                   </div>
-                  <div className="flex items-center justify-between gap-2 bg-neutral-50 px-2.5 py-1.5 rounded-lg font-mono text-xs text-neutral-800 border border-neutral-100">
+                  <div className="flex items-center justify-between gap-2 bg-neutral-50 px-2.5 py-1.5 rounded-lg font-mono text-xs text-neutral-200 border border-white/5">
                     <span className="truncate">{publicKey}</span>
                     <button
                       onClick={() => handleCopy(publicKey, 'public')}
-                      className="text-neutral-400 hover:text-neutral-900 p-1 rounded hover:bg-neutral-200/60 transition cursor-pointer shrink-0"
+                      className="text-neutral-400 hover:text-white p-1 rounded hover:bg-neutral-200/60 transition cursor-pointer shrink-0"
                       title="Copy key"
                     >
                       {copiedKey === 'public' ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
@@ -261,28 +261,28 @@ print(f"Campaign ID: {campaign.id}")`
                 </div>
 
                 {/* Secret Key */}
-                <div className="bg-white border border-neutral-200 rounded-xl p-3 space-y-1.5 shadow-2xs">
+                <div className="bg-[#131412] border border-white/10 rounded-xl p-3 space-y-1.5 shadow-2xs">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider font-mono">
                       SECRET KEY (BACKEND ONLY)
                     </span>
                     <span className="text-[10px] text-rose-600 font-semibold bg-rose-50 px-1.5 py-0.5 rounded">Do not share</span>
                   </div>
-                  <div className="flex items-center justify-between gap-2 bg-neutral-50 px-2.5 py-1.5 rounded-lg font-mono text-xs text-neutral-800 border border-neutral-100">
+                  <div className="flex items-center justify-between gap-2 bg-neutral-50 px-2.5 py-1.5 rounded-lg font-mono text-xs text-neutral-200 border border-white/5">
                     <span className="truncate">
                       {showSecretKey ? secretKey : `${secretKey.slice(0, 14)}••••••••••••••••••••`}
                     </span>
                     <div className="flex items-center gap-1 shrink-0">
                       <button
                         onClick={() => setShowSecretKey(!showSecretKey)}
-                        className="text-neutral-400 hover:text-neutral-900 p-1 rounded hover:bg-neutral-200/60 transition cursor-pointer"
+                        className="text-neutral-400 hover:text-white p-1 rounded hover:bg-neutral-200/60 transition cursor-pointer"
                         title={showSecretKey ? 'Hide key' : 'Show key'}
                       >
                         {showSecretKey ? <EyeOff size={13} /> : <Eye size={13} />}
                       </button>
                       <button
                         onClick={() => handleCopy(secretKey, 'secret')}
-                        className="text-neutral-400 hover:text-neutral-900 p-1 rounded hover:bg-neutral-200/60 transition cursor-pointer"
+                        className="text-neutral-400 hover:text-white p-1 rounded hover:bg-neutral-200/60 transition cursor-pointer"
                         title="Copy key"
                       >
                         {copiedKey === 'secret' ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
@@ -297,20 +297,20 @@ print(f"Campaign ID: {campaign.id}")`
             {/* Endpoints & Code Explorer */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-base font-bold text-neutral-950 tracking-tight">
+                <h3 className="text-base font-bold text-white tracking-tight">
                   Core REST Endpoints
                 </h3>
 
                 {/* Language Switcher */}
-                <div className="bg-neutral-100 p-1 rounded-xl flex items-center gap-1 border border-neutral-200 font-mono text-xs">
+                <div className="bg-neutral-100 p-1 rounded-xl flex items-center gap-1 border border-white/10 font-mono text-xs">
                   {['curl', 'node', 'python'].map((lang) => (
                     <button
                       key={lang}
                       onClick={() => setSelectedLanguage(lang)}
                       className={`px-2.5 py-1 rounded-lg uppercase transition cursor-pointer ${
                         selectedLanguage === lang
-                          ? 'bg-white text-neutral-950 font-bold shadow-2xs'
-                          : 'text-neutral-500 hover:text-neutral-900'
+                          ? 'bg-white text-white font-bold shadow-2xs'
+                          : 'text-neutral-400 hover:text-white'
                       }`}
                     >
                       {lang}
@@ -320,17 +320,17 @@ print(f"Campaign ID: {campaign.id}")`
               </div>
 
               {/* Endpoint 1: POST /api/v1/generate-creative */}
-              <div className="bg-white border border-neutral-200 rounded-2xl overflow-hidden shadow-2xs">
-                <div className="p-4 bg-neutral-50/70 border-b border-neutral-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="bg-[#131412] border border-white/10 rounded-2xl overflow-hidden shadow-2xs">
+                <div className="p-4 bg-neutral-50/70 border-b border-white/10/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="flex items-center gap-2.5">
                     <span className="px-2 py-0.5 rounded bg-emerald-600 text-white font-mono text-[11px] font-bold">
                       POST
                     </span>
-                    <span className="font-mono text-xs font-semibold text-neutral-900">
+                    <span className="font-mono text-xs font-semibold text-white">
                       https://api.calvras.com/v1/generate-creative
                     </span>
                   </div>
-                  <span className="text-xs text-neutral-500">
+                  <span className="text-xs text-neutral-400">
                     Auto-generate captions, hooks & product imagery
                   </span>
                 </div>
@@ -350,17 +350,17 @@ print(f"Campaign ID: {campaign.id}")`
               </div>
 
               {/* Endpoint 2: POST /api/v1/campaign */}
-              <div className="bg-white border border-neutral-200 rounded-2xl overflow-hidden shadow-2xs">
-                <div className="p-4 bg-neutral-50/70 border-b border-neutral-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="bg-[#131412] border border-white/10 rounded-2xl overflow-hidden shadow-2xs">
+                <div className="p-4 bg-neutral-50/70 border-b border-white/10/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="flex items-center gap-2.5">
                     <span className="px-2 py-0.5 rounded bg-purple-600 text-white font-mono text-[11px] font-bold">
                       POST
                     </span>
-                    <span className="font-mono text-xs font-semibold text-neutral-900">
+                    <span className="font-mono text-xs font-semibold text-white">
                       https://api.calvras.com/v1/campaign
                     </span>
                   </div>
-                  <span className="text-xs text-neutral-500">
+                  <span className="text-xs text-neutral-400">
                     Trigger automated multi-channel marketing campaigns
                   </span>
                 </div>
@@ -394,10 +394,10 @@ print(f"Campaign ID: {campaign.id}")`
               <div className="lg:col-span-7 space-y-5">
                 
                 <div className="space-y-1.5">
-                  <h3 className="text-base font-bold text-neutral-950 tracking-tight">
+                  <h3 className="text-base font-bold text-white tracking-tight">
                     Embed AI Copilot in Your Web App
                   </h3>
-                  <p className="text-xs text-neutral-500">
+                  <p className="text-xs text-neutral-400">
                     Add a white-labeled AI marketing assistant into your SaaS or e-commerce store with 1 line of code.
                   </p>
                 </div>
@@ -451,34 +451,34 @@ export default function Dashboard() {
                     </button>
                   </div>
 
-                  <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-xl font-mono text-[11px] text-neutral-800 overflow-x-auto">
+                  <div className="p-3 bg-[#181916] border border-white/10 rounded-xl font-mono text-[11px] text-neutral-200 overflow-x-auto">
                     <code>{`<script src="https://cdn.calvras.com/copilot.v1.js" data-api-key="${publicKey}" data-theme="${widgetTheme}"></script>`}</code>
                   </div>
                 </div>
 
                 {/* Customizer Controls */}
-                <div className="bg-neutral-50/80 border border-neutral-200/90 rounded-2xl p-4 space-y-3.5">
-                  <h4 className="text-xs font-bold text-neutral-900 uppercase tracking-wider">
+                <div className="bg-neutral-50/80 border border-white/10/90 rounded-2xl p-4 space-y-3.5">
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">
                     Widget Customizer
                   </h4>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-[11px] text-neutral-500 font-medium block">Title</label>
+                      <label className="text-[11px] text-neutral-400 font-medium block">Title</label>
                       <input 
                         type="text" 
                         value={widgetTitle}
                         onChange={(e) => setWidgetTitle(e.target.value)}
-                        className="w-full bg-white border border-neutral-200 rounded-lg px-2.5 py-1.5 text-xs text-neutral-900 focus:outline-none"
+                        className="w-full bg-[#131412] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none"
                       />
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[11px] text-neutral-500 font-medium block">Theme</label>
+                      <label className="text-[11px] text-neutral-400 font-medium block">Theme</label>
                       <select
                         value={widgetTheme}
                         onChange={(e) => setWidgetTheme(e.target.value)}
-                        className="w-full bg-white border border-neutral-200 rounded-lg px-2.5 py-1.5 text-xs text-neutral-900 focus:outline-none"
+                        className="w-full bg-[#131412] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none"
                       >
                         <option value="dark">Dark Theme</option>
                         <option value="light">Light Theme</option>
@@ -499,24 +499,24 @@ export default function Dashboard() {
                 </div>
 
                 {/* Phone / Web Mockup Container */}
-                <div className="bg-neutral-100 border border-neutral-200 rounded-3xl p-4 h-[440px] relative flex flex-col justify-end shadow-inner overflow-hidden">
+                <div className="bg-neutral-100 border border-white/10 rounded-3xl p-4 h-[440px] relative flex flex-col justify-end shadow-inner overflow-hidden">
                   
                   {/* Background Mockup Canvas */}
                   <div className="absolute inset-0 p-5 opacity-40 select-none pointer-events-none text-left space-y-2">
                     <div className="w-24 h-3 bg-neutral-300 rounded" />
                     <div className="w-48 h-2 bg-neutral-200 rounded" />
                     <div className="w-36 h-2 bg-neutral-200 rounded" />
-                    <div className="w-full h-24 bg-white rounded-xl border border-neutral-200 mt-4" />
+                    <div className="w-full h-24 bg-white rounded-xl border border-white/10 mt-4" />
                   </div>
 
                   {/* Open Widget Window */}
                   {widgetOpen && (
-                    <div className={`w-full bg-white border border-neutral-200 rounded-2xl shadow-2xl flex flex-col h-[360px] z-20 animate-in slide-in-from-bottom-4 duration-200 overflow-hidden ${
-                      widgetTheme === 'dark' ? 'bg-neutral-950 text-white border-neutral-800' : 'bg-white text-neutral-900'
+                    <div className={`w-full bg-[#131412] border border-white/10 rounded-2xl shadow-2xl flex flex-col h-[360px] z-20 animate-in slide-in-from-bottom-4 duration-200 overflow-hidden ${
+                      widgetTheme === 'dark' ? 'bg-neutral-950 text-white border-neutral-800' : 'bg-white text-white'
                     }`}>
                       
                       {/* Widget Header */}
-                      <div className="p-3 border-b border-neutral-200/20 flex items-center justify-between" style={{ backgroundColor: widgetBrandColor }}>
+                      <div className="p-3 border-b border-white/10/20 flex items-center justify-between" style={{ backgroundColor: widgetBrandColor }}>
                         <div className="flex items-center gap-2 text-white">
                           <Bot size={16} />
                           <span className="text-xs font-bold">{widgetTitle}</span>
@@ -537,7 +537,7 @@ export default function Dashboard() {
                             className={`p-2.5 rounded-xl max-w-[85%] whitespace-pre-line leading-relaxed ${
                               m.sender === 'user'
                                 ? 'ml-auto bg-purple-600 text-white rounded-br-none'
-                                : (widgetTheme === 'dark' ? 'bg-neutral-900 text-neutral-100 rounded-bl-none' : 'bg-neutral-100 text-neutral-900 rounded-bl-none')
+                                : (widgetTheme === 'dark' ? 'bg-neutral-900 text-neutral-100 rounded-bl-none' : 'bg-neutral-100 text-white rounded-bl-none')
                             }`}
                           >
                             {m.text}
@@ -546,7 +546,7 @@ export default function Dashboard() {
                       </div>
 
                       {/* Widget Input */}
-                      <div className="p-2 border-t border-neutral-200/20 flex items-center gap-1.5">
+                      <div className="p-2 border-t border-white/10/20 flex items-center gap-1.5">
                         <input
                           type="text"
                           value={widgetInput}
@@ -554,7 +554,7 @@ export default function Dashboard() {
                           onKeyDown={(e) => e.key === 'Enter' && handleWidgetSend()}
                           placeholder="Ask marketing copilot..."
                           className={`flex-1 px-2.5 py-1.5 rounded-lg text-xs focus:outline-none ${
-                            widgetTheme === 'dark' ? 'bg-neutral-900 text-white placeholder:text-neutral-500' : 'bg-neutral-100 text-neutral-900'
+                            widgetTheme === 'dark' ? 'bg-neutral-900 text-white placeholder:text-neutral-400' : 'bg-neutral-100 text-white'
                           }`}
                         />
                         <button

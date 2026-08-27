@@ -74,29 +74,29 @@ export const CyBillingPage = ({ userName = 'SHIKARI', onSelectTab }) => {
   ];
 
   return (
-    <div className="flex-1 min-h-screen bg-white p-6 sm:p-10 font-sans antialiased text-neutral-900 select-none text-left overflow-y-auto">
+    <div className="flex-1 min-h-screen bg-[#0d0e0c] text-[#f4f4ee] p-6 sm:p-10 font-sans antialiased text-white select-none text-left overflow-y-auto">
       <div className="max-w-5xl mx-auto space-y-6 pt-2 sm:pt-4">
         
         {/* Title Header */}
-        <div className="space-y-1 border-b border-neutral-200 pb-5">
-          <h1 className="text-3xl sm:text-4xl font-serif font-normal text-neutral-900 tracking-tight">
+        <div className="space-y-1 border-b border-white/10 pb-5">
+          <h1 className="text-3xl sm:text-4xl font-serif font-normal text-white tracking-tight">
             Billing & Plans
           </h1>
-          <p className="text-xs sm:text-sm text-neutral-500 font-normal">
+          <p className="text-xs sm:text-sm text-neutral-400 font-normal">
             Credits, plans, and active balance for <strong>{userName}'s Workspace</strong>.
           </p>
         </div>
 
         {/* Current Plan Card */}
-        <div className="bg-white border border-neutral-200 rounded-3xl p-6 shadow-xs space-y-4">
+        <div className="bg-[#131412] border border-white/10 rounded-3xl p-6 shadow-xs space-y-4">
           <span className="text-[10.5px] font-bold text-neutral-400 uppercase tracking-wider block font-mono">
             Active Workspace Plan
           </span>
 
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
-              <h3 className="text-xl font-bold text-neutral-950 tracking-tight">{currentPlan} Plan</h3>
-              <p className="text-xs text-neutral-500 font-medium mt-0.5">
+              <h3 className="text-xl font-bold text-white tracking-tight">{currentPlan} Plan</h3>
+              <p className="text-xs text-neutral-400 font-medium mt-0.5">
                 5 credits consumed per autonomous marketing prompt or creative generation.
               </p>
             </div>
@@ -112,7 +112,7 @@ export const CyBillingPage = ({ userName = 'SHIKARI', onSelectTab }) => {
         </div>
 
         {/* Credits Status Card */}
-        <div className="bg-white border border-neutral-200 rounded-3xl p-6 shadow-xs space-y-4">
+        <div className="bg-[#131412] border border-white/10 rounded-3xl p-6 shadow-xs space-y-4">
           <span className="text-[10.5px] font-bold text-neutral-400 uppercase tracking-wider block font-mono">
             Credit Telemetry
           </span>
@@ -120,12 +120,12 @@ export const CyBillingPage = ({ userName = 'SHIKARI', onSelectTab }) => {
           <div className="flex items-center gap-16">
             <div>
               <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider block">REMAINING</span>
-              <span className="text-2xl sm:text-3xl font-bold text-neutral-950 font-mono">{creditsRemaining.toLocaleString()}</span>
+              <span className="text-2xl sm:text-3xl font-bold text-white font-mono">{creditsRemaining.toLocaleString()}</span>
             </div>
 
             <div>
               <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider block">CONSUMED</span>
-              <span className="text-2xl sm:text-3xl font-bold text-neutral-950 font-mono">{creditsUsed.toLocaleString()}</span>
+              <span className="text-2xl sm:text-3xl font-bold text-white font-mono">{creditsUsed.toLocaleString()}</span>
             </div>
           </div>
 
@@ -139,16 +139,16 @@ export const CyBillingPage = ({ userName = 'SHIKARI', onSelectTab }) => {
         </div>
 
         {/* 3 Tier Plans Section */}
-        <div className="space-y-4 pt-4 border-t border-neutral-200">
+        <div className="space-y-4 pt-4 border-t border-white/10">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h2 className="text-lg font-bold text-neutral-950 tracking-tight">Available Paid Plans</h2>
-              <p className="text-xs text-neutral-500">Scale your brand with dedicated computing power and social syncing.</p>
+              <h2 className="text-lg font-bold text-white tracking-tight">Available Paid Plans</h2>
+              <p className="text-xs text-neutral-400">Scale your brand with dedicated computing power and social syncing.</p>
             </div>
 
             {/* Monthly / Annual Toggle */}
             <div className="flex items-center gap-3">
-              <span className={`text-xs ${!isAnnual ? 'text-neutral-900 font-semibold' : 'text-neutral-400'}`}>Monthly</span>
+              <span className={`text-xs ${!isAnnual ? 'text-white font-semibold' : 'text-neutral-400'}`}>Monthly</span>
               <button
                 type="button"
                 onClick={() => setIsAnnual(!isAnnual)}
@@ -157,7 +157,7 @@ export const CyBillingPage = ({ userName = 'SHIKARI', onSelectTab }) => {
                 <div className={`w-4 h-4 rounded-full bg-white transition-transform ${isAnnual ? 'translate-x-4' : 'translate-x-0'}`} />
               </button>
               <div className="flex items-center gap-1.5">
-                <span className={`text-xs ${isAnnual ? 'text-neutral-900 font-semibold' : 'text-neutral-400'}`}>Annually</span>
+                <span className={`text-xs ${isAnnual ? 'text-white font-semibold' : 'text-neutral-400'}`}>Annually</span>
                 <span className="text-[9px] font-bold uppercase tracking-wider text-[#ff5e28] bg-[#ff5e28]/10 px-2 py-0.5 rounded-full border border-[#ff5e28]/30">Save 20%</span>
               </div>
             </div>
@@ -172,12 +172,12 @@ export const CyBillingPage = ({ userName = 'SHIKARI', onSelectTab }) => {
                   className={`border rounded-3xl p-6 flex flex-col justify-between space-y-5 transition-all duration-200 shadow-2xs ${
                     tier.isPopular 
                       ? 'bg-neutral-50/70 border-neutral-900 shadow-md relative' 
-                      : 'bg-white border-neutral-200 hover:border-neutral-400'
+                      : 'bg-white border-white/10 hover:border-neutral-400'
                   }`}
                 >
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold text-neutral-900">{tier.name}</span>
+                      <span className="text-sm font-bold text-white">{tier.name}</span>
                       <span className={`text-[9.5px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
                         tier.isPopular ? 'bg-neutral-900 text-white' : 'bg-neutral-100 text-neutral-600'
                       }`}>
@@ -187,7 +187,7 @@ export const CyBillingPage = ({ userName = 'SHIKARI', onSelectTab }) => {
 
                     <div>
                       <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-extrabold text-neutral-950 font-mono">${price}</span>
+                        <span className="text-3xl font-extrabold text-white font-mono">${price}</span>
                         <span className="text-xs text-neutral-400">/ month</span>
                       </div>
                       <span className="text-xs text-emerald-700 font-semibold block mt-1 font-mono">
@@ -195,11 +195,11 @@ export const CyBillingPage = ({ userName = 'SHIKARI', onSelectTab }) => {
                       </span>
                     </div>
 
-                    <p className="text-xs text-neutral-500 leading-relaxed">
+                    <p className="text-xs text-neutral-400 leading-relaxed">
                       {tier.desc}
                     </p>
 
-                    <div className="space-y-2 text-xs text-neutral-700 pt-3 border-t border-neutral-100">
+                    <div className="space-y-2 text-xs text-neutral-700 pt-3 border-t border-white/5">
                       {tier.features.map((feat, idx) => (
                         <div key={idx} className="flex items-start gap-2">
                           <CheckCircle2 size={13} className="text-emerald-600 shrink-0 mt-0.5" />
@@ -214,7 +214,7 @@ export const CyBillingPage = ({ userName = 'SHIKARI', onSelectTab }) => {
                     className={`w-full py-3 rounded-xl transition cursor-pointer text-xs font-bold shadow-xs active:scale-95 flex items-center justify-center gap-2 ${
                       tier.isPopular 
                         ? 'bg-neutral-900 text-white hover:bg-neutral-800' 
-                        : 'bg-neutral-100 text-neutral-900 hover:bg-neutral-200 border border-neutral-200'
+                        : 'bg-neutral-100 text-white hover:bg-neutral-200 border border-white/10'
                     }`}
                   >
                     <CreditCard size={14} />
@@ -231,18 +231,18 @@ export const CyBillingPage = ({ userName = 'SHIKARI', onSelectTab }) => {
       {/* Upgrade Plan Modal */}
       {showUpgradeModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-3xl w-full shadow-2xl border border-neutral-200 space-y-6 relative animate-in zoom-in-95 duration-150 text-left text-neutral-900">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-3xl w-full shadow-2xl border border-white/10 space-y-6 relative animate-in zoom-in-95 duration-150 text-left text-white">
             
             <button 
               onClick={() => setShowUpgradeModal(false)}
-              className="absolute top-5 right-5 text-neutral-400 hover:text-neutral-700 p-1.5 rounded-full hover:bg-neutral-100 transition cursor-pointer"
+              className="absolute top-5 right-5 text-neutral-400 hover:text-neutral-700 p-1.5 rounded-full hover:bg-white/10 transition cursor-pointer"
             >
               <X size={16} />
             </button>
 
             <div>
-              <h2 className="text-xl font-serif font-bold text-neutral-950">Select Your Calvras Plan</h2>
-              <p className="text-xs text-neutral-500 mt-1 max-w-xl leading-relaxed">
+              <h2 className="text-xl font-serif font-bold text-white">Select Your Calvras Plan</h2>
+              <p className="text-xs text-neutral-400 mt-1 max-w-xl leading-relaxed">
                 Choose the credit package that fits your marketing volume. 5 credits are consumed per strategy prompt.
               </p>
             </div>
@@ -253,11 +253,11 @@ export const CyBillingPage = ({ userName = 'SHIKARI', onSelectTab }) => {
                 return (
                   <div 
                     key={tier.id}
-                    className="border border-neutral-200 rounded-2xl p-5 flex flex-col justify-between space-y-4 bg-white hover:border-neutral-900 transition shadow-2xs"
+                    className="border border-white/10 rounded-2xl p-5 flex flex-col justify-between space-y-4 bg-white hover:border-neutral-900 transition shadow-2xs"
                   >
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-neutral-900">{tier.name}</span>
+                        <span className="text-xs font-bold text-white">{tier.name}</span>
                         <span className="text-[9px] font-bold bg-neutral-900 text-white px-2 py-0.5 rounded-full uppercase">
                           {tier.badge}
                         </span>
@@ -265,7 +265,7 @@ export const CyBillingPage = ({ userName = 'SHIKARI', onSelectTab }) => {
 
                       <div>
                         <div className="flex items-baseline gap-1">
-                          <span className="text-2xl font-extrabold text-neutral-950 font-mono">${price}</span>
+                          <span className="text-2xl font-extrabold text-white font-mono">${price}</span>
                           <span className="text-xs text-neutral-400">/mo</span>
                         </div>
                         <span className="text-xs text-emerald-700 font-bold block mt-0.5 font-mono">
@@ -273,10 +273,10 @@ export const CyBillingPage = ({ userName = 'SHIKARI', onSelectTab }) => {
                         </span>
                       </div>
 
-                      <div className="space-y-1.5 text-xs text-neutral-600 pt-2 border-t border-neutral-100">
+                      <div className="space-y-1.5 text-xs text-neutral-600 pt-2 border-t border-white/5">
                         {tier.features.slice(0, 3).map((feat, idx) => (
                           <div key={idx} className="flex items-start gap-1.5">
-                            <Check size={12} className="text-neutral-900 shrink-0 mt-0.5" />
+                            <Check size={12} className="text-white shrink-0 mt-0.5" />
                             <span>{feat}</span>
                           </div>
                         ))}

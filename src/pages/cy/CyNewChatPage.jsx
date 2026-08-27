@@ -172,34 +172,36 @@ export const CyNewChatPage = ({
         </div>
       )}
 
-      {/* Top Mobile Header */}
-      <div className="w-full max-w-xl mx-auto space-y-3 pb-2">
-        <div className="flex md:hidden items-center justify-between px-1">
-          <div className="flex items-center gap-2.5">
-            <img 
-              src="/calvras.png" 
-              alt="Calvras Logo" 
-              className="w-[33px] h-[33px] rounded-lg object-contain"
-            />
-            <span className="font-serif font-bold text-neutral-900 text-xl tracking-tight">
-              Calvras
-            </span>
-          </div>
+      {/* Top Mobile Bar */}
+      <div className="w-full max-w-xl mx-auto flex items-center justify-between md:hidden pb-4">
+        <div className="flex items-center gap-2.5">
+          <img 
+            src="/calvras.png" 
+            alt="Calvras Logo" 
+            className="w-[30px] h-[30px] rounded-lg object-contain"
+          />
+          <span className="font-serif font-bold text-white text-lg tracking-tight">
+            Calvras
+          </span>
+        </div>
 
-          <div className="flex items-center gap-2">
-            <button 
+        <div className="flex items-center gap-2">
+          {onToggleSidebar && (
+            <button
               onClick={onToggleSidebar}
-              className="w-9 h-9 rounded-xl bg-neutral-100 border border-neutral-200 flex items-center justify-center text-neutral-800 transition cursor-pointer active:scale-95"
+              className="p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+              title="Open Menu"
             >
-              <Menu size={16} />
+              <Menu size={18} />
             </button>
-            <button 
-              onClick={onNewChat}
-              className="w-9 h-9 rounded-xl bg-neutral-100 border border-neutral-200 flex items-center justify-center text-neutral-800 transition cursor-pointer active:scale-95"
-            >
-              <SquarePen size={16} />
-            </button>
-          </div>
+          )}
+          <button
+            onClick={onNewChat}
+            className="p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+            title="New Chat"
+          >
+            <SquarePen size={18} />
+          </button>
         </div>
       </div>
 
@@ -208,20 +210,20 @@ export const CyNewChatPage = ({
         
         {/* Simple Elegant Heading */}
         <div className="space-y-2 px-2">
-          <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-serif font-normal text-neutral-900 tracking-tight leading-snug">
+          <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-serif font-normal text-white tracking-tight leading-snug">
             Hey {displayFirstName},<br className="sm:hidden" /> how can I help?
           </h1>
-          <p className="text-xs sm:text-sm text-neutral-500 font-normal max-w-sm sm:max-w-md mx-auto leading-relaxed">
+          <p className="text-xs sm:text-sm text-neutral-400 font-normal max-w-sm sm:max-w-md mx-auto leading-relaxed">
             Plan campaigns, generate viral creatives, and scale your brand across Instagram, TikTok, WhatsApp & Ads.
           </p>
         </div>
 
-        {/* Seamless Borderless Input Box (No Outer Border, No Inner Divider Line) */}
+        {/* Seamless Borderless Input Box */}
         <div className="space-y-3 w-full">
           
           {/* Image Attachment Preview */}
           {attachedImage && (
-            <div className="relative inline-block border border-neutral-200 rounded-xl overflow-hidden shadow-2xs bg-neutral-50 p-1 mb-1">
+            <div className="relative inline-block border border-white/10 rounded-xl overflow-hidden shadow-2xs bg-[#151614] p-1 mb-1">
               <img src={attachedImage} alt="Attachment" className="max-h-20 max-w-xs object-cover rounded-lg" />
               <button
                 onClick={() => setAttachedImage(null)}
@@ -232,7 +234,7 @@ export const CyNewChatPage = ({
             </div>
           )}
 
-          <div className="bg-white border border-neutral-300 hover:border-neutral-400 focus-within:border-neutral-900 rounded-3xl p-4 sm:p-5 shadow-xs transition-all duration-200 text-left space-y-3 relative">
+          <div className="bg-[#151614] border border-white/10 hover:border-white/20 focus-within:border-white/40 rounded-3xl p-4 sm:p-5 shadow-2xl transition-all duration-200 text-left space-y-3 relative">
             <textarea
               ref={textareaRef}
               rows="1"
@@ -240,16 +242,16 @@ export const CyNewChatPage = ({
               onChange={(e) => setPromptText(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Ask anything or describe what you want to market..."
-              className="w-full bg-transparent resize-none focus:outline-none text-xs sm:text-[14px] text-neutral-900 placeholder:text-neutral-500 leading-relaxed font-normal min-h-[44px] max-h-60 overflow-y-auto py-1 transition-all"
+              className="w-full bg-transparent resize-none focus:outline-none text-xs sm:text-[14px] text-white placeholder:text-neutral-500 leading-relaxed font-normal min-h-[44px] max-h-60 overflow-y-auto py-1 transition-all"
             />
 
-            {/* Seamless Bottom Action Row (No Dividing Line) */}
+            {/* Seamless Bottom Action Row */}
             <div className="flex items-center justify-between pt-1">
               <div className="flex items-center gap-1.5 text-neutral-400">
                 <button 
                   type="button" 
                   onClick={() => fileInputRef.current?.click()}
-                  className="hover:text-neutral-800 p-1.5 rounded-lg hover:bg-neutral-200/60 transition cursor-pointer active:scale-95" 
+                  className="hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition cursor-pointer active:scale-95" 
                   title="Attach file"
                 >
                   <Paperclip size={15} />
@@ -257,7 +259,7 @@ export const CyNewChatPage = ({
 
                 <button 
                   type="button" 
-                  className="hover:text-neutral-800 p-1.5 rounded-lg hover:bg-neutral-200/60 transition cursor-pointer active:scale-95" 
+                  className="hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition cursor-pointer active:scale-95" 
                   title="Web search / Global"
                 >
                   <Globe size={15} />
@@ -268,29 +270,11 @@ export const CyNewChatPage = ({
                 type="button"
                 onClick={() => (promptText.trim() || attachedImage) && onSendMessage(promptText, attachedImage)}
                 disabled={!promptText.trim() && !attachedImage}
-                className="w-8 h-8 rounded-full bg-neutral-900 hover:bg-neutral-800 disabled:opacity-30 text-white flex items-center justify-center transition cursor-pointer shadow-md active:scale-90"
+                className="w-8 h-8 rounded-full bg-white hover:bg-neutral-200 disabled:opacity-30 text-neutral-950 flex items-center justify-center transition cursor-pointer shadow-md active:scale-90"
               >
                 <Send size={13} className="translate-x-[-0.5px] translate-y-[-0.5px]" />
               </button>
             </div>
-          </div>
-
-          {/* Quick Suggestion Chips */}
-          <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-            {[
-              "Generate landing-page improvements",
-              "Write 15 Meta & TikTok ad hooks",
-              "Audit my marketing funnel for leaks",
-              "Build a 30-day multi-channel roadmap"
-            ].map((chip, idx) => (
-              <button
-                key={idx}
-                onClick={() => onSendMessage(chip)}
-                className="text-[11.5px] font-medium text-neutral-600 bg-neutral-100 hover:bg-neutral-200/80 hover:text-neutral-950 border border-neutral-200/80 px-3 py-1.5 rounded-full transition cursor-pointer active:scale-95 shadow-2xs"
-              >
-                {chip}
-              </button>
-            ))}
           </div>
         </div>
 
@@ -298,9 +282,9 @@ export const CyNewChatPage = ({
 
       {/* Connect Accounts Card (Pushed Down to Bottom with Generous Spacing) */}
       <div className="w-full max-w-xl mx-auto pt-10 pb-4">
-        <div className="bg-neutral-50 border border-neutral-200/80 rounded-3xl p-4 sm:p-5 text-left space-y-3 shadow-xs">
+        <div className="bg-[#131412] border border-white/10 rounded-3xl p-4 sm:p-5 text-left space-y-3 shadow-xs">
           <div className="flex items-center justify-between text-xs">
-            <span className="font-semibold text-neutral-800">
+            <span className="font-semibold text-neutral-300">
               Connect accounts to add posts & track reach.
             </span>
             {!hasConnectorsAccess && (
@@ -318,10 +302,10 @@ export const CyNewChatPage = ({
                 <button
                   key={plat.id}
                   onClick={() => handleConnectorClick(plat.id)}
-                  className={`flex items-center justify-between p-3 rounded-2xl border transition-all duration-200 cursor-pointer shadow-2xs hover:border-neutral-400 active:scale-[0.98] ${
+                  className={`flex items-center justify-between p-3 rounded-2xl border transition-all duration-200 cursor-pointer shadow-2xs hover:border-white/30 active:scale-[0.98] ${
                     connected 
-                      ? 'bg-white border-neutral-900 text-neutral-950 font-semibold' 
-                      : 'bg-white border-neutral-200 text-neutral-700 font-medium'
+                      ? 'bg-[#1c1d1a] border-white/30 text-white font-semibold' 
+                      : 'bg-[#161715] border-white/10 text-neutral-300 font-medium'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
@@ -329,9 +313,9 @@ export const CyNewChatPage = ({
                     <span className="text-xs">{plat.name}</span>
                   </div>
                   {connected ? (
-                    <CheckCircle2 size={13} className="text-emerald-600 shrink-0" />
+                    <CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
                   ) : !hasConnectorsAccess ? (
-                    <Lock size={12} className="text-neutral-400 shrink-0" />
+                    <Lock size={12} className="text-neutral-500 shrink-0" />
                   ) : null}
                 </button>
               );

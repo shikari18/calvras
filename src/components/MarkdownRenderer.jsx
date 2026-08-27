@@ -214,46 +214,46 @@ export const MarkdownRenderer = ({ content }) => {
 
   // Standard Single Image / General Markdown Renderer
   return (
-    <div className="text-[13px] sm:text-[13.5px] text-neutral-800 leading-[1.65] space-y-3 text-left select-text font-sans antialiased">
+    <div className="text-[13px] sm:text-[13.5px] text-[#f4f4ee] leading-[1.65] space-y-3 text-left select-text font-sans antialiased">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
           h1: ({ children }) => (
-            <h2 className="text-base font-bold text-neutral-950 pt-3 pb-1 border-b border-neutral-100 tracking-tight">
+            <h2 className="text-base font-bold text-white pt-3 pb-1 border-b border-white/10 tracking-tight">
               {children}
             </h2>
           ),
           h2: ({ children }) => (
-            <h3 className="text-sm font-bold text-purple-950 pt-2 pb-0.5 tracking-tight flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-purple-600 inline-block shrink-0" />
+            <h3 className="text-sm font-bold text-white pt-2 pb-0.5 tracking-tight flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-purple-400 inline-block shrink-0" />
               <span>{children}</span>
             </h3>
           ),
           h3: ({ children }) => (
-            <h4 className="text-[13.5px] font-bold text-neutral-900 pt-2 pb-0.5">
+            <h4 className="text-[13.5px] font-bold text-white pt-2 pb-0.5">
               {children}
             </h4>
           ),
           p: ({ children }) => (
-            <p className="text-[13px] sm:text-[13.5px] text-neutral-800 leading-[1.65] my-2">
+            <p className="text-[13px] sm:text-[13.5px] text-[#f4f4ee] leading-[1.65] my-2">
               {children}
             </p>
           ),
           strong: ({ children }) => (
-            <strong className="font-bold text-neutral-950">{children}</strong>
+            <strong className="font-bold text-white">{children}</strong>
           ),
           em: ({ children }) => (
-            <em className="italic text-neutral-700 font-normal">{children}</em>
+            <em className="italic text-neutral-300 font-normal">{children}</em>
           ),
           ul: ({ children }) => (
             <ul className="space-y-1.5 my-2 pl-1">{children}</ul>
           ),
           ol: ({ children }) => (
-            <ol className="space-y-1.5 my-2 pl-1 list-decimal list-inside">{children}</ol>
+            <ol className="space-y-1.5 my-2 pl-1 list-decimal list-inside text-[#f4f4ee]">{children}</ol>
           ),
           li: ({ children }) => (
-            <li className="text-[13px] sm:text-[13.5px] text-neutral-800 flex items-start gap-2 leading-relaxed">
-              <span className="text-purple-600 font-bold text-xs mt-0.5 shrink-0">•</span>
+            <li className="text-[13px] sm:text-[13.5px] text-[#f4f4ee] flex items-start gap-2 leading-relaxed">
+              <span className="text-purple-400 font-bold text-xs mt-0.5 shrink-0">•</span>
               <div className="flex-1">{children}</div>
             </li>
           ),
@@ -263,38 +263,38 @@ export const MarkdownRenderer = ({ content }) => {
             </div>
           ),
           table: ({ children }) => (
-            <div className="my-3 overflow-x-auto rounded-2xl border border-neutral-200 shadow-2xs bg-white">
-              <table className="w-full text-left text-xs border-collapse divide-y divide-neutral-200">
+            <div className="my-3 overflow-x-auto rounded-2xl border border-white/10 shadow-lg bg-[#131412]">
+              <table className="w-full text-left text-xs border-collapse divide-y divide-white/10">
                 {children}
               </table>
             </div>
           ),
           thead: ({ children }) => (
-            <thead className="bg-purple-50/80">{children}</thead>
+            <thead className="bg-white/5">{children}</thead>
           ),
           tbody: ({ children }) => (
-            <tbody className="divide-y divide-neutral-100 bg-white">{children}</tbody>
+            <tbody className="divide-y divide-white/5 bg-[#131412] text-[#e4e4dd]">{children}</tbody>
           ),
           tr: ({ children }) => (
-            <tr className="hover:bg-purple-50/20 transition">{children}</tr>
+            <tr className="hover:bg-white/5 transition">{children}</tr>
           ),
           th: ({ children }) => (
-            <th className="px-3.5 py-2.5 font-bold text-[11px] text-purple-950 tracking-wider">
+            <th className="px-3.5 py-2.5 font-bold text-[11px] text-white tracking-wider">
               {children}
             </th>
           ),
           td: ({ children }) => (
-            <td className="px-3.5 py-2.5 text-xs text-neutral-800 align-top">
+            <td className="px-3.5 py-2.5 text-xs text-[#e4e4dd] align-top">
               {children}
             </td>
           ),
           blockquote: ({ children }) => (
-            <div className="border-l-3 border-purple-500 pl-3.5 py-2 bg-purple-50/40 rounded-r-xl my-2.5 text-[12.5px] text-neutral-800 shadow-2xs">
+            <div className="border-l-2 border-purple-500 pl-3.5 py-2 bg-purple-950/20 rounded-r-xl my-2.5 text-[12.5px] text-neutral-300 shadow-2xs">
               {children}
             </div>
           ),
           code: CodeBlock,
-          hr: () => <hr className="border-neutral-100 my-3" />
+          hr: () => <hr className="border-white/10 my-3" />
         }}
       >
         {clean}

@@ -7,8 +7,8 @@
   
   html, body, #root {
     font-family: var(--font-sans);
-    color: #0a0a0a;
-    background-color: #ffffff;
+    color: #f4f4ee;
+    background-color: #0d0e0c;
     overflow-x: hidden;
   }
 }
@@ -64,23 +64,23 @@
   letter-spacing: -0.01em;
 }
 
-/* Clean Custom Scrollbars */
+/* Clean Custom Dark Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #fafafc;
+  background: #0d0e0c;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #e2e2e8;
+  background: #27272a;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #c7c7d2;
+  background: #3f3f46;
 }
 
 /* ChatGPT Faint-to-Bright Word Reveal Animation (100% Layout-Stable) */
@@ -108,7 +108,7 @@
   display: inline-block;
   width: 6.5px;
   height: 14px;
-  background-color: #171717;
+  background-color: #ffffff;
   border-radius: 2px;
   margin-left: 3px;
   vertical-align: -1.5px;

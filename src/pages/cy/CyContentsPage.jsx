@@ -23,7 +23,7 @@ const ChannelIcons = {
     </span>
   ),
   TikTok: () => (
-    <span className="text-[10px] font-bold text-neutral-900 bg-neutral-100 border border-neutral-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+    <span className="text-[10px] font-bold text-white bg-neutral-100 border border-white/10 px-2 py-0.5 rounded-full flex items-center gap-1">
       <span>🎵</span> TikTok
     </span>
   ),
@@ -80,16 +80,16 @@ export const CyContentsPage = ({ onNewChat }) => {
   };
 
   return (
-    <div className="flex-1 min-h-screen bg-white p-6 sm:p-10 font-sans antialiased text-neutral-900 select-none text-left overflow-y-auto">
+    <div className="flex-1 min-h-screen bg-[#0d0e0c] text-[#f4f4ee] p-6 sm:p-10 font-sans antialiased text-white select-none text-left overflow-y-auto">
       <div className="max-w-6xl mx-auto space-y-8 pt-4 sm:pt-6">
         
         {/* Header Title with Action Button */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-100 pb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-5">
           <div className="space-y-1">
-            <h1 className="text-3xl sm:text-4xl font-serif font-normal text-neutral-900 tracking-tight">
+            <h1 className="text-3xl sm:text-4xl font-serif font-normal text-white tracking-tight">
               Contents & Publishing Hub
             </h1>
-            <p className="text-xs sm:text-sm text-neutral-500 font-normal">
+            <p className="text-xs sm:text-sm text-neutral-400 font-normal">
               Your autonomous campaign schedule, multi-channel creatives, and one-click publishing studio.
             </p>
           </div>
@@ -113,7 +113,7 @@ export const CyContentsPage = ({ onNewChat }) => {
                 className={`text-xs font-semibold px-3 py-1.5 rounded-xl transition cursor-pointer shrink-0 ${
                   activeFilter === tab
                     ? 'bg-neutral-900 text-white shadow-2xs'
-                    : 'text-neutral-600 hover:text-neutral-950 hover:bg-neutral-100'
+                    : 'text-neutral-600 hover:text-white hover:bg-white/10'
                 }`}
               >
                 {tab}
@@ -128,7 +128,7 @@ export const CyContentsPage = ({ onNewChat }) => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search captions & products..."
-              className="w-full text-xs pl-8 pr-3 py-1.5 rounded-xl bg-neutral-50 border border-neutral-200 focus:outline-none focus:border-neutral-900 transition"
+              className="w-full text-xs pl-8 pr-3 py-1.5 rounded-xl bg-[#181916] border border-white/10 focus:outline-none focus:border-neutral-900 transition"
             />
           </div>
         </div>
@@ -143,7 +143,7 @@ export const CyContentsPage = ({ onNewChat }) => {
               return (
                 <div
                   key={item.id}
-                  className="bg-white border border-[#e5e5e7] hover:border-neutral-400 rounded-3xl overflow-hidden shadow-2xs transition flex flex-col justify-between group"
+                  className="bg-[#131412] border border-white/10 hover:border-neutral-400 rounded-3xl overflow-hidden shadow-2xs transition flex flex-col justify-between group"
                 >
                   <div>
                     {/* Media Thumbnail */}
@@ -167,7 +167,7 @@ export const CyContentsPage = ({ onNewChat }) => {
                         <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
                           {item.format || 'Social Post'}
                         </span>
-                        <h3 className="text-xs font-bold text-neutral-900 mt-0.5 line-clamp-1">
+                        <h3 className="text-xs font-bold text-white mt-0.5 line-clamp-1">
                           {item.title}
                         </h3>
                       </div>
@@ -179,7 +179,7 @@ export const CyContentsPage = ({ onNewChat }) => {
                       </div>
 
                       {/* Caption Box */}
-                      <div className="p-3 bg-[#fafafc] border border-neutral-200/60 rounded-2xl text-xs text-neutral-700 leading-relaxed max-h-24 overflow-y-auto whitespace-pre-line">
+                      <div className="p-3 bg-[#fafafc] border border-white/10/60 rounded-2xl text-xs text-neutral-700 leading-relaxed max-h-24 overflow-y-auto whitespace-pre-line">
                         {item.caption}
                       </div>
 
@@ -197,10 +197,10 @@ export const CyContentsPage = ({ onNewChat }) => {
                   </div>
 
                   {/* Card Bottom Actions */}
-                  <div className="p-3 border-t border-neutral-100 flex items-center justify-between bg-white">
+                  <div className="p-3 border-t border-white/5 flex items-center justify-between bg-white">
                     <button
                       onClick={() => handleCopyCaption(item.id, item.caption)}
-                      className="text-xs font-semibold text-neutral-700 hover:text-neutral-950 flex items-center gap-1 cursor-pointer transition"
+                      className="text-xs font-semibold text-neutral-700 hover:text-white flex items-center gap-1 cursor-pointer transition"
                     >
                       {copiedId === item.id ? (
                         <>
@@ -250,12 +250,12 @@ export const CyContentsPage = ({ onNewChat }) => {
           </div>
         ) : (
           /* Clean Empty State */
-          <div className="bg-white border border-[#e5e5e7] rounded-3xl p-12 sm:p-16 shadow-2xs flex flex-col items-center justify-center text-center space-y-3 min-h-[320px]">
+          <div className="bg-[#131412] border border-white/10 rounded-3xl p-12 sm:p-16 shadow-2xs flex flex-col items-center justify-center text-center space-y-3 min-h-[320px]">
             <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mb-1">
               <Sparkles size={24} />
             </div>
             
-            <h3 className="text-sm font-semibold text-neutral-900">
+            <h3 className="text-sm font-semibold text-white">
               No content published yet
             </h3>
 

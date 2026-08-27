@@ -114,26 +114,26 @@ Provide a structured analysis:
   };
 
   return (
-    <div className="flex-1 min-h-screen bg-white p-6 sm:p-10 font-sans antialiased text-neutral-900 select-none text-left overflow-y-auto">
+    <div className="flex-1 min-h-screen bg-[#0d0e0c] text-[#f4f4ee] p-6 sm:p-10 font-sans antialiased text-white select-none text-left overflow-y-auto">
       <div className="max-w-5xl mx-auto space-y-8 pt-2 sm:pt-6">
         
         {/* Header */}
-        <div className="space-y-1.5 border-b border-neutral-100 pb-5">
+        <div className="space-y-1.5 border-b border-white/5 pb-5">
           <div className="flex items-center gap-2 text-xs font-bold text-purple-600 uppercase tracking-wider">
             <Radar size={15} />
             <span>AI Market Intelligence</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-serif font-normal text-neutral-900 tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-serif font-normal text-white tracking-tight">
             Competitor Radar & Market Spy
           </h1>
-          <p className="text-xs sm:text-sm text-neutral-500 font-normal">
+          <p className="text-xs sm:text-sm text-neutral-400 font-normal">
             Analyze any competitor, discover their pricing gaps and weak spots, and generate counter-campaigns to win their audience.
           </p>
         </div>
 
         {/* Search Bar */}
         <div className="space-y-3">
-          <div className="flex items-center gap-2 bg-white border-2 border-neutral-200 hover:border-neutral-300 focus-within:border-neutral-900 rounded-2xl p-2 shadow-2xs transition">
+          <div className="flex items-center gap-2 bg-[#131412] border border-white/10 hover:border-neutral-300 focus-within:border-neutral-900 rounded-2xl p-2 shadow-2xs transition">
             <Search size={18} className="text-neutral-400 ml-2" />
             <input
               type="text"
@@ -160,7 +160,7 @@ Provide a structured analysis:
               <button
                 key={idx}
                 onClick={() => handleSearchCompetitor(p.query)}
-                className="text-[11px] font-medium text-neutral-600 bg-neutral-50 hover:bg-neutral-100 hover:text-neutral-900 border border-neutral-200/80 px-2.5 py-1 rounded-full whitespace-nowrap transition cursor-pointer shrink-0"
+                className="text-[11px] font-medium text-neutral-600 bg-neutral-50 hover:bg-white/10 hover:text-white border border-white/10/80 px-2.5 py-1 rounded-full whitespace-nowrap transition cursor-pointer shrink-0"
               >
                 {p.label}
               </button>
@@ -176,8 +176,8 @@ Provide a structured analysis:
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               
               {/* Card 1: Strengths */}
-              <div className="bg-white border border-neutral-200 rounded-2xl p-4 shadow-2xs space-y-2">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-neutral-900">
+              <div className="bg-[#131412] border border-white/10 rounded-2xl p-4 shadow-2xs space-y-2">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-white">
                   <TrendingUp size={14} className="text-emerald-600" />
                   <span>Competitor Strengths</span>
                 </div>
@@ -192,7 +192,7 @@ Provide a structured analysis:
               </div>
 
               {/* Card 2: Vulnerabilities */}
-              <div className="bg-white border border-neutral-200 rounded-2xl p-4 shadow-2xs space-y-2">
+              <div className="bg-[#131412] border border-white/10 rounded-2xl p-4 shadow-2xs space-y-2">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-rose-700">
                   <ShieldAlert size={14} className="text-rose-600" />
                   <span>Weaknesses & Blindspots</span>
@@ -208,7 +208,7 @@ Provide a structured analysis:
               </div>
 
               {/* Card 3: Pricing Gap */}
-              <div className="bg-white border border-neutral-200 rounded-2xl p-4 shadow-2xs space-y-2">
+              <div className="bg-[#131412] border border-white/10 rounded-2xl p-4 shadow-2xs space-y-2">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-amber-800">
                   <DollarSign size={14} className="text-amber-600" />
                   <span>Pricing & Offer Gap</span>
@@ -225,7 +225,7 @@ Provide a structured analysis:
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Target size={16} className="text-purple-600" />
-                  <h3 className="text-sm font-bold text-neutral-950">
+                  <h3 className="text-sm font-bold text-white">
                     3 Winning Counter-Attack Campaigns
                   </h3>
                 </div>
@@ -238,13 +238,13 @@ Provide a structured analysis:
                 {report.counterCampaigns.map((camp, idx) => (
                   <div
                     key={idx}
-                    className="bg-white border border-neutral-200 hover:border-neutral-900 rounded-2xl p-4 shadow-2xs transition flex flex-col justify-between space-y-4 group"
+                    className="bg-[#131412] border border-white/10 hover:border-neutral-900 rounded-2xl p-4 shadow-2xs transition flex flex-col justify-between space-y-4 group"
                   >
                     <div className="space-y-2">
                       <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-100">
                         {camp.channel}
                       </span>
-                      <h4 className="text-xs font-bold text-neutral-900 group-hover:text-purple-700 transition">
+                      <h4 className="text-xs font-bold text-white group-hover:text-purple-700 transition">
                         {camp.title}
                       </h4>
                       <p className="text-[11.5px] text-neutral-600 leading-relaxed">

@@ -176,22 +176,22 @@ export const CyAgentsPage = ({ onNewChat }) => {
   ];
 
   return (
-    <div className="flex-1 min-h-screen bg-[#fafafc] flex flex-col justify-start p-4 sm:p-8 lg:p-10 font-sans antialiased text-neutral-900 select-none overflow-y-auto w-full min-w-0 text-left">
+    <div className="flex-1 min-h-screen bg-[#fafafc] flex flex-col justify-start p-4 sm:p-8 lg:p-10 font-sans antialiased text-white select-none overflow-y-auto w-full min-w-0 text-left">
       
       <div className="max-w-6xl mx-auto w-full space-y-8">
         
         {/* Top Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-200/80 pb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10/80 pb-5">
           <div>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center shadow-xs">
                 <Bot size={18} />
               </div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-950 font-serif">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-serif">
                 Autonomous Growth Agent
               </h1>
             </div>
-            <p className="text-xs sm:text-sm text-neutral-500 mt-1">
+            <p className="text-xs sm:text-sm text-neutral-400 mt-1">
               Observe $\rightarrow$ Decide $\rightarrow$ Execute $\rightarrow$ Measure $\rightarrow$ Improve. Calvras autonomously powers your entire marketing pipeline.
             </p>
           </div>
@@ -205,11 +205,11 @@ export const CyAgentsPage = ({ onNewChat }) => {
         </div>
 
         {/* 1. Hero Goal Command Launcher: "What are we trying to achieve?" */}
-        <div className="bg-white border-2 border-neutral-200 focus-within:border-neutral-900 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4 transition">
+        <div className="bg-[#131412] border border-white/10 focus-within:border-neutral-900 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4 transition">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <BrandBurstLogo size={18} />
-              <span className="text-sm font-bold text-neutral-950">CALVRAS CHIEF AGENT</span>
+              <span className="text-sm font-bold text-white">CALVRAS CHIEF AGENT</span>
             </div>
             <span className="text-xs font-medium text-neutral-400">Give a goal & budget — Calvras plans & executes</span>
           </div>
@@ -225,7 +225,7 @@ export const CyAgentsPage = ({ onNewChat }) => {
                 onChange={(e) => setGoalPrompt(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleRunAutonomousGrowthAgent()}
                 placeholder="e.g. 'Get 500 new customers in 30 days with a $2,000 budget'..."
-                className="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-sm text-neutral-950 font-medium placeholder:text-neutral-400 focus:outline-none focus:bg-white focus:border-purple-600 transition"
+                className="w-full bg-[#181916] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white font-medium placeholder:text-neutral-400 focus:outline-none focus:bg-white focus:border-purple-600 transition"
               />
               <button
                 onClick={handleRunAutonomousGrowthAgent}
@@ -263,7 +263,7 @@ export const CyAgentsPage = ({ onNewChat }) => {
                   setGoalPrompt(preset);
                   setTimeout(() => handleRunAutonomousGrowthAgent(), 50);
                 }}
-                className="text-[11px] font-medium text-neutral-600 bg-neutral-100 hover:bg-neutral-200/80 border border-neutral-200/80 px-2.5 py-1 rounded-xl transition cursor-pointer"
+                className="text-[11px] font-medium text-neutral-600 bg-neutral-100 hover:bg-neutral-200/80 border border-white/10/80 px-2.5 py-1 rounded-xl transition cursor-pointer"
               >
                 {preset}
               </button>
@@ -378,25 +378,25 @@ export const CyAgentsPage = ({ onNewChat }) => {
             {/* Prioritized Action Cards (Priority 01 to 05) */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-neutral-950 uppercase tracking-wider">
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider">
                   Prioritized Autonomous Actions (Ordered by Impact & Speed)
                 </h3>
-                <span className="text-xs text-neutral-500 font-mono">5 High-Impact Moves</span>
+                <span className="text-xs text-neutral-400 font-mono">5 High-Impact Moves</span>
               </div>
 
               <div className="space-y-3.5">
                 {growthPlan.priorities.map((item) => (
                   <div 
                     key={item.id}
-                    className="bg-white border border-neutral-200 hover:border-neutral-300 rounded-2xl p-5 shadow-2xs transition space-y-3"
+                    className="bg-[#131412] border border-white/10 hover:border-neutral-300 rounded-2xl p-5 shadow-2xs transition space-y-3"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-neutral-100 pb-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/5 pb-3">
                       <div className="flex items-center gap-3">
                         <span className="w-8 h-8 rounded-xl bg-neutral-900 text-white flex items-center justify-center text-xs font-bold font-mono">
                           {item.number}
                         </span>
                         <div>
-                          <h4 className="text-sm font-bold text-neutral-950">{item.title}</h4>
+                          <h4 className="text-sm font-bold text-white">{item.title}</h4>
                           <div className="flex items-center gap-2 mt-0.5">
                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${item.tagColor}`}>
                               {item.tag}
@@ -409,7 +409,7 @@ export const CyAgentsPage = ({ onNewChat }) => {
                       <div className="flex items-center gap-2 self-start sm:self-auto">
                         <button
                           onClick={() => handleCopy(item.actionCopy, item.id)}
-                          className="px-3 py-1.5 rounded-xl border border-neutral-200 hover:bg-neutral-50 text-neutral-700 text-xs font-semibold flex items-center gap-1 transition cursor-pointer"
+                          className="px-3 py-1.5 rounded-xl border border-white/10 hover:bg-white/5 text-neutral-700 text-xs font-semibold flex items-center gap-1 transition cursor-pointer"
                         >
                           {copiedId === item.id ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
                           <span>{copiedId === item.id ? 'Copied' : 'Copy Payload'}</span>
@@ -453,7 +453,7 @@ export const CyAgentsPage = ({ onNewChat }) => {
                     </div>
 
                     {/* Pre-generated Action Copy/Script */}
-                    <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-200/80 font-mono text-[11.5px] text-neutral-800 whitespace-pre-wrap leading-relaxed">
+                    <div className="p-3 bg-neutral-50 rounded-xl border border-white/10/80 font-mono text-[11.5px] text-neutral-200 whitespace-pre-wrap leading-relaxed">
                       {item.actionCopy}
                     </div>
                   </div>
@@ -465,13 +465,13 @@ export const CyAgentsPage = ({ onNewChat }) => {
         )}
 
         {/* 3. Live Autonomous Loop Feed (Observe -> Decide -> Execute -> Measure -> Improve) */}
-        <div className="bg-white border border-neutral-200 rounded-3xl p-6 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+        <div className="bg-[#131412] border border-white/10 rounded-3xl p-6 shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b border-white/5 pb-3">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-lg bg-purple-50 border border-purple-100 flex items-center justify-center">
                 <Cpu size={14} className="text-purple-600" />
               </div>
-              <h3 className="text-sm font-bold text-neutral-950">
+              <h3 className="text-sm font-bold text-white">
                 Live Autonomous Loop (Observe $\rightarrow$ Decide $\rightarrow$ Execute $\rightarrow$ Measure $\rightarrow$ Improve)
               </h3>
             </div>
@@ -480,13 +480,13 @@ export const CyAgentsPage = ({ onNewChat }) => {
 
           <div className="space-y-2.5">
             {autonomousLoopFeed.map((item, idx) => (
-              <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-xl bg-neutral-50/80 border border-neutral-200/60 text-xs">
+              <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-xl bg-neutral-50/80 border border-white/10/60 text-xs">
                 <div className="flex items-center gap-2.5">
                   <span className="font-mono text-neutral-400 text-[11px] shrink-0">{item.time}</span>
                   <span className={`text-[10.5px] font-bold px-2 py-0.5 rounded-md border shrink-0 ${item.color}`}>
                     {item.stage}
                   </span>
-                  <span className="text-neutral-800 font-medium">{item.text}</span>
+                  <span className="text-neutral-200 font-medium">{item.text}</span>
                 </div>
                 <span className="text-[10.5px] text-emerald-600 font-semibold self-start sm:self-auto shrink-0 flex items-center gap-1">
                   <CheckCircle2 size={11} />
@@ -498,13 +498,13 @@ export const CyAgentsPage = ({ onNewChat }) => {
         </div>
 
         {/* 4. Specialized Under-the-Hood Sub-Agent Engines */}
-        <div className="bg-white border border-neutral-200 rounded-3xl p-6 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+        <div className="bg-[#131412] border border-white/10 rounded-3xl p-6 shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b border-white/5 pb-3">
             <div>
-              <h3 className="text-sm font-bold text-neutral-950">
+              <h3 className="text-sm font-bold text-white">
                 Calvras Autonomous Sub-Agent Engines
               </h3>
-              <p className="text-xs text-neutral-500">
+              <p className="text-xs text-neutral-400">
                 Specialized autonomous sub-agents operating synchronously under Calvras.
               </p>
             </div>
@@ -515,12 +515,12 @@ export const CyAgentsPage = ({ onNewChat }) => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {subAgents.map((agent, idx) => (
-              <div key={idx} className="p-4 rounded-2xl border border-neutral-200 bg-neutral-50/50 space-y-2 hover:bg-white hover:border-neutral-300 transition">
+              <div key={idx} className="p-4 rounded-2xl border border-white/10 bg-neutral-50/50 space-y-2 hover:bg-white hover:border-neutral-300 transition">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-neutral-950">{agent.name}</span>
+                  <span className="text-xs font-bold text-white">{agent.name}</span>
                   <agent.icon size={14} className="text-purple-600" />
                 </div>
-                <p className="text-[11.5px] text-neutral-500 leading-relaxed">{agent.role}</p>
+                <p className="text-[11.5px] text-neutral-400 leading-relaxed">{agent.role}</p>
                 <div className="pt-1 text-[11px] font-mono text-emerald-700 font-semibold">
                   {agent.status}
                 </div>
@@ -534,11 +534,11 @@ export const CyAgentsPage = ({ onNewChat }) => {
       {/* Review & Launch Confirmation Modal */}
       {isLaunchModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
-          <div className="bg-white border border-neutral-200 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-5 text-left">
-            <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+          <div className="bg-[#131412] border border-white/10 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-5 text-left">
+            <div className="flex items-center justify-between border-b border-white/5 pb-3">
               <div className="flex items-center gap-2">
                 <BrandBurstLogo size={18} />
-                <h3 className="text-base font-bold text-neutral-950">Autonomous Actions Deployed</h3>
+                <h3 className="text-base font-bold text-white">Autonomous Actions Deployed</h3>
               </div>
               <span className="text-xs font-mono text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg font-bold border border-emerald-200">
                 100% Synced
@@ -549,7 +549,7 @@ export const CyAgentsPage = ({ onNewChat }) => {
               All 5 prioritized growth actions have been queued and staged across your connected marketing channels:
             </p>
 
-            <div className="space-y-2 text-xs font-medium text-neutral-800">
+            <div className="space-y-2 text-xs font-medium text-neutral-200">
               <div className="flex items-center gap-2 p-2 rounded-xl bg-neutral-50">
                 <CheckCircle2 size={13} className="text-emerald-600" />
                 <span>Priority 01: Landing page headline & sticky CTA staged</span>

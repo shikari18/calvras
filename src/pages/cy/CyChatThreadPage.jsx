@@ -159,21 +159,22 @@ export const CyChatThreadPage = ({
 
       addChatMessage(aiMsg);
 
-      // Smooth streaming text effect
+      // Fluid multi-token streaming text effect
       setStreamingMsgId(aiMsgId);
       setStreamingText('');
 
       const words = cleaned.split(' ');
       let currentIdx = 0;
       let accumulated = '';
-      const totalWords = words.length;
-      const intervalSpeed = totalWords > 200 ? 12 : 20;
+      const chunkSize = words.length > 250 ? 3 : (words.length > 80 ? 2 : 1);
+      const intervalSpeed = 16;
 
       const streamTimer = setInterval(() => {
         if (currentIdx < words.length) {
-          accumulated += (currentIdx === 0 ? '' : ' ') + words[currentIdx];
+          const nextChunk = words.slice(currentIdx, currentIdx + chunkSize).join(' ');
+          accumulated += (currentIdx === 0 ? '' : ' ') + nextChunk;
           setStreamingText(accumulated);
-          currentIdx++;
+          currentIdx += chunkSize;
         } else {
           clearInterval(streamTimer);
           setStreamingMsgId(null);
@@ -224,7 +225,7 @@ export const CyChatThreadPage = ({
   });
 
   return (
-    <div className="flex-1 min-h-screen bg-white flex flex-col justify-between font-sans antialiased text-neutral-900 select-none">
+    <div className="flex-1 min-h-screen bg-[#0d0e0c] flex flex-col justify-between font-sans antialiased text-[#f4f4ee] select-none">
       
       {/* Hidden File Input */}
       <input 
@@ -235,24 +236,18 @@ export const CyChatThreadPage = ({
         className="hidden" 
       />
 
-      {/* Top Header */}
-      <header className="px-4 sm:px-6 py-3.5 border-b border-neutral-200 flex items-center justify-between bg-white/90 backdrop-blur-md sticky top-0 z-20">
+      {/* Top Header (Clean / Minimal) */}
+      <header className="px-4 sm:px-6 py-2.5 border-b border-white/10 flex items-center justify-between bg-[#0d0e0c]/90 backdrop-blur-md sticky top-0 z-20">
         <div className="flex items-center gap-2">
           {onToggleSidebar && (
             <button
               onClick={onToggleSidebar}
-              className="md:hidden p-1.5 -ml-1 hover:bg-neutral-100 rounded-xl text-neutral-600 transition cursor-pointer"
+              className="md:hidden p-1.5 -ml-1 hover:bg-white/10 rounded-xl text-neutral-400 hover:text-white transition cursor-pointer"
               title="Open Menu"
             >
               <Menu size={16} />
             </button>
           )}
-          <div className="flex items-center gap-1.5 text-xs font-bold text-neutral-900">
-            <Hash size={14} className="text-neutral-400" />
-            <span>{channelName}</span>
-          </div>
-          <span className="text-neutral-300">|</span>
-          <span className="text-xs text-neutral-500 font-normal truncate max-w-[120px] sm:max-w-xs">{threadTitle}</span>
         </div>
       </header>
 
@@ -280,9 +275,9 @@ export const CyChatThreadPage = ({
               /* User Message (Right Aligned) */
               <div className="max-w-[85%] sm:max-w-[75%] space-y-1 text-right">
                 <div className="flex items-center justify-end gap-2">
-                  <span className="text-[10.5px] text-neutral-400 font-normal">{msg.time}</span>
-                  <span className="text-xs font-bold text-neutral-900">{msg.name}</span>
-                  <div className="w-6 h-6 rounded-md bg-neutral-900 text-white flex items-center justify-center text-[10px] font-bold shrink-0 overflow-hidden shadow-2xs">
+                  <span className="text-[10.5px] text-neutral-500 font-normal">{msg.time}</span>
+                  <span className="text-xs font-bold text-neutral-300">{msg.name}</span>
+                  <div className="w-6 h-6 rounded-md bg-[#1c1d1a] border border-white/10 text-white flex items-center justify-center text-[10px] font-bold shrink-0 overflow-hidden shadow-2xs">
                     {(msg.avatar || userProfile?.picture) ? (
                       <img 
                         src={msg.avatar || userProfile?.picture} 
@@ -300,7 +295,7 @@ export const CyChatThreadPage = ({
                 {/* User Uploaded Image Card */}
                 {msg.image && (
                   <div className="flex justify-end pt-1">
-                    <div className="max-w-xs rounded-2xl border border-neutral-200 overflow-hidden bg-neutral-50 shadow-xs p-2">
+                    <div className="max-w-xs rounded-2xl border border-white/10 overflow-hidden bg-[#151614] shadow-xs p-2">
                       <img 
                         src={msg.image} 
                         alt="Uploaded Creative" 
@@ -311,7 +306,7 @@ export const CyChatThreadPage = ({
                 )}
 
                 {/* User Message Bubble */}
-                <div className="inline-block text-left bg-neutral-900 text-white px-4 py-2.5 rounded-2xl rounded-tr-xs shadow-xs text-[13.5px] leading-[1.6]">
+                <div className="inline-block text-left bg-[#1c1d1a] border border-white/10 text-white px-4 py-2.5 rounded-2xl rounded-tr-xs shadow-xs text-[13.5px] leading-[1.6]">
                   <p className="whitespace-pre-wrap">{msg.text}</p>
                 </div>
               </div>
@@ -320,34 +315,34 @@ export const CyChatThreadPage = ({
               <div className="w-full max-w-3xl space-y-1.5 text-left">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-md bg-neutral-100 border border-neutral-200 flex items-center justify-center shrink-0 shadow-2xs">
+                    <div className="w-6 h-6 rounded-md bg-[#151614] border border-white/10 text-white flex items-center justify-center shrink-0 shadow-2xs">
                       <BrandBurstLogo size={16} />
                     </div>
-                    <span className="text-xs font-bold text-neutral-900">{msg.name}</span>
-                    <span className="text-[10.5px] text-neutral-400 font-normal">{msg.time}</span>
+                    <span className="text-xs font-bold text-white">{msg.name}</span>
+                    <span className="text-[10.5px] text-neutral-500 font-normal">{msg.time}</span>
                   </div>
 
                   {/* Copy / Share Action */}
-                  <div className="flex items-center gap-1 text-neutral-400">
+                  <div className="flex items-center gap-1 text-neutral-500">
                     <button 
                       onClick={() => handleCopy(msg.id, msg.text)}
-                      className="p-1 hover:text-neutral-900 hover:bg-neutral-100 rounded-md transition cursor-pointer" 
+                      className="p-1 hover:text-white hover:bg-white/10 rounded-md transition cursor-pointer" 
                       title={copiedId === msg.id ? "Copied!" : "Copy response"}
                     >
                       {copiedId === msg.id ? (
-                        <Check size={13} className="text-emerald-600" />
+                        <Check size={13} className="text-emerald-400" />
                       ) : (
                         <Copy size={13} />
                       )}
                     </button>
-                    <button className="p-1 hover:text-neutral-900 hover:bg-neutral-100 rounded-md transition cursor-pointer" title="Share">
+                    <button className="p-1 hover:text-white hover:bg-white/10 rounded-md transition cursor-pointer" title="Share">
                       <Share2 size={13} />
                     </button>
                   </div>
                 </div>
 
                 {/* AI Message Body */}
-                <div className="pl-8 text-[13.5px] text-neutral-800 leading-[1.65] font-normal">
+                <div className="pl-8 text-[13.5px] text-[#f4f4ee] leading-[1.65] font-normal">
                   {msg.id === streamingMsgId ? (
                     <div className="chatgpt-stream-chunk">
                       <MarkdownRenderer content={streamingText} />
@@ -366,11 +361,11 @@ export const CyChatThreadPage = ({
         {isWorking && (
           <div className="space-y-1.5 text-left animate-in fade-in duration-150">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md bg-neutral-100 border border-neutral-200 flex items-center justify-center shrink-0 shadow-2xs">
+              <div className="w-6 h-6 rounded-md bg-[#151614] border border-white/10 text-white flex items-center justify-center shrink-0 shadow-2xs">
                 <BrandBurstLogo size={16} />
               </div>
-              <span className="text-xs font-bold text-neutral-900">Calvras</span>
-              <span className="text-[10.5px] text-neutral-400 font-normal">Just now</span>
+              <span className="text-xs font-bold text-white">Calvras</span>
+              <span className="text-[10.5px] text-neutral-500 font-normal">Just now</span>
             </div>
 
             <div className="pl-8 select-none py-1">
@@ -383,24 +378,24 @@ export const CyChatThreadPage = ({
       </main>
 
       {/* Bottom Sticky Reply Input Box */}
-      <footer className="p-6 max-w-4xl w-full mx-auto bg-white">
+      <footer className="p-6 max-w-4xl w-full mx-auto bg-[#0d0e0c]">
         
         {/* Attached Image Preview Card */}
         {attachedImage && (
           <div className="mb-2 relative inline-block">
-            <div className="w-16 h-16 rounded-xl border border-neutral-200 overflow-hidden bg-neutral-50 shadow-xs relative">
+            <div className="w-16 h-16 rounded-xl border border-white/10 overflow-hidden bg-[#151614] shadow-xs relative">
               <img src={attachedImage} alt="Attachment" className="w-full h-full object-cover" />
             </div>
             <button
               onClick={() => setAttachedImage(null)}
-              className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-neutral-900 text-white flex items-center justify-center text-[10px] shadow-sm hover:bg-red-600 transition cursor-pointer"
+              className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-black text-white flex items-center justify-center text-[10px] shadow-sm hover:bg-red-600 transition cursor-pointer"
             >
               <X size={10} />
             </button>
           </div>
         )}
 
-        <div className="bg-white border-2 border-neutral-200 hover:border-neutral-300 focus-within:border-neutral-950 rounded-2xl p-3 shadow-xs transition text-left space-y-2 relative">
+        <div className="bg-[#151614] border border-white/10 hover:border-white/20 focus-within:border-white/40 rounded-2xl p-3 shadow-lg transition text-left space-y-2 relative">
           
           <textarea
             ref={textareaRef}
@@ -409,15 +404,15 @@ export const CyChatThreadPage = ({
             onChange={(e) => setInputVal(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Reply in thread..."
-            className="w-full bg-transparent resize-none focus:outline-none text-[13px] text-neutral-900 placeholder:text-neutral-400 leading-relaxed font-normal overflow-y-auto max-h-56 min-h-[38px] transition-all"
+            className="w-full bg-transparent resize-none focus:outline-none text-[13px] text-white placeholder:text-neutral-500 leading-relaxed font-normal overflow-y-auto max-h-56 min-h-[38px] transition-all"
           />
 
-          <div className="flex items-center justify-between pt-1 border-t border-neutral-100">
-            <div className="flex items-center gap-2 text-neutral-400">
+          <div className="flex items-center justify-between pt-1 border-t border-white/5">
+            <div className="flex items-center gap-2 text-neutral-500">
               <button 
                 type="button" 
                 onClick={() => fileInputRef.current?.click()}
-                className="hover:text-neutral-700 p-1 rounded-lg hover:bg-neutral-100 transition cursor-pointer" 
+                className="hover:text-white p-1 rounded-lg hover:bg-white/10 transition cursor-pointer" 
                 title="Attach file"
               >
                 <Paperclip size={14} />
@@ -425,7 +420,7 @@ export const CyChatThreadPage = ({
 
               <button 
                 type="button" 
-                className="hover:text-neutral-700 p-1 rounded-lg hover:bg-neutral-100 transition cursor-pointer" 
+                className="hover:text-white p-1 rounded-lg hover:bg-white/10 transition cursor-pointer" 
                 title="Schedule"
               >
                 <Clock size={14} />
@@ -436,7 +431,7 @@ export const CyChatThreadPage = ({
               type="button"
               onClick={() => handleSendMessage()}
               disabled={(!inputVal.trim() && !attachedImage) || isWorking}
-              className="w-7 h-7 rounded-xl bg-neutral-900 hover:bg-neutral-800 disabled:opacity-30 text-white flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
+              className="w-7 h-7 rounded-xl bg-white hover:bg-neutral-200 disabled:opacity-30 text-neutral-950 flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
             >
               <Send size={12} />
             </button>

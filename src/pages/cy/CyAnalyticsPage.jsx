@@ -109,28 +109,28 @@ export const CyAnalyticsPage = ({ userName = 'SHIKARI', onNewChat }) => {
   ];
 
   return (
-    <div className="flex-1 min-h-screen bg-[#fafafc] flex flex-col justify-start p-4 sm:p-8 lg:p-10 font-sans antialiased text-neutral-900 select-none overflow-y-auto w-full min-w-0 text-left">
+    <div className="flex-1 min-h-screen bg-[#fafafc] flex flex-col justify-start p-4 sm:p-8 lg:p-10 font-sans antialiased text-white select-none overflow-y-auto w-full min-w-0 text-left">
       
       {/* Header */}
       <div className="max-w-6xl mx-auto w-full space-y-6">
         
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-200 pb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5">
           <div>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-xl bg-neutral-900 text-white flex items-center justify-center shadow-xs">
                 <BarChart3 size={18} />
               </div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-950 font-serif">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-serif">
                 Marketing Analytics & Insights
               </h1>
             </div>
-            <p className="text-xs sm:text-sm text-neutral-500 mt-1">
+            <p className="text-xs sm:text-sm text-neutral-400 mt-1">
               Connect analytics data, detect anomalies, explain why metrics changed, and forecast revenue.
             </p>
           </div>
 
           <div className="flex items-center gap-2 self-start sm:self-auto">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-neutral-200 bg-white shadow-2xs text-xs font-medium text-neutral-700">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/10 bg-white shadow-2xs text-xs font-medium text-neutral-700">
               <Calendar size={13} className="text-neutral-400" />
               <span>{dateRange}</span>
             </div>
@@ -146,13 +146,13 @@ export const CyAnalyticsPage = ({ userName = 'SHIKARI', onNewChat }) => {
         </div>
 
         {/* 1. "Ask Your Marketing Data" Conversational Query Engine */}
-        <div className="bg-white border border-neutral-200 rounded-2xl p-5 shadow-xs space-y-4">
+        <div className="bg-[#131412] border border-white/10 rounded-2xl p-5 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-lg bg-neutral-100 flex items-center justify-center">
                 <Sparkles size={14} className="text-purple-600" />
               </div>
-              <h2 className="text-sm font-bold text-neutral-900">
+              <h2 className="text-sm font-bold text-white">
                 Ask Your Marketing Data
               </h2>
             </div>
@@ -167,7 +167,7 @@ export const CyAnalyticsPage = ({ userName = 'SHIKARI', onNewChat }) => {
               onChange={(e) => setDataQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAskData()}
               placeholder="e.g. 'Why did sales drop 18% this week?' or 'Detect wasted spend on Meta'..."
-              className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-2.5 pl-10 text-xs sm:text-[13px] text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-900 focus:bg-white transition"
+              className="w-full bg-[#181916] border border-white/10 rounded-xl px-4 py-2.5 pl-10 text-xs sm:text-[13px] text-white placeholder:text-neutral-400 focus:outline-none focus:border-neutral-900 focus:bg-white transition"
             />
             <Search size={15} className="absolute left-3.5 text-neutral-400" />
             <button
@@ -186,7 +186,7 @@ export const CyAnalyticsPage = ({ userName = 'SHIKARI', onNewChat }) => {
               <button
                 key={i}
                 onClick={() => handleAskData(query)}
-                className="text-[11px] font-medium text-neutral-600 bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 px-2.5 py-1 rounded-lg transition cursor-pointer"
+                className="text-[11px] font-medium text-neutral-600 bg-neutral-100 hover:bg-neutral-200 border border-white/10 px-2.5 py-1 rounded-lg transition cursor-pointer"
               >
                 {query}
               </button>
@@ -195,11 +195,11 @@ export const CyAnalyticsPage = ({ userName = 'SHIKARI', onNewChat }) => {
 
           {/* AI Diagnostic Output Result Card */}
           {analysisResult && (
-            <div className="mt-4 p-4 rounded-xl bg-purple-50/60 border border-purple-200/80 space-y-3 animate-in fade-in duration-200 text-neutral-900">
+            <div className="mt-4 p-4 rounded-xl bg-purple-50/60 border border-purple-200/80 space-y-3 animate-in fade-in duration-200 text-white">
               <div className="flex items-center justify-between border-b border-purple-200 pb-2">
                 <div className="flex items-center gap-2">
                   <BrandBurstLogo size={16} />
-                  <span className="text-xs font-bold text-neutral-950">{analysisResult.title}</span>
+                  <span className="text-xs font-bold text-white">{analysisResult.title}</span>
                 </div>
                 <span className="text-[10.5px] font-semibold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md font-mono">
                   {analysisResult.badge}
@@ -211,7 +211,7 @@ export const CyAnalyticsPage = ({ userName = 'SHIKARI', onNewChat }) => {
               </p>
 
               <div className="space-y-1.5 pt-1">
-                <span className="text-[11px] font-bold text-neutral-900 uppercase tracking-wider block">Key Findings:</span>
+                <span className="text-[11px] font-bold text-white uppercase tracking-wider block">Key Findings:</span>
                 {analysisResult.points.map((pt, idx) => (
                   <div key={idx} className="flex items-start gap-2 text-xs text-neutral-700">
                     <span className="w-1.5 h-1.5 rounded-full bg-purple-500 mt-1.5 shrink-0" />
@@ -236,48 +236,48 @@ export const CyAnalyticsPage = ({ userName = 'SHIKARI', onNewChat }) => {
         {/* 2. KPI Overview Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           
-          <div className="bg-white border border-neutral-200 rounded-2xl p-4 shadow-2xs space-y-2">
-            <div className="flex items-center justify-between text-neutral-500 text-xs">
+          <div className="bg-[#131412] border border-white/10 rounded-2xl p-4 shadow-2xs space-y-2">
+            <div className="flex items-center justify-between text-neutral-400 text-xs">
               <span>Total Revenue</span>
               <DollarSign size={15} className="text-neutral-400" />
             </div>
-            <div className="text-2xl font-bold text-neutral-950 font-mono">$21,200.00</div>
+            <div className="text-2xl font-bold text-white font-mono">$21,200.00</div>
             <div className="flex items-center gap-1 text-[11px] text-emerald-600 font-medium">
               <TrendingUp size={12} />
               <span>+19.4% vs last 30d</span>
             </div>
           </div>
 
-          <div className="bg-white border border-neutral-200 rounded-2xl p-4 shadow-2xs space-y-2">
-            <div className="flex items-center justify-between text-neutral-500 text-xs">
+          <div className="bg-[#131412] border border-white/10 rounded-2xl p-4 shadow-2xs space-y-2">
+            <div className="flex items-center justify-between text-neutral-400 text-xs">
               <span>Blended ROAS</span>
               <Target size={15} className="text-neutral-400" />
             </div>
-            <div className="text-2xl font-bold text-neutral-950 font-mono">4.12x</div>
+            <div className="text-2xl font-bold text-white font-mono">4.12x</div>
             <div className="flex items-center gap-1 text-[11px] text-emerald-600 font-medium">
               <TrendingUp size={12} />
               <span>Target: 3.50x (+0.62x above)</span>
             </div>
           </div>
 
-          <div className="bg-white border border-neutral-200 rounded-2xl p-4 shadow-2xs space-y-2">
-            <div className="flex items-center justify-between text-neutral-500 text-xs">
+          <div className="bg-[#131412] border border-white/10 rounded-2xl p-4 shadow-2xs space-y-2">
+            <div className="flex items-center justify-between text-neutral-400 text-xs">
               <span>Blended CAC</span>
               <Layers size={15} className="text-neutral-400" />
             </div>
-            <div className="text-2xl font-bold text-neutral-950 font-mono">$21.40</div>
+            <div className="text-2xl font-bold text-white font-mono">$21.40</div>
             <div className="flex items-center gap-1 text-[11px] text-emerald-600 font-medium">
               <TrendingDown size={12} />
               <span>-14.2% cost reduction</span>
             </div>
           </div>
 
-          <div className="bg-white border border-neutral-200 rounded-2xl p-4 shadow-2xs space-y-2">
-            <div className="flex items-center justify-between text-neutral-500 text-xs">
+          <div className="bg-[#131412] border border-white/10 rounded-2xl p-4 shadow-2xs space-y-2">
+            <div className="flex items-center justify-between text-neutral-400 text-xs">
               <span>Store Conversion Rate</span>
               <Zap size={15} className="text-neutral-400" />
             </div>
-            <div className="text-2xl font-bold text-neutral-950 font-mono">3.82%</div>
+            <div className="text-2xl font-bold text-white font-mono">3.82%</div>
             <div className="flex items-center gap-1 text-[11px] text-emerald-600 font-medium">
               <TrendingUp size={12} />
               <span>+0.6% from WhatsApp VIP</span>
@@ -287,17 +287,17 @@ export const CyAnalyticsPage = ({ userName = 'SHIKARI', onNewChat }) => {
         </div>
 
         {/* 3. Multi-Channel Revenue Attribution & Spend Efficiency */}
-        <div className="bg-white border border-neutral-200 rounded-2xl p-5 shadow-xs space-y-4">
+        <div className="bg-[#131412] border border-white/10 rounded-2xl p-5 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-sm font-bold text-neutral-950">
+              <h2 className="text-sm font-bold text-white">
                 Channel Revenue Attribution & Spend Analysis
               </h2>
-              <p className="text-xs text-neutral-500">
+              <p className="text-xs text-neutral-400">
                 Live attribution breakdown identifying winning campaigns vs wasted ad spend.
               </p>
             </div>
-            <span className="text-xs font-mono font-bold text-neutral-700 bg-neutral-100 px-2.5 py-1 rounded-lg border border-neutral-200">
+            <span className="text-xs font-mono font-bold text-neutral-700 bg-neutral-100 px-2.5 py-1 rounded-lg border border-white/10">
               $4,630 Total Ad Spend
             </span>
           </div>
@@ -305,7 +305,7 @@ export const CyAnalyticsPage = ({ userName = 'SHIKARI', onNewChat }) => {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-neutral-200 text-neutral-400 font-medium uppercase text-[10.5px]">
+                <tr className="border-b border-white/10 text-neutral-400 font-medium uppercase text-[10.5px]">
                   <th className="py-2.5 px-3">Channel / Source</th>
                   <th className="py-2.5 px-3">Ad Spend</th>
                   <th className="py-2.5 px-3">Attributed Revenue</th>
@@ -313,12 +313,12 @@ export const CyAnalyticsPage = ({ userName = 'SHIKARI', onNewChat }) => {
                   <th className="py-2.5 px-3">AI Action Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-neutral-100">
+              <tbody className="divide-y divide-white/5">
                 {channelPerformance.map((ch, idx) => (
-                  <tr key={idx} className="hover:bg-neutral-50 transition">
-                    <td className="py-3 px-3 font-semibold text-neutral-900">{ch.name}</td>
+                  <tr key={idx} className="hover:bg-white/5 transition">
+                    <td className="py-3 px-3 font-semibold text-white">{ch.name}</td>
                     <td className="py-3 px-3 font-mono text-neutral-600">{ch.spend}</td>
-                    <td className="py-3 px-3 font-mono font-bold text-neutral-900">{ch.revenue}</td>
+                    <td className="py-3 px-3 font-mono font-bold text-white">{ch.revenue}</td>
                     <td className="py-3 px-3 font-mono font-bold text-purple-700">{ch.roas}</td>
                     <td className="py-3 px-3">
                       <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md border ${ch.statusColor}`}>
@@ -333,20 +333,20 @@ export const CyAnalyticsPage = ({ userName = 'SHIKARI', onNewChat }) => {
         </div>
 
         {/* 4. Predictive Growth Simulator */}
-        <div className="bg-white border border-neutral-200 rounded-2xl p-5 shadow-xs space-y-4">
+        <div className="bg-[#131412] border border-white/10 rounded-2xl p-5 shadow-xs space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <h2 className="text-sm font-bold text-neutral-950 flex items-center gap-1.5">
+              <h2 className="text-sm font-bold text-white flex items-center gap-1.5">
                 <Target size={15} className="text-purple-600" />
                 <span>Predictive Growth Simulator</span>
               </h2>
-              <p className="text-xs text-neutral-500">
+              <p className="text-xs text-neutral-400">
                 Forecast monthly revenue, orders, and ROAS by scaling your target marketing budget.
               </p>
             </div>
             <div className="text-right">
-              <span className="text-xs text-neutral-500">Target Monthly Budget: </span>
-              <span className="text-sm font-bold text-neutral-950 font-mono">${budgetSlider.toLocaleString()}</span>
+              <span className="text-xs text-neutral-400">Target Monthly Budget: </span>
+              <span className="text-sm font-bold text-white font-mono">${budgetSlider.toLocaleString()}</span>
             </div>
           </div>
 
@@ -361,20 +361,20 @@ export const CyAnalyticsPage = ({ userName = 'SHIKARI', onNewChat }) => {
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-            <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-200 text-center">
-              <span className="text-[11px] text-neutral-500 uppercase block">Projected Revenue</span>
-              <span className="text-lg font-bold text-neutral-950 font-mono">
+            <div className="p-3 bg-neutral-50 rounded-xl border border-white/10 text-center">
+              <span className="text-[11px] text-neutral-400 uppercase block">Projected Revenue</span>
+              <span className="text-lg font-bold text-white font-mono">
                 ${Math.round(budgetSlider * 4.15).toLocaleString()}
               </span>
             </div>
-            <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-200 text-center">
-              <span className="text-[11px] text-neutral-500 uppercase block">Estimated Orders</span>
-              <span className="text-lg font-bold text-neutral-950 font-mono">
+            <div className="p-3 bg-neutral-50 rounded-xl border border-white/10 text-center">
+              <span className="text-[11px] text-neutral-400 uppercase block">Estimated Orders</span>
+              <span className="text-lg font-bold text-white font-mono">
                 {Math.round((budgetSlider * 4.15) / 85).toLocaleString()} units
               </span>
             </div>
-            <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-200 text-center">
-              <span className="text-[11px] text-neutral-500 uppercase block">Projected Blended ROAS</span>
+            <div className="p-3 bg-neutral-50 rounded-xl border border-white/10 text-center">
+              <span className="text-[11px] text-neutral-400 uppercase block">Projected Blended ROAS</span>
               <span className="text-lg font-bold text-purple-700 font-mono">
                 4.15x
               </span>

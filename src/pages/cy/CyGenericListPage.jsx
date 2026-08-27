@@ -46,28 +46,28 @@ export const CyGenericListPage = ({ tabId, onNewChat, userName = 'SHIKARI' }) =>
   const Icon = current.icon;
 
   return (
-    <div className="flex-1 min-h-screen bg-white p-6 sm:p-10 font-sans antialiased text-neutral-900 select-none text-left overflow-y-auto">
+    <div className="flex-1 min-h-screen bg-[#0d0e0c] text-[#f4f4ee] p-6 sm:p-10 font-sans antialiased text-white select-none text-left overflow-y-auto">
       <div className="max-w-5xl mx-auto space-y-8 pt-4 sm:pt-6">
         
-        <div className="space-y-1.5 border-b border-neutral-200 pb-6">
-          <h1 className="text-3xl sm:text-4xl font-serif font-normal text-neutral-900 tracking-tight">
+        <div className="space-y-1.5 border-b border-white/10 pb-6">
+          <h1 className="text-3xl sm:text-4xl font-serif font-normal text-white tracking-tight">
             {current.title}
           </h1>
-          <p className="text-xs sm:text-sm text-neutral-500 font-normal">
+          <p className="text-xs sm:text-sm text-neutral-400 font-normal">
             {current.subtitle}
           </p>
         </div>
 
-        <div className="bg-white border border-[#e5e5e7] rounded-3xl p-10 sm:p-14 shadow-2xs flex flex-col items-center justify-center text-center space-y-4 min-h-[320px]">
-          <div className="w-12 h-12 rounded-2xl bg-neutral-100/80 border border-neutral-200 text-neutral-600 flex items-center justify-center mb-1 shadow-sm">
+        <div className="bg-[#131412] border border-white/10 rounded-3xl p-10 sm:p-14 shadow-2xs flex flex-col items-center justify-center text-center space-y-4 min-h-[320px]">
+          <div className="w-12 h-12 rounded-2xl bg-neutral-100/80 border border-white/10 text-neutral-600 flex items-center justify-center mb-1 shadow-sm">
             <Icon size={22} />
           </div>
           
-          <h3 className="text-base font-bold text-neutral-900 tracking-tight">
+          <h3 className="text-base font-bold text-white tracking-tight">
             {current.title} Status
           </h3>
 
-          <p className="text-xs text-neutral-500 max-w-md leading-relaxed">
+          <p className="text-xs text-neutral-400 max-w-md leading-relaxed">
             {current.emptyText}
           </p>
 

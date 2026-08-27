@@ -361,16 +361,16 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
   };
 
   return (
-    <div className="flex-1 min-h-screen bg-white p-6 sm:p-10 font-sans antialiased text-neutral-900 select-none text-left overflow-y-auto">
+    <div className="flex-1 min-h-screen bg-[#0d0e0c] text-[#f4f4ee] p-6 sm:p-10 font-sans antialiased text-white select-none text-left overflow-y-auto">
       <div className="max-w-7xl mx-auto space-y-6 pt-2 sm:pt-4">
         
         {/* Title Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-200 pb-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-5">
           <div className="space-y-1">
-            <h1 className="text-3xl sm:text-4xl font-serif font-normal text-neutral-900 tracking-tight">
+            <h1 className="text-3xl sm:text-4xl font-serif font-normal text-white tracking-tight">
               Connectors & Store Apps
             </h1>
-            <p className="text-xs sm:text-sm text-neutral-500 font-normal">
+            <p className="text-xs sm:text-sm text-neutral-400 font-normal">
               Connect your online store, payment gateways, and social accounts for <strong>{userName}'s Business</strong> to automate WhatsApp VIP upsells, inventory posting, and ad campaigns.
             </p>
           </div>
@@ -394,8 +394,8 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
                 onClick={() => setActiveFilter(tab.id)}
                 className={`text-xs px-3 py-1.5 rounded-xl font-medium whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 ${
                   activeFilter === tab.id
-                    ? 'bg-[#efeff1] text-neutral-950 font-semibold shadow-2xs'
-                    : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100/60'
+                    ? 'bg-[#efeff1] text-white font-semibold shadow-2xs'
+                    : 'text-neutral-400 hover:text-white hover:bg-white/10/60'
                 }`}
               >
                 <span>{tab.label}</span>
@@ -412,7 +412,7 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search store apps & connectors..."
-              className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-[#e5e5e7] hover:border-neutral-400 focus:border-neutral-900 rounded-xl text-neutral-900 placeholder:text-neutral-400 focus:outline-none transition"
+              className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#131412] border border-white/10 hover:border-neutral-400 focus:border-neutral-900 rounded-xl text-white placeholder:text-neutral-400 focus:outline-none transition"
             />
           </div>
 
@@ -425,18 +425,18 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
             return (
               <div 
                 key={c.id} 
-                className="bg-white border border-[#e5e5e7] hover:border-neutral-400 rounded-2xl p-4 shadow-2xs flex flex-col justify-between space-y-4 transition group"
+                className="bg-[#131412] border border-white/10 hover:border-neutral-400 rounded-2xl p-4 shadow-2xs flex flex-col justify-between space-y-4 transition group"
               >
                 <div className="space-y-2.5">
                   
                   {/* Card Top: Real Logo, Name, Status, Tag */}
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-neutral-50 border border-neutral-100 flex items-center justify-center shadow-2xs shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-neutral-50 border border-white/5 flex items-center justify-center shadow-2xs shrink-0">
                         <LogoComponent />
                       </div>
                       <div>
-                        <h3 className="text-xs font-bold text-neutral-900">{c.name}</h3>
+                        <h3 className="text-xs font-bold text-white">{c.name}</h3>
                         <div className="flex items-center gap-1.5 mt-0.5">
                           <span className={`w-2 h-2 rounded-full ${c.connected ? 'bg-emerald-500' : 'bg-neutral-300'}`} />
                           <span className="text-[11px] text-neutral-400 font-normal">{c.statusText}</span>
@@ -444,19 +444,19 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
                       </div>
                     </div>
 
-                    <span className="text-[9.5px] font-semibold text-neutral-500 tracking-wider bg-neutral-100 px-2 py-0.5 rounded uppercase">
+                    <span className="text-[9.5px] font-semibold text-neutral-400 tracking-wider bg-neutral-100 px-2 py-0.5 rounded uppercase">
                       {c.tag}
                     </span>
                   </div>
 
                   {/* Card Description */}
-                  <p className="text-xs text-neutral-500 leading-relaxed font-normal">
+                  <p className="text-xs text-neutral-400 leading-relaxed font-normal">
                     {c.desc}
                   </p>
                 </div>
 
                 {/* Card Actions */}
-                <div className="pt-2 border-t border-neutral-100 flex items-center justify-between gap-2">
+                <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
                   {c.isStoreApp && (
                     <button
                       onClick={() => setSelectedStoreApp(c)}
@@ -499,22 +499,22 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
       {/* 100% FULLY CUSTOMIZABLE STORE AUTOMATIONS MODAL */}
       {selectedStoreApp && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
-          <div className="bg-white border border-neutral-200 rounded-3xl max-w-3xl w-full p-5 sm:p-7 space-y-6 shadow-2xl animate-in zoom-in-95 duration-200 text-left my-auto max-h-[92vh] overflow-y-auto">
+          <div className="bg-[#131412] border border-white/10 rounded-3xl max-w-3xl w-full p-5 sm:p-7 space-y-6 shadow-2xl animate-in zoom-in-95 duration-200 text-left my-auto max-h-[92vh] overflow-y-auto">
             
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-neutral-100 pb-4">
+            <div className="flex items-center justify-between border-b border-white/5 pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center border border-purple-100">
                   {React.createElement(selectedStoreApp.logo)}
                 </div>
                 <div>
-                  <h3 className="text-base sm:text-lg font-bold text-neutral-950 flex items-center gap-2">
+                  <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
                     <span>{selectedStoreApp.name} Automations</span>
                     <span className="text-[10px] font-mono text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-100">
                       100% Customizable
                     </span>
                   </h3>
-                  <p className="text-xs text-neutral-500">
+                  <p className="text-xs text-neutral-400">
                     Customize every word, price, discount, timer, and variable sent to your customers on WhatsApp.
                   </p>
                 </div>
@@ -522,20 +522,20 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
 
               <button
                 onClick={() => setSelectedStoreApp(null)}
-                className="text-neutral-400 hover:text-neutral-900 p-1.5 rounded-lg hover:bg-neutral-100 transition cursor-pointer"
+                className="text-neutral-400 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
             {/* Navigation Tabs Inside Modal */}
-            <div className="flex items-center gap-2 border-b border-neutral-200/80">
+            <div className="flex items-center gap-2 border-b border-white/10/80">
               <button
                 onClick={() => setActiveTabInsideModal('upsell')}
                 className={`flex items-center gap-2 px-3 py-2 text-xs font-semibold border-b-2 transition cursor-pointer ${
                   activeTabInsideModal === 'upsell'
                     ? 'border-purple-600 text-purple-900'
-                    : 'border-transparent text-neutral-500 hover:text-neutral-900'
+                    : 'border-transparent text-neutral-400 hover:text-white'
                 }`}
               >
                 <Sparkles size={13} />
@@ -547,7 +547,7 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
                 className={`flex items-center gap-2 px-3 py-2 text-xs font-semibold border-b-2 transition cursor-pointer ${
                   activeTabInsideModal === 'cart'
                     ? 'border-purple-600 text-purple-900'
-                    : 'border-transparent text-neutral-500 hover:text-neutral-900'
+                    : 'border-transparent text-neutral-400 hover:text-white'
                 }`}
               >
                 <ShoppingBag size={13} />
@@ -559,7 +559,7 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
                 className={`flex items-center gap-2 px-3 py-2 text-xs font-semibold border-b-2 transition cursor-pointer ${
                   activeTabInsideModal === 'settings'
                     ? 'border-purple-600 text-purple-900'
-                    : 'border-transparent text-neutral-500 hover:text-neutral-900'
+                    : 'border-transparent text-neutral-400 hover:text-white'
                 }`}
               >
                 <Settings size={13} />
@@ -574,11 +574,11 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
                 {/* Main Toggle */}
                 <div className="flex items-center justify-between p-3.5 bg-purple-50/50 border border-purple-100 rounded-2xl">
                   <div className="space-y-0.5">
-                    <span className="text-xs font-bold text-neutral-950 flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-white flex items-center gap-1.5">
                       <Sparkles size={14} className="text-purple-600" />
                       <span>Enable Post-Purchase WhatsApp VIP Upsell</span>
                     </span>
-                    <p className="text-[11px] text-neutral-500">
+                    <p className="text-[11px] text-neutral-400">
                       Fires automatically whenever a customer completes payment on {selectedStoreApp.name}.
                     </p>
                   </div>
@@ -602,7 +602,7 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
                       value={upsellItemName}
                       onChange={(e) => setUpsellItemName(e.target.value)}
                       placeholder="e.g. 10m Booster Cable"
-                      className="w-full bg-white border border-neutral-200 rounded-xl px-2.5 py-1.5 text-xs text-neutral-900 focus:outline-none focus:border-purple-600"
+                      className="w-full bg-[#131412] border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-purple-600"
                     />
                   </div>
 
@@ -617,14 +617,14 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
                         value={upsellPrice}
                         onChange={(e) => setUpsellPrice(e.target.value)}
                         placeholder="40 GHS"
-                        className="w-1/2 bg-white border border-neutral-200 rounded-xl px-2.5 py-1.5 text-xs text-neutral-900 focus:outline-none focus:border-purple-600 font-medium"
+                        className="w-1/2 bg-[#131412] border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-purple-600 font-medium"
                       />
                       <input 
                         type="text"
                         value={originalPrice}
                         onChange={(e) => setOriginalPrice(e.target.value)}
                         placeholder="80 GHS"
-                        className="w-1/2 bg-white border border-neutral-200 rounded-xl px-2.5 py-1.5 text-xs text-neutral-400 line-through focus:outline-none focus:border-purple-600"
+                        className="w-1/2 bg-[#131412] border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-neutral-400 line-through focus:outline-none focus:border-purple-600"
                       />
                     </div>
                   </div>
@@ -637,7 +637,7 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
                     <select
                       value={offerTimer}
                       onChange={(e) => setOfferTimer(e.target.value)}
-                      className="w-full bg-white border border-neutral-200 rounded-xl px-2.5 py-1.5 text-xs text-neutral-900 focus:outline-none focus:border-purple-600"
+                      className="w-full bg-[#131412] border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-purple-600"
                     >
                       <option value="10 minutes">10 minutes</option>
                       <option value="15 minutes">15 minutes (Best)</option>
@@ -652,19 +652,19 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
                   <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">Tone Presets:</span>
                   <button 
                     onClick={() => applyPresetTone('local')}
-                    className="text-[11px] px-2.5 py-1 rounded-lg bg-neutral-100 hover:bg-neutral-200 font-medium text-neutral-800 transition cursor-pointer"
+                    className="text-[11px] px-2.5 py-1 rounded-lg bg-neutral-100 hover:bg-neutral-200 font-medium text-neutral-200 transition cursor-pointer"
                   >
                     🇬🇭 Ghanaian VIP Style
                   </button>
                   <button 
                     onClick={() => applyPresetTone('clean')}
-                    className="text-[11px] px-2.5 py-1 rounded-lg bg-neutral-100 hover:bg-neutral-200 font-medium text-neutral-800 transition cursor-pointer"
+                    className="text-[11px] px-2.5 py-1 rounded-lg bg-neutral-100 hover:bg-neutral-200 font-medium text-neutral-200 transition cursor-pointer"
                   >
                     ✨ Sleek & Clean
                   </button>
                   <button 
                     onClick={() => applyPresetTone('urgent')}
-                    className="text-[11px] px-2.5 py-1 rounded-lg bg-neutral-100 hover:bg-neutral-200 font-medium text-neutral-800 transition cursor-pointer"
+                    className="text-[11px] px-2.5 py-1 rounded-lg bg-neutral-100 hover:bg-neutral-200 font-medium text-neutral-200 transition cursor-pointer"
                   >
                     ⚡ Flash Urgency
                   </button>
@@ -673,7 +673,7 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
                 {/* Fully Editable Message Textarea */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
+                    <label className="text-xs font-bold text-white flex items-center gap-1.5">
                       <Edit3 size={13} className="text-purple-600" />
                       <span>Custom WhatsApp Message Template (Edit Freely)</span>
                     </label>
@@ -684,7 +684,7 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
                     rows={4}
                     value={whatsappTemplate}
                     onChange={(e) => setWhatsappTemplate(e.target.value)}
-                    className="w-full bg-white border border-neutral-300 rounded-xl p-3 text-xs text-neutral-900 font-sans leading-relaxed focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600 shadow-2xs"
+                    className="w-full bg-white border border-neutral-300 rounded-xl p-3 text-xs text-white font-sans leading-relaxed focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600 shadow-2xs"
                   />
 
                   {/* Variable Tag Pills */}
@@ -703,7 +703,7 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
                       <button
                         key={tag}
                         onClick={() => insertTag(tag)}
-                        className="px-2 py-0.5 bg-neutral-100 hover:bg-purple-100 hover:text-purple-900 border border-neutral-200 rounded-md font-mono text-[10px] text-neutral-600 transition cursor-pointer"
+                        className="px-2 py-0.5 bg-neutral-100 hover:bg-purple-100 hover:text-purple-900 border border-white/10 rounded-md font-mono text-[10px] text-neutral-600 transition cursor-pointer"
                       >
                         + {tag}
                       </button>
@@ -723,7 +723,7 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
                     </span>
                   </div>
 
-                  <div className="bg-[#e7f8e8] border border-emerald-200/90 rounded-2xl p-4 text-xs text-neutral-900 leading-relaxed font-sans shadow-sm whitespace-pre-line">
+                  <div className="bg-[#e7f8e8] border border-emerald-200/90 rounded-2xl p-4 text-xs text-white leading-relaxed font-sans shadow-sm whitespace-pre-line">
                     {renderedLiveMessage}
                   </div>
                 </div>
@@ -737,11 +737,11 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
                 
                 <div className="flex items-center justify-between p-3.5 bg-purple-50/50 border border-purple-100 rounded-2xl">
                   <div className="space-y-0.5">
-                    <span className="text-xs font-bold text-neutral-950 flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-white flex items-center gap-1.5">
                       <ShoppingBag size={14} className="text-purple-600" />
                       <span>Enable Abandoned Cart Recovery</span>
                     </span>
-                    <p className="text-[11px] text-neutral-500">
+                    <p className="text-[11px] text-neutral-400">
                       Automatically message shoppers who leave checkout without paying on {selectedStoreApp.name}.
                     </p>
                   </div>
@@ -754,7 +754,7 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
+                  <label className="text-xs font-bold text-white flex items-center gap-1.5">
                     <Edit3 size={13} className="text-purple-600" />
                     <span>Abandoned Cart Message Template</span>
                   </label>
@@ -763,11 +763,11 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
                     rows={4}
                     value={abandonedCartTemplate}
                     onChange={(e) => setAbandonedCartTemplate(e.target.value)}
-                    className="w-full bg-white border border-neutral-300 rounded-xl p-3 text-xs text-neutral-900 font-sans leading-relaxed focus:outline-none focus:border-purple-600 shadow-2xs"
+                    className="w-full bg-white border border-neutral-300 rounded-xl p-3 text-xs text-white font-sans leading-relaxed focus:outline-none focus:border-purple-600 shadow-2xs"
                   />
                 </div>
 
-                <div className="bg-[#e7f8e8] border border-emerald-200/90 rounded-2xl p-4 text-xs text-neutral-900 leading-relaxed font-sans shadow-sm whitespace-pre-line">
+                <div className="bg-[#e7f8e8] border border-emerald-200/90 rounded-2xl p-4 text-xs text-white leading-relaxed font-sans shadow-sm whitespace-pre-line">
                   {renderedCartMessage}
                 </div>
 
@@ -780,21 +780,21 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-neutral-800 block">Your Store / Brand Name</label>
+                    <label className="text-xs font-bold text-neutral-200 block">Your Store / Brand Name</label>
                     <input 
                       type="text"
                       value={storeName}
                       onChange={(e) => setStoreName(e.target.value)}
-                      className="w-full bg-white border border-neutral-200 rounded-xl px-3 py-2 text-xs text-neutral-900 focus:outline-none focus:border-purple-600"
+                      className="w-full bg-[#131412] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-600"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-neutral-800 block">Message Dispatch Delay</label>
+                    <label className="text-xs font-bold text-neutral-200 block">Message Dispatch Delay</label>
                     <select
                       value={sendDelay}
                       onChange={(e) => setSendDelay(e.target.value)}
-                      className="w-full bg-white border border-neutral-200 rounded-xl px-3 py-2 text-xs text-neutral-900 focus:outline-none focus:border-purple-600"
+                      className="w-full bg-[#131412] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-600"
                     >
                       <option value="15 seconds (Instant)">15 seconds (Instant after payment)</option>
                       <option value="2 minutes">2 minutes</option>
@@ -804,22 +804,22 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-neutral-800 block">Sample Customer Name for Testing</label>
+                    <label className="text-xs font-bold text-neutral-200 block">Sample Customer Name for Testing</label>
                     <input 
                       type="text"
                       value={sampleCustomerName}
                       onChange={(e) => setSampleCustomerName(e.target.value)}
-                      className="w-full bg-white border border-neutral-200 rounded-xl px-3 py-2 text-xs text-neutral-900 focus:outline-none focus:border-purple-600"
+                      className="w-full bg-[#131412] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-600"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-neutral-800 block">Sample Product Purchased</label>
+                    <label className="text-xs font-bold text-neutral-200 block">Sample Product Purchased</label>
                     <input 
                       type="text"
                       value={sampleProductBought}
                       onChange={(e) => setSampleProductBought(e.target.value)}
-                      className="w-full bg-white border border-neutral-200 rounded-xl px-3 py-2 text-xs text-neutral-900 focus:outline-none focus:border-purple-600"
+                      className="w-full bg-[#131412] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-600"
                     />
                   </div>
 
@@ -828,7 +828,7 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
             )}
 
             {/* Modal Actions */}
-            <div className="pt-3 border-t border-neutral-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="pt-3 border-t border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <button
                 onClick={handleSendTestUpsell}
                 className="text-xs font-semibold text-purple-700 hover:text-purple-900 px-3.5 py-2 rounded-xl border border-purple-200 hover:bg-purple-50 transition cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
@@ -840,7 +840,7 @@ export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
               <div className="flex items-center gap-2 self-end sm:self-auto">
                 <button
                   onClick={() => setSelectedStoreApp(null)}
-                  className="text-xs text-neutral-500 hover:text-neutral-900 px-3 py-2 rounded-xl transition cursor-pointer"
+                  className="text-xs text-neutral-400 hover:text-white px-3 py-2 rounded-xl transition cursor-pointer"
                 >
                   Cancel
                 </button>
