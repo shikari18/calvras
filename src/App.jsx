@@ -100,8 +100,8 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#0e0e0e] text-[#ececed] p-2.5 gap-2.5">
-      {/* Sidebar matching #161616 */}
+    <div className="flex h-screen w-screen overflow-hidden bg-[#18181b] text-[#ececed] p-2 pl-0.5 gap-2">
+      {/* Sidebar on the left */}
       <div className="h-full flex-shrink-0">
         <Sidebar
           collapsed={sidebarCollapsed}
@@ -121,9 +121,9 @@ export default function App() {
         />
       </div>
 
-      {/* Main Workspace Frame matching #161616 */}
+      {/* Main Chat Inset Frame with clear top and all-around border */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        <div className="relative flex flex-col flex-1 h-full overflow-hidden rounded-2xl border border-[#222222] bg-[#161616] shadow-2xl">
+        <div className="relative flex flex-col flex-1 h-full overflow-hidden rounded-[20px] border border-[#52525a] bg-[rgb(30,30,30)] shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
           <MainChat
             messages={messages}
             setMessages={setMessages}
@@ -182,4 +182,41 @@ export default function App() {
       />
     </div>
   );
+}
+
+// ─── Error Boundary ─────────────────────────────────────────────────────────
+export class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('App crashed caught by ErrorBoundary:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-screen bg-[rgb(30,30,30)] text-white p-6 text-center">
+          <h2 className="text-xl font-bold text-red-400 mb-2">Something went wrong</h2>
+          <p className="text-sm text-neutral-400 max-w-md mb-4">{this.state.error?.message || 'Unknown render error'}</p>
+          <button
+            onClick={() => {
+              this.setState({ hasError: false, error: null });
+              window.location.reload();
+            }}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-medium transition-colors"
+          >
+            Reload Application
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
 }

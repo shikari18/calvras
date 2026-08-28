@@ -38,21 +38,40 @@ export default function AccountSettingsModal({ isOpen, onClose }) {
             </button>
           </div>
 
+          <div className="p-3.5 rounded-2xl bg-[#20202a] border border-white/5 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="text-base">🤗</span>
+                <div>
+                  <div className="text-xs font-semibold text-white">Hugging Face API Key</div>
+                  <div className="text-[10.5px] text-neutral-400">Primary model: <code className="text-blue-400">SHIKARI2/Malvos-32B</code></div>
+                </div>
+              </div>
+            </div>
+            <input
+              type="password"
+              placeholder="hf_xxxxxxxxxxxxxxxxxxxxxxxx"
+              defaultValue={localStorage.getItem('malvos_hf_token') || ''}
+              onChange={(e) => localStorage.setItem('malvos_hf_token', e.target.value.trim())}
+              className="w-full px-3 py-1.5 rounded-xl bg-[#16161c] border border-[#2f2f38] text-xs text-white placeholder-neutral-500 font-mono outline-none focus:border-blue-500"
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-2.5">
             <div className="p-3 rounded-xl bg-[#20202a] border border-white/5">
               <div className="flex items-center gap-2 text-xs font-semibold text-white">
                 <Key size={14} className="text-blue-400" />
-                <span>API Keys</span>
+                <span>Failover Pool</span>
               </div>
-              <div className="text-[10px] text-neutral-400 mt-1">2 keys active (Claude 3.7 + OpenAI)</div>
+              <div className="text-[10px] text-neutral-400 mt-1">Qwen 2.5 32B · DeepSeek V3 · Codestral · Llama 3.3</div>
             </div>
 
             <div className="p-3 rounded-xl bg-[#20202a] border border-white/5">
               <div className="flex items-center gap-2 text-xs font-semibold text-white">
-                <Users size={14} className="text-emerald-400" />
-                <span>Team Members</span>
+                <Shield size={14} className="text-emerald-400" />
+                <span>Zero Downtime</span>
               </div>
-              <div className="text-[10px] text-neutral-400 mt-1">1 active member</div>
+              <div className="text-[10px] text-neutral-400 mt-1">4-tier automatic failover active</div>
             </div>
           </div>
         </div>

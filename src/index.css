@@ -9,7 +9,7 @@
   }
 
   body {
-    background-color: #161616;
+    background-color: rgb(59, 59, 59);
     color: #e5e5e5;
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     margin: 0;
@@ -81,18 +81,24 @@
   animation: modalScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Shimmer & Cursor */
-@keyframes textGlance {
-  0% { background-position: -150% 0; }
-  100% { background-position: 150% 0; }
+/* Glance of Light Animation (0.5s sweep) */
+@keyframes glanceLight {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
-.shimmer-text-glance {
-  background: linear-gradient(90deg, #777777 0%, #ffffff 50%, #777777 100%);
-  background-size: 200% auto;
+.glance-light-text {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(255, 255, 255, 1) 50%,
+    rgba(255, 255, 255, 0.4) 100%
+  );
+  background-size: 200% 100%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: textGlance 2s linear infinite;
+  animation: glanceLight 0.5s linear infinite;
+  display: inline-block;
 }
 
 @keyframes blinkCursor {

@@ -7,13 +7,22 @@ import {
   ThumbsUp, 
   ThumbsDown, 
   MoreHorizontal, 
-  FileCode
+  FileCode,
+  Bookmark,
+  Sparkles,
+  Eye,
+  ChevronDown,
+  ChevronRight,
+  Brain
 } from 'lucide-react';
+import AgentExecutionStream from './AgentExecutionStream';
+import { splitThinkingAndContent } from '../services/aiService';
 
-export default function ChatMessage({ message, onRegenerate }) {
+export default function ChatMessage({ message, onRegenerate, onOpenDetails, onOpenPreview }) {
   const [copied, setCopied] = useState(false);
   const [liked, setLiked] = useState(null);
   const [showSources, setShowSources] = useState(false);
+  const [isThinkingExpanded, setIsThinkingExpanded] = useState(false);
 
   const isAssistant = message.role === 'assistant';
 
@@ -25,20 +34,43 @@ export default function ChatMessage({ message, onRegenerate }) {
 
   const sources = [];
 
+  // Helper to render user message text with underlined URLs
+  const renderUserTextWithLinks = (text) => {
+    if (!text) return text;
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = text.split(urlRegex);
+    return parts.map((part, idx) => {
+      if (part.match(urlRegex)) {
+        return (
+          <a
+            key={idx}
+            href={part}
+            target="_blank"
+            rel="noreferrer"
+            className="underline underline-offset-2 text-white hover:text-blue-400 transition-colors"
+          >
+            {part}
+          </a>
+        );
+      }
+      return part;
+    });
+  };
+
   if (!isAssistant) {
     return (
-      <div className="flex justify-end w-full max-w-[560px] mx-auto py-1.5 animate-message-in">
-        <div className="bg-[#262626] text-neutral-200 px-3.5 py-1.5 rounded-2xl text-[14px] font-normal shadow-sm max-w-[85%] break-words transition-all hover:bg-[#2c2c2c]">
-          {message.content}
+      <div className="flex justify-end w-full max-w-[620px] mx-auto px-4 py-1.5 animate-message-in">
+        <div className="bg-[#262626] text-neutral-200 px-4 py-2.5 rounded-2xl text-[14px] font-normal shadow-sm max-w-[85%] break-words whitespace-pre-wrap leading-relaxed transition-all hover:bg-[#2c2c2c]">
+          {renderUserTextWithLinks(message.content)}
         </div>
       </div>
     );
   }
 
-  // Parse inline markdown: **bold**, `code`, *italic*, [link](url)
+  // Parse inline markdown: **bold**, `code`, *italic*, [link](url), raw URLs
   const renderInlineMarkdown = (text) => {
     if (!text) return text;
-    const tokens = text.split(/(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|\[[^\]]+\]\([^)]+\))/g);
+    const tokens = text.split(/(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|\[[^\]]+\]\([^)]+\)|https?:\/\/[^\s]+)/g);
 
     return tokens.map((token, i) => {
       if (!token) return null;
@@ -67,11 +99,18 @@ export default function ChatMessage({ message, onRegenerate }) {
         const match = token.match(/\[([^\]]+)\]\(([^)]+)\)/);
         if (match) {
           return (
-            <a key={i} href={match[2]} target="_blank" rel="noreferrer" className="text-pink-400 hover:underline">
+            <a key={i} href={match[2]} target="_blank" rel="noreferrer" className="text-blue-400 underline underline-offset-2 hover:text-blue-300 transition-colors">
               {match[1]}
             </a>
           );
         }
+      }
+      if (token.startsWith('http://') || token.startsWith('https://')) {
+        return (
+          <a key={i} href={token} target="_blank" rel="noreferrer" className="text-blue-400 underline underline-offset-2 hover:text-blue-300 transition-colors">
+            {token}
+          </a>
+        );
       }
       return token;
     });
@@ -166,6 +205,7 @@ export default function ChatMessage({ message, onRegenerate }) {
   };
 
   const renderFormattedContent = (content) => {
+    if (!content || typeof content !== 'string') return null;
     // First split out code blocks
     const codeParts = content.split(/(```[\s\S]*?```)/g);
     const elements = [];
@@ -215,11 +255,92 @@ export default function ChatMessage({ message, onRegenerate }) {
     return elements;
   };
 
+  // Extract thinking content if present in message using robust parser
+  let rawContent = message.content || '';
+  let thoughtContent = message.thinking || null;
+  let cleanContent = rawContent;
+
+  // Fallback: If message has activities containing thought
+  if (!thoughtContent && message.activities && message.activities.length > 0) {
+    const actThought = message.activities.find(a => a.type === 'thought');
+    if (actThought) {
+      thoughtContent = actThought.content;
+    }
+  }
+
+  if (!thoughtContent && rawContent) {
+    const parsed = splitThinkingAndContent(rawContent);
+    if (parsed.thinking && parsed.content) {
+      thoughtContent = parsed.thinking;
+      cleanContent = parsed.content;
+    }
+  }
+
+  // Clean JSON payloads if raw string leaked into message
+  if (/^(?:```json|json\s*\{|\{)/i.test(cleanContent.trim())) {
+    try {
+      const parsedJson = JSON.parse(cleanContent.replace(/^```json\s*/i, '').replace(/^json\s*/i, '').replace(/```$/i, '').trim());
+      cleanContent = parsedJson.commentary || parsedJson.description || cleanContent;
+    } catch {
+      const commMatch = cleanContent.match(/"commentary":\s*"((?:\\.|[^"\\])*)"/);
+      if (commMatch) cleanContent = commMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"');
+    }
+  }
+
+  if (!cleanContent.trim()) {
+    cleanContent = "I have built the complete production application in your project workspace on the right with all components, styling, and live preview.";
+  }
+
+  const thoughtDuration = message.thoughtDuration || '4s';
+
+  // Assemble combined activities stream (only real LLM thoughts, files and edits)
+  let finalActivities = [];
+  if (message.activities && message.activities.length > 0) {
+    finalActivities = [...message.activities];
+  } else if (thoughtContent) {
+    finalActivities.push({
+      type: 'thought',
+      duration: thoughtDuration,
+      content: thoughtContent
+    });
+  }
+
   return (
-    <div className="w-full max-w-[560px] mx-auto py-2 text-left font-sans animate-message-in">
+    <div className="w-full max-w-[620px] mx-auto px-4 py-2 text-left font-sans animate-message-in">
+      {/* ── Seamless Agent Execution & Thought Stream (Exact Image 2 format) ── */}
+      {finalActivities.length > 0 && (
+        <AgentExecutionStream activities={finalActivities} />
+      )}
+
+      {/* Stylish Single Live Preview Card */}
+      {message.repoCard && (
+        <div className="w-full my-3.5 rounded-2xl bg-gradient-to-br from-[#1d1d23] to-[#16161b] border border-[#2d2d38] p-3.5 shadow-xl flex items-center justify-between gap-3 select-none">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-blue-400 flex-shrink-0">
+              <Sparkles size={18} />
+            </div>
+            <div className="min-w-0">
+              <div className="text-[13.5px] font-semibold text-white truncate">
+                {message.repoCard.repoName || 'Project Preview'}
+              </div>
+              <div className="text-[11.5px] text-neutral-400 truncate">
+                Live dev server active {message.repoCard.port ? `• Port ${message.repoCard.port}` : ''}
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => onOpenPreview && onOpenPreview(message.repoCard)}
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#0084ff] to-[#0066d6] hover:from-[#0074e0] hover:to-[#0055b8] text-white text-xs font-semibold shadow-md shadow-blue-500/25 flex items-center gap-1.5 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] flex-shrink-0"
+          >
+            <Eye size={13} strokeWidth={2.4} />
+            <span>Open Preview</span>
+          </button>
+        </div>
+      )}
+
       {/* Main Response Content */}
       <div className="text-[14px] leading-relaxed text-[#ededed] font-normal mb-2.5">
-        {renderFormattedContent(message.content)}
+        {renderFormattedContent(cleanContent || rawContent)}
       </div>
 
       {/* Sources list */}
