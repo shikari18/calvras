@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { CyLiveVoiceOverlay, AudioWaveformIcon } from '../../components/cy/CyLiveVoiceOverlay';
 import { useVoiceInput } from '../../hooks/useVoiceInput';
 import { 
   Paperclip, FileText, Mic, MicOff, 
@@ -329,6 +330,12 @@ export const CyChatThreadPage = ({
   });
 
   return (
+    <>
+      <CyLiveVoiceOverlay 
+        isOpen={showVoiceOverlay} 
+        onClose={() => setShowVoiceOverlay(false)} 
+        onNewMessage={(userText, aiText) => handleSendMessage(userText)}
+      />
     <div className="flex-1 min-h-screen bg-[#1c1c1c] flex flex-col justify-between font-sans antialiased text-[#f4f4ee] select-none">
       
       {/* Hidden File Input */}
@@ -658,24 +665,18 @@ export const CyChatThreadPage = ({
             </div>
 
             <div className="flex items-center gap-1.5">
-              {/* Voice Input Button */}
+              {/* 🎙️ Speech-to-Speech Blue Waveform Button (Image Match) */}
               <button
                 type="button"
-                onClick={() => toggleListening(inputVal, (text) => setInputVal(text))}
-                className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-90 relative ${
-                  isListening 
-                    ? 'bg-red-500 text-white shadow-lg shadow-red-500/40 animate-pulse ring-2 ring-red-400/50' 
-                    : 'bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white border border-white/10'
+                onClick={() => setShowVoiceOverlay(prev => !prev)}
+                className={`w-7 h-7 rounded-xl bg-[#2563eb] hover:bg-[#1d4ed8] text-white flex items-center justify-center transition-all cursor-pointer shadow-md shadow-blue-500/30 active:scale-90 hover:scale-105 relative ${
+                  showVoiceOverlay ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-[#282828] animate-pulse' : ''
                 }`}
-                title={isListening ? "Listening... click to stop recording" : "Voice input (Speak your message)"}
+                title="Start Live Speech-to-Speech Voice Mode"
               >
-                {isListening ? (
-                  <Mic className="w-3 h-3 animate-bounce" />
-                ) : (
-                  <Mic className="w-3 h-3" />
-                )}
-                {isListening && (
-                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-400 rounded-full animate-ping" />
+                <AudioWaveformIcon size={13} className="text-white" />
+                {showVoiceOverlay && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-300 rounded-full animate-ping" />
                 )}
               </button>
 
@@ -695,5 +696,6 @@ export const CyChatThreadPage = ({
       </footer>
 
     </div>
+    </>
   );
 };
