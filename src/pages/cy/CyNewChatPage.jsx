@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useVoiceInput } from '../../hooks/useVoiceInput';
 import { 
-  Paperclip, FileText, 
+  Paperclip, FileText, Mic, MicOff, 
   Send, 
   CheckCircle2, 
   X, 
@@ -38,6 +39,8 @@ export const CyNewChatPage = ({
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
+
+  const { isListening, toggleListening, errorMessage: voiceError } = useVoiceInput();
   const modeDropdownRef = useRef(null);
 
   // Close dropdown on click outside
@@ -446,14 +449,38 @@ export const CyNewChatPage = ({
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => (promptText.trim() || attachedImage) && onSendMessage(promptText, attachedImage, chatMode)}
-                disabled={!promptText.trim() && !attachedImage}
-                className="w-8 h-8 rounded-full bg-white hover:bg-neutral-200 disabled:opacity-30 text-neutral-950 flex items-center justify-center transition cursor-pointer shadow-md active:scale-90"
-              >
-                <Send size={13} className="translate-x-[-0.5px] translate-y-[-0.5px]" />
-              </button>
+              <div className="flex items-center gap-2">
+                {/* Voice Input Button */}
+                <button
+                  type="button"
+                  onClick={() => toggleListening(promptText, (text) => setPromptText(text))}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-90 relative ${
+                    isListening 
+                      ? 'bg-red-500 text-white shadow-lg shadow-red-500/40 animate-pulse ring-2 ring-red-400/50' 
+                      : 'bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white border border-white/10'
+                  }`}
+                  title={isListening ? "Listening... click to stop recording" : "Voice input (Speak your prompt)"}
+                >
+                  {isListening ? (
+                    <Mic className="w-3.5 h-3.5 animate-bounce" />
+                  ) : (
+                    <Mic className="w-3.5 h-3.5" />
+                  )}
+                  {isListening && (
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-400 rounded-full animate-ping" />
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => (promptText.trim() || attachedImage) && onSendMessage(promptText, attachedImage, chatMode)}
+                  disabled={!promptText.trim() && !attachedImage}
+                  className="w-8 h-8 rounded-full bg-white hover:bg-neutral-200 disabled:opacity-30 text-neutral-950 flex items-center justify-center transition cursor-pointer shadow-md active:scale-90"
+                  title="Send message"
+                >
+                  <Send size={13} className="translate-x-[-0.5px] translate-y-[-0.5px]" />
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useVoiceInput } from '../../hooks/useVoiceInput';
 import { 
-  Paperclip, FileText, 
+  Paperclip, FileText, Mic, MicOff, 
   Sparkles, 
   Clock, 
   Send, 
@@ -656,14 +657,38 @@ export const CyChatThreadPage = ({
               </button>
             </div>
 
-            <button
-              type="button"
-              onClick={() => handleSendMessage()}
-              disabled={(!inputVal.trim() && !attachedImage) || isWorking}
-              className="w-7 h-7 rounded-xl bg-white hover:bg-neutral-200 disabled:opacity-30 text-neutral-950 flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
-            >
-              <Send size={12} />
-            </button>
+            <div className="flex items-center gap-1.5">
+              {/* Voice Input Button */}
+              <button
+                type="button"
+                onClick={() => toggleListening(inputVal, (text) => setInputVal(text))}
+                className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-90 relative ${
+                  isListening 
+                    ? 'bg-red-500 text-white shadow-lg shadow-red-500/40 animate-pulse ring-2 ring-red-400/50' 
+                    : 'bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white border border-white/10'
+                }`}
+                title={isListening ? "Listening... click to stop recording" : "Voice input (Speak your message)"}
+              >
+                {isListening ? (
+                  <Mic className="w-3 h-3 animate-bounce" />
+                ) : (
+                  <Mic className="w-3 h-3" />
+                )}
+                {isListening && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-400 rounded-full animate-ping" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSendMessage()}
+                disabled={(!inputVal.trim() && !attachedImage) || isWorking}
+                className="w-7 h-7 rounded-xl bg-white hover:bg-neutral-200 disabled:opacity-30 text-neutral-950 flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
+                title="Send message"
+              >
+                <Send size={12} />
+              </button>
+            </div>
           </div>
         </div>
 
