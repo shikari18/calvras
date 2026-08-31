@@ -2,8 +2,8 @@ import path from 'path';
 import os from 'os';
 import fs from 'fs';
 
-// All repos are cloned under ~/malvos-repos/
-export const WORKSPACE = path.join(os.homedir(), 'malvos-repos');
+// All repos are cloned under ~/calvras-repos/
+export const WORKSPACE = path.join(os.homedir(), 'calvras-repos');
 
 // Ensure workspace dir exists
 if (!fs.existsSync(WORKSPACE)) {

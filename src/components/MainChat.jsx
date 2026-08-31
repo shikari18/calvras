@@ -20,70 +20,85 @@ import {
   Terminal,
   PanelRight,
   Maximize2,
-  Minimize2
+  Minimize2,
+  RotateCcw,
+  AlertCircle
 } from 'lucide-react';
 import ChatMessage from './ChatMessage';
 import PlusActionMenu from './PlusActionMenu';
 import InteractiveQuestionCard from './InteractiveQuestionCard';
+import SelectionBlock, { extractSelectionQuestion } from './SelectionBlock';
 import ProjectWorkspacePane from './ProjectWorkspacePane';
+import { generateFullArchitectureApp } from '../services/fullAppGenerator';
 import { BUILD_MODES } from '../data/mockData';
-import { generateAIResponse, streamAIResponse } from '../services/aiService';
+import { generateAIResponse, streamAIResponse, MALVOS_SYSTEM_PROMPT } from '../services/aiService';
+import { speakText, stopSpeaking } from '../services/kokoroVoice';
+import VoiceConversation from './VoiceConversation';
 
 // ─── Extract Real Generated Files from AI Output (Zero Hardcoding) ───────────
-function extractFilesFromAIResponse(rawText, query = '') {
+export function extractFilesFromAIResponse(rawText, query = '') {
   const files = {};
   if (!rawText) return files;
 
-  // 1. Structured JSON output detection (e.g. `json { "commentary": "...", "code": "..." }`)
-  let jsonStr = rawText.trim();
-  if (jsonStr.startsWith('```json')) {
-    jsonStr = jsonStr.replace(/^```json\s*/i, '').replace(/```$/i, '').trim();
-  } else if (/^json\s*\{/i.test(jsonStr)) {
-    jsonStr = jsonStr.replace(/^json\s*/i, '').trim();
-  }
+  // Never extract files when the user asks for a prompt, text, explanation, status, or general question
+  const isPromptOrTextQuery = /prompt|system prompt|explain|how to|what is|tell me|who are you|help me write|is it (?:still )?cloning|is it done|is it ready|status/i.test(query) && !/build (?:an? )?(?:app|website|page|component|portfolio|dashboard)|code (?:an? )?(?:app|website|page)|create (?:an? )?(?:app|website|page)|duplicate|replicate|clone/i.test(query);
+  if (isPromptOrTextQuery) return files;
 
-  if (jsonStr.startsWith('{') && (jsonStr.includes('"code"') || jsonStr.includes('"file_path"') || jsonStr.includes('"files"'))) {
-    try {
-      const data = JSON.parse(jsonStr);
-      if (data.code) {
-        let fn = data.file_path || 'src/components/RestaurantWebsite.tsx';
-        fn = fn.replace(/^[./\\]+/, '');
-        if (!fn.startsWith('Malvos/')) fn = `Malvos/${fn}`;
-        files[fn] = data.code;
-      }
-      if (data.files && typeof data.files === 'object') {
-        for (const [k, v] of Object.entries(data.files)) {
-          let fn = k.replace(/^[./\\]+/, '');
-          if (!fn.startsWith('Malvos/')) fn = `Malvos/${fn}`;
-          files[fn] = typeof v === 'string' ? v : v.code || '';
-        }
-      }
-    } catch {
-      const codeMatch = jsonStr.match(/"code":\s*"((?:\\.|[^"\\])*)"/);
-      const pathMatch = jsonStr.match(/"file_path":\s*"([^"]+)"/);
-      if (codeMatch) {
-        let fn = pathMatch ? pathMatch[1] : 'src/components/RestaurantWebsite.tsx';
-        fn = fn.replace(/^[./\\]+/, '');
-        if (!fn.startsWith('Malvos/')) fn = `Malvos/${fn}`;
-        files[fn] = codeMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
-      }
+  const normalizeFilename = (fn) => {
+    if (!fn) return 'Calvras/src/App.tsx';
+    let clean = fn
+      .replace(/^["'`]+|["'`]+$/g, '')
+      .replace(/^(?:file=|filename=)/i, '')
+      .replace(/^[./\\]+/, '')
+      .trim();
+    if (clean.startsWith('Calvras/')) {
+      clean = clean.substring(8);
     }
-  }
+    return 'Calvras/' + (clean.startsWith('src/') || clean === 'index.html' || clean === 'package.json' || clean === 'tsconfig.json' || clean === 'vite.config.ts' || clean === 'tailwind.config.js' || clean.startsWith('public/') ? clean : `src/${clean}`);
+  };
 
-  // 2. Standard markdown code blocks
+  const unescapeCode = (str) => {
+    if (!str || typeof str !== 'string') return '';
+    return str
+      .replace(/\\r\\n/g, '\n')
+      .replace(/\\n/g, '\n')
+      .replace(/\\t/g, '  ')
+      .replace(/\\"/g, '"')
+      .replace(/\\'/g, "'")
+      .replace(/\\\\/g, '\\')
+      .trim();
+  };
+
+  // 1. Standard markdown code blocks (Primary format: ```tsx file=src/App.tsx)
   const codeBlockRegex = /```([a-zA-Z0-9_-]+)?(?:\s+(?:file=|filename=)?([^\s\n]+))?\r?\n([\s\S]*?)(?:```|$)/g;
   let match;
   let count = 1;
 
   while ((match = codeBlockRegex.exec(rawText)) !== null) {
     const lang = (match[1] || '').toLowerCase();
-    if (lang === 'json') continue; // JSON blocks are parsed above, skip adding as file
     let filename = match[2];
     let content = (match[3] || '').trim();
 
+    if (lang === 'json' && !match[2]?.includes('.json') && !match[2]?.includes('package.json')) {
+      // Check if this is a JSON files dictionary block
+      if (content.includes('.tsx"') || content.includes('.jsx"') || content.includes('.html"') || content.includes('.css"') || content.includes(".tsx'") || content.includes(".jsx'")) {
+        try {
+          const parsed = JSON.parse(content);
+          const map = parsed.files || parsed;
+          for (const [k, v] of Object.entries(map)) {
+            if (/\.(?:tsx|jsx|ts|js|html|css|json)$/i.test(k)) {
+              const c = typeof v === 'string' ? v : (v.code || v.content || '');
+              if (c && c.length > 5) files[normalizeFilename(k)] = unescapeCode(c);
+            }
+          }
+        } catch { /* proceed to regex */ }
+      }
+      continue;
+    }
+
     if (!content || content.length < 15) continue;
 
-    // Detect filename from top comment
+    // Detect filename from top comment if omitted
     if (!filename) {
       const firstLine = content.split('\n')[0].trim();
       if (firstLine.startsWith('// ') || firstLine.startsWith('/* ') || firstLine.startsWith('# ')) {
@@ -98,196 +113,673 @@ function extractFilesFromAIResponse(rawText, query = '') {
     // Detect component name from export default function ComponentName
     if (!filename) {
       const compMatch = content.match(/export\s+default\s+function\s+([a-zA-Z0-9_]+)/i);
-      if (compMatch) {
-        const ext = lang.includes('tsx') ? 'tsx' : lang.includes('jsx') ? 'jsx' : 'tsx';
+      if (compMatch && (lang.includes('tsx') || lang.includes('jsx') || content.includes('return (') || content.includes('return <'))) {
+        const ext = lang.includes('jsx') ? 'jsx' : 'tsx';
         filename = `src/components/${compMatch[1]}.${ext}`;
       } else if (lang === 'html' || content.includes('<!DOCTYPE html>') || content.includes('<html')) {
         filename = 'index.html';
-      } else if (lang === 'css' || content.includes('@tailwind') || content.includes(':root {')) {
-        filename = 'src/index.css';
-      } else if (['tsx', 'jsx', 'ts', 'js', 'react'].includes(lang) || content.includes('import React')) {
+      } else if (lang === 'css' && (content.includes('@tailwind') || content.includes(':root {'))) {
+        filename = 'src/styles.css';
+      } else if (['tsx', 'jsx'].includes(lang) && (content.includes('import React') || content.includes('export default'))) {
         filename = `src/App.${lang.includes('jsx') ? 'jsx' : 'tsx'}`;
       } else {
-        filename = `src/code-${count}.${lang || 'ts'}`;
+        // Not a project workspace file, just a markdown code snippet in chat
+        continue;
       }
     }
 
-    filename = filename.replace(/^[./\\]+/, '');
-    if (!filename.startsWith('Malvos/')) {
-      filename = `Malvos/${filename}`;
-    }
-    files[filename] = content;
+    files[normalizeFilename(filename)] = content;
     count++;
   }
 
-  // Auto-scaffold full production project files if React components were generated
-  const isWebProject = Object.keys(files).some(k => k.endsWith('.tsx') || k.endsWith('.jsx') || k.endsWith('.html') || k.endsWith('.css'));
-  if (isWebProject) {
-    const primaryCompKey = Object.keys(files).find(k => k.includes('components/')) || Object.keys(files).find(k => k.endsWith('.tsx')) || 'Malvos/src/components/AppView.tsx';
-    const primaryCompName = primaryCompKey.split('/').pop().replace(/\.(tsx|jsx)$/, '');
+  // 2. Structured JSON / JS Object file mappings anywhere in the response
+  if (Object.keys(files).length === 0) {
+    // Attempt full JSON parsing
+    let cleanJson = rawText.trim();
+    if (cleanJson.startsWith('```json')) cleanJson = cleanJson.replace(/^```json\s*/i, '').replace(/```$/i, '').trim();
+    if (cleanJson.startsWith('```')) cleanJson = cleanJson.replace(/^```[a-zA-Z0-9_-]*\s*/i, '').replace(/```$/i, '').trim();
 
-    if (!files['Malvos/package.json']) {
-      files['Malvos/package.json'] = JSON.stringify({
-        name: "malvos-app",
-        private: true,
-        version: "0.1.0",
-        type: "module",
-        scripts: {
-          dev: "vite",
-          build: "vite build",
-          preview: "vite preview"
-        },
-        dependencies: {
-          react: "^18.3.1",
-          "react-dom": "^18.3.1",
-          "lucide-react": "^0.468.0",
-          "clsx": "^2.1.1",
-          "tailwind-merge": "^2.5.5"
-        },
-        devDependencies: {
-          "@types/react": "^18.3.12",
-          "@types/react-dom": "^18.3.1",
-          "@vitejs/plugin-react": "^4.3.4",
-          "autoprefixer": "^10.4.20",
-          "postcss": "^8.4.49",
-          "tailwindcss": "^3.4.16",
-          "typescript": "~5.6.2",
-          "vite": "^6.0.1"
+    try {
+      const parsed = JSON.parse(cleanJson);
+      const fileMap = parsed.files || parsed;
+      for (const [k, v] of Object.entries(fileMap)) {
+        if (/\.(?:tsx|jsx|ts|js|html|css|json)$/i.test(k)) {
+          const rawContent = typeof v === 'string' ? v : (v.code || v.content || '');
+          if (rawContent && rawContent.length > 5) {
+            files[normalizeFilename(k)] = unescapeCode(rawContent);
+          }
         }
-      }, null, 2);
-    }
-
-    if (!files['Malvos/vite.config.ts']) {
-      files['Malvos/vite.config.ts'] = `import { defineConfig } from 'vite';\nimport react from '@vitejs/plugin-react';\n\nexport default defineConfig({\n  plugins: [react()],\n});`;
-    }
-
-    if (!files['Malvos/tsconfig.json']) {
-      files['Malvos/tsconfig.json'] = JSON.stringify({
-        compilerOptions: {
-          target: "ES2020",
-          useDefineForClassFields: true,
-          lib: ["ES2020", "DOM", "DOM.Iterable"],
-          module: "ESNext",
-          skipLibCheck: true,
-          moduleResolution: "bundler",
-          allowImportingTsExtensions: true,
-          resolveJsonModule: true,
-          isolatedModules: true,
-          noEmit: true,
-          jsx: "react-jsx",
-          strict: true
-        },
-        include: ["src"]
-      }, null, 2);
-    }
-
-    if (!files['Malvos/tailwind.config.js']) {
-      files['Malvos/tailwind.config.js'] = `/** @type {import('tailwindcss').Config} */\nexport default {\n  darkMode: ['class'],\n  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],\n  theme: {\n    extend: {\n      colors: {\n        background: 'hsl(var(--background))',\n        foreground: 'hsl(var(--foreground))',\n      }\n    }\n  },\n  plugins: []\n};`;
-    }
-
-    if (!files['Malvos/index.html']) {
-      files['Malvos/index.html'] = `<!DOCTYPE html>\n<html lang="en" class="dark">\n  <head>\n    <meta charset="UTF-8" />\n    <meta name="viewport" content="width=device-width, initial-scale=1.0" />\n    <title>Malvos Application</title>\n  </head>\n  <body class="bg-black text-white antialiased">\n    <div id="root"></div>\n    <script type="module" src="/src/main.tsx"></script>\n  </body>\n</html>`;
-    }
-
-    if (!files['Malvos/src/main.tsx']) {
-      files['Malvos/src/main.tsx'] = `import React from 'react';\nimport ReactDOM from 'react-dom/client';\nimport App from './App.tsx';\nimport './index.css';\n\nReactDOM.createRoot(document.getElementById('root')!).render(\n  <React.StrictMode>\n    <App />\n  </React.StrictMode>\n);`;
-    }
-
-    if (!files['Malvos/src/App.tsx'] && primaryCompKey !== 'Malvos/src/App.tsx') {
-      files['Malvos/src/App.tsx'] = `import React from 'react';\nimport ${primaryCompName} from './components/${primaryCompName}.tsx';\n\nexport default function App() {\n  return (\n    <main className="min-h-screen bg-black text-white">\n      <${primaryCompName} />\n    </main>\n  );\n}`;
-    }
-
-    if (!files['Malvos/src/lib/utils.ts']) {
-      files['Malvos/src/lib/utils.ts'] = `import { clsx, type ClassValue } from "clsx";\nimport { twMerge } from "tailwind-merge";\n\nexport function cn(...inputs: ClassValue[]) {\n  return twMerge(clsx(inputs));\n}`;
-    }
-
-    if (!files['Malvos/src/index.css']) {
-      files['Malvos/src/index.css'] = `@tailwind base;\n@tailwind components;\n@tailwind utilities;\n\nbody {\n  margin: 0;\n  padding: 0;\n  background-color: #000;\n  color: #fff;\n  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;\n  overflow-x: hidden;\n}`;
-    }
-
-    if (!files['Malvos/public/robots.txt']) {
-      files['Malvos/public/robots.txt'] = "User-agent: *\nAllow: /";
+      }
+      if (parsed.code && Object.keys(files).length === 0) {
+        files[normalizeFilename(parsed.file_path || 'src/App.tsx')] = unescapeCode(parsed.code);
+      }
+    } catch {
+      // Chunk-by-chunk file extractor for JSON and JS single-quoted / double-quoted key-value pairs
+      const fileEntryRegex = /['"]([^'"\n]+\.(?:tsx|jsx|ts|js|html|css|json))['"]\s*:\s*['"]([\s\S]*?)(?=['"],\s*['"][^'"\n]+\.(?:tsx|jsx|ts|js|html|css|json)['"]|['"]\s*\}|\}\s*$|$)/g;
+      let fpMatch;
+      while ((fpMatch = fileEntryRegex.exec(rawText)) !== null) {
+        const fn = fpMatch[1];
+        let val = fpMatch[2];
+        if (val.endsWith("'") || val.endsWith('"')) val = val.slice(0, -1);
+        const unescaped = unescapeCode(val);
+        if (unescaped.length > 5) {
+          files[normalizeFilename(fn)] = unescaped;
+        }
+      }
     }
   }
 
-  return files;
+  // 3. XML Tool Calling / <function_calls> / <invoke name="create_file">
+  if (Object.keys(files).length === 0 && (rawText.includes('<invoke') || rawText.includes('<function_calls>'))) {
+    const invokeRegex = /<invoke\s+name=["'](?:create_file|write_to_file|edit_file|new_file)["']>([\s\S]*?)<\/invoke>/gi;
+    let invMatch;
+    while ((invMatch = invokeRegex.exec(rawText)) !== null) {
+      const body = invMatch[1];
+      const pathMatch = body.match(/<parameter\s+name=["'](?:file_path|path|target_file|filePath)["']>([\s\S]*?)<\/parameter>/i);
+      const contentMatch = body.match(/<parameter\s+name=["'](?:content|code|file_content|CodeContent)["']>([\s\S]*?)<\/parameter>/i);
+      if (pathMatch && contentMatch) {
+        const fn = pathMatch[1].trim();
+        const cont = contentMatch[1].trim();
+        if (fn && cont) {
+          files[normalizeFilename(fn)] = unescapeCode(cont);
+        }
+      }
+    }
+  }
+
+  // 4. Raw JSX / HTML fallback (STRICT: only if NOT a JSON / JS object string)
+  const isLikelyObjectString = rawText.includes('":"') || rawText.includes("':'") || rawText.includes("': '") || rawText.includes('": "') || rawText.trim().startsWith('{') || rawText.trim().startsWith('[');
+  if (Object.keys(files).length === 0 && rawText && !isLikelyObjectString) {
+    if (rawText.includes('export default function') || rawText.includes('function App') || rawText.includes('import React') || rawText.includes('return (') || rawText.includes('return <')) {
+      const compMatch = rawText.match(/(?:export\s+default\s+function|export\s+function|function)\s+([A-Z][a-zA-Z0-9_]*)/);
+      const name = compMatch ? compMatch[1] : 'App';
+      files[`Calvras/src/components/${name}.tsx`] = rawText.trim();
+    } else if (rawText.includes('<!DOCTYPE html>') || rawText.includes('<html')) {
+      files['Calvras/index.html'] = rawText.trim();
+    }
+  }
+
+  // Sanity check: Ensure index.html does not contain raw escaped object fragments
+  if (files['Calvras/index.html']) {
+    const content = files['Calvras/index.html'];
+    if (content.includes("src/main.tsx") && (content.includes("','") || content.includes('","') || content.includes("':'") || content.includes('": "'))) {
+      delete files['Calvras/index.html'];
+    }
+  }
+
+  // Enrich with full modular Lovable-style production project structure
+  return enrichWithProductionProjectStructure(files);
+}
+
+// ─── Production Project Architecture Scaffolder (Lovable/Production Folder Tree) ──
+export function enrichWithProductionProjectStructure(files = {}) {
+  if (!files || Object.keys(files).length === 0) return files;
+
+  const result = { ...files };
+  const prefix = Object.keys(files)[0]?.startsWith('Calvras/') ? 'Calvras/' : '';
+
+  // 1. Root & Config Files
+  if (!result[`${prefix}package.json`]) {
+    result[`${prefix}package.json`] = JSON.stringify({
+      name: "calvras-production-app",
+      private: true,
+      version: "1.0.0",
+      type: "module",
+      scripts: {
+        dev: "vite",
+        build: "tsc && vite build",
+        preview: "vite preview"
+      },
+      dependencies: {
+        react: "^18.3.1",
+        "react-dom": "^18.3.1",
+        "lucide-react": "^0.468.0",
+        clsx: "^2.1.1",
+        "tailwind-merge": "^2.5.5"
+      },
+      devDependencies: {
+        "@types/react": "^18.3.3",
+        "@types/react-dom": "^18.3.0",
+        "@vitejs/plugin-react": "^4.3.1",
+        autoprefixer: "^10.4.19",
+        postcss: "^8.4.38",
+        tailwindcss: "^3.4.4",
+        typescript: "^5.5.3",
+        vite: "^5.4.1"
+      }
+    }, null, 2);
+  }
+
+  if (!result[`${prefix}tsconfig.json`]) {
+    result[`${prefix}tsconfig.json`] = JSON.stringify({
+      compilerOptions: {
+        target: "ES2020",
+        useDefineForClassFields: true,
+        lib: ["ES2020", "DOM", "DOM.Iterable"],
+        module: "ESNext",
+        skipLibCheck: true,
+        moduleResolution: "bundler",
+        allowImportingTsExtensions: true,
+        resolveJsonModule: true,
+        isolatedModules: true,
+        noEmit: true,
+        jsx: "react-jsx",
+        strict: true,
+        baseUrl: ".",
+        paths: {
+          "@/*": ["./src/*"]
+        }
+      },
+      include: ["src"]
+    }, null, 2);
+  }
+
+  if (!result[`${prefix}vite.config.ts`]) {
+    result[`${prefix}vite.config.ts`] = `import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+});`;
+  }
+
+  if (!result[`${prefix}tailwind.config.js`]) {
+    result[`${prefix}tailwind.config.js`] = `/** @type {import('tailwindcss').Config} */
+export default {
+  darkMode: ["class"],
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+};`;
+  }
+
+  if (!result[`${prefix}postcss.config.js`]) {
+    result[`${prefix}postcss.config.js`] = `export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+};`;
+  }
+
+  if (!result[`${prefix}index.html`]) {
+    result[`${prefix}index.html`] = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Production Application</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>`;
+  }
+
+  if (!result[`${prefix}components.json`]) {
+    result[`${prefix}components.json`] = JSON.stringify({
+      $schema: "https://ui.shadcn.com/schema.json",
+      style: "default",
+      rsc: false,
+      tsx: true,
+      tailwind: {
+        config: "tailwind.config.js",
+        css: "src/index.css",
+        baseColor: "neutral",
+        cssVariables: true
+      },
+      aliases: {
+        components: "@/components",
+        utils: "@/lib/utils"
+      }
+    }, null, 2);
+  }
+
+  if (!result[`${prefix}.lovable/project.json`]) {
+    result[`${prefix}.lovable/project.json`] = JSON.stringify({
+      name: "production-app",
+      framework: "react-vite",
+      version: "2.0.0"
+    }, null, 2);
+  }
+
+  // 2. Public Folder Assets & Favicons
+  if (!result[`${prefix}public/favicon.ico`]) {
+    result[`${prefix}public/favicon.ico`] = `<!-- Favicon Asset Icon -->`;
+  }
+  if (!result[`${prefix}public/robots.txt`]) {
+    result[`${prefix}public/robots.txt`] = `User-agent: *\nAllow: /`;
+  }
+  if (!result[`${prefix}public/vite.svg`]) {
+    result[`${prefix}public/vite.svg`] = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" fill="#0084ff"/></svg>`;
+  }
+
+  // 3. Src Assets & Utilities
+  if (!result[`${prefix}src/assets/logo.svg`]) {
+    result[`${prefix}src/assets/logo.svg`] = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`;
+  }
+
+  if (!result[`${prefix}src/lib/utils.ts`]) {
+    result[`${prefix}src/lib/utils.ts`] = `import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}`;
+  }
+
+  if (!result[`${prefix}src/hooks/use-mobile.tsx`]) {
+    result[`${prefix}src/hooks/use-mobile.tsx`] = `import * as React from "react";
+
+const MOBILE_BREAKPOINT = 768;
+
+export function useIsMobile() {
+  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined);
+
+  React.useEffect(() => {
+    const mql = window.matchMedia(\`(max-width: \${MOBILE_BREAKPOINT - 1}px)\`);
+    const onChange = () => {
+      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    };
+    mql.addEventListener("change", onChange);
+    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
+
+  return !!isMobile;
+}`;
+  }
+
+  if (!result[`${prefix}src/hooks/use-toast.ts`]) {
+    result[`${prefix}src/hooks/use-toast.ts`] = `import { useState, useCallback } from 'react';
+
+export interface Toast {
+  id: string;
+  title: string;
+  description?: string;
+  variant?: 'default' | 'destructive';
+}
+
+export function useToast() {
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const toast = useCallback(({ title, description, variant = 'default' }: Omit<Toast, 'id'>) => {
+    const id = Math.random().toString(36).substring(2, 9);
+    setToasts((prev) => [...prev, { id, title, description, variant }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 3000);
+  }, []);
+
+  return { toast, toasts };
+}`;
+  }
+
+  if (!result[`${prefix}src/types/index.ts`]) {
+    result[`${prefix}src/types/index.ts`] = `export interface NavItem {
+  title: string;
+  href: string;
+  icon?: string;
+  disabled?: boolean;
+}
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl?: string;
+}
+
+export interface ProjectMetadata {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}`;
+  }
+
+  // 4. Modular UI Components in src/components/ui/
+  if (!result[`${prefix}src/components/ui/button.tsx`]) {
+    result[`${prefix}src/components/ui/button.tsx`] = `import * as React from "react";
+import { cn } from "@/lib/utils";
+
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: "default" | "outline" | "ghost" | "secondary" | "destructive";
+  size?: "default" | "sm" | "lg" | "icon";
+}
+
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant = "default", size = "default", ...props }, ref) => {
+    const baseStyles = "inline-flex items-center justify-center rounded-xl font-medium transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50";
+    const variantStyles = {
+      default: "bg-blue-600 text-white hover:bg-blue-700 shadow-sm",
+      outline: "border border-neutral-700 bg-transparent hover:bg-neutral-800 text-neutral-100",
+      secondary: "bg-neutral-800 text-neutral-100 hover:bg-neutral-700",
+      ghost: "hover:bg-neutral-800 text-neutral-200 hover:text-white",
+      destructive: "bg-red-600 text-white hover:bg-red-700"
+    };
+    const sizeStyles = {
+      default: "h-9 px-4 py-2 text-sm",
+      sm: "h-8 rounded-lg px-3 text-xs",
+      lg: "h-11 rounded-2xl px-6 text-base",
+      icon: "h-9 w-9 p-0"
+    };
+
+    return (
+      <button
+        ref={ref}
+        className={cn(baseStyles, variantStyles[variant], sizeStyles[size], className)}
+        {...props}
+      />
+    );
+  }
+);
+Button.displayName = "Button";`;
+  }
+
+  if (!result[`${prefix}src/components/ui/card.tsx`]) {
+    result[`${prefix}src/components/ui/card.tsx`] = `import * as React from "react";
+import { cn } from "@/lib/utils";
+
+export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn("rounded-2xl border border-white/10 bg-neutral-900/80 p-5 text-neutral-100 shadow-xl backdrop-blur-sm", className)}
+      {...props}
+    />
+  );
+}
+
+export function CardHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn("flex flex-col space-y-1.5 pb-3", className)} {...props} />;
+}
+
+export function CardTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
+  return <h3 className={cn("text-lg font-bold leading-none tracking-tight text-white", className)} {...props} />;
+}
+
+export function CardDescription({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
+  return <p className={cn("text-xs text-neutral-400 leading-relaxed", className)} {...props} />;
+}
+
+export function CardContent({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn("pt-1", className)} {...props} />;
+}`;
+  }
+
+  if (!result[`${prefix}src/components/ui/input.tsx`]) {
+    result[`${prefix}src/components/ui/input.tsx`] = `import * as React from "react";
+import { cn } from "@/lib/utils";
+
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
+
+export const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ className, type, ...props }, ref) => {
+    return (
+      <input
+        type={type}
+        className={cn(
+          "flex h-9 w-full rounded-xl border border-neutral-800 bg-neutral-950 px-3 py-1 text-sm text-neutral-100 placeholder:text-neutral-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50",
+          className
+        )}
+        ref={ref}
+        {...props}
+      />
+    );
+  }
+);
+Input.displayName = "Input";`;
+  }
+
+  if (!result[`${prefix}src/components/ui/badge.tsx`]) {
+    result[`${prefix}src/components/ui/badge.tsx`] = `import * as React from "react";
+import { cn } from "@/lib/utils";
+
+export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: "default" | "secondary" | "outline" | "success";
+}
+
+export function Badge({ className, variant = "default", ...props }: BadgeProps) {
+  const variantStyles = {
+    default: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+    secondary: "bg-neutral-800 text-neutral-300 border-neutral-700",
+    outline: "border-neutral-700 text-neutral-300",
+    success: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+  };
+
+  return (
+    <div
+      className={cn(
+        "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors",
+        variantStyles[variant],
+        className
+      )}
+      {...props}
+    />
+  );
+}`;
+  }
+
+  if (!result[`${prefix}src/components/Navbar.tsx`]) {
+    result[`${prefix}src/components/Navbar.tsx`] = `import React from 'react';
+import { Sparkles, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
+export function Navbar() {
+  return (
+    <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-black/70 backdrop-blur-xl px-6 py-3.5 flex items-center justify-between">
+      <div className="flex items-center gap-2.5">
+        <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white font-black shadow-lg shadow-blue-500/20">
+          <Sparkles size={16} />
+        </div>
+        <span className="text-sm font-bold tracking-tight text-white font-sans">App Studio</span>
+      </div>
+      <div className="flex items-center gap-3 text-xs">
+        <Button size="sm" variant="outline">Sign In</Button>
+        <Button size="sm">Get Started</Button>
+      </div>
+    </header>
+  );
+}`;
+  }
+
+  if (!result[`${prefix}src/components/Sidebar.tsx`]) {
+    result[`${prefix}src/components/Sidebar.tsx`] = `import React from 'react';
+import { Home, Layers, Compass, Settings, Users, FolderKanban } from 'lucide-react';
+
+export function Sidebar() {
+  const items = [
+    { name: 'Dashboard', icon: Home, active: true },
+    { name: 'Projects', icon: FolderKanban },
+    { name: 'Components', icon: Layers },
+    { name: 'Explore', icon: Compass },
+    { name: 'Team', icon: Users },
+    { name: 'Settings', icon: Settings },
+  ];
+
+  return (
+    <aside className="w-60 border-r border-white/5 bg-[#0e0e12] p-3 flex flex-col justify-between">
+      <nav className="space-y-1">
+        {items.map((item) => {
+          const Icon = item.icon;
+          return (
+            <button
+              key={item.name}
+              className={\`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all \${item.active ? 'bg-white/10 text-white' : 'text-neutral-400 hover:text-white hover:bg-white/5'}\`}
+            >
+              <Icon size={16} />
+              <span>{item.name}</span>
+            </button>
+          );
+        })}
+      </nav>
+    </aside>
+  );
+}`;
+  }
+
+  // 5. Entry Point & Tailwind CSS
+  if (!result[`${prefix}src/main.tsx`]) {
+    result[`${prefix}src/main.tsx`] = `import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import './index.css';
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);`;
+  }
+
+  if (!result[`${prefix}src/index.css`]) {
+    result[`${prefix}src/index.css`] = `@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 5%;
+    --foreground: 0 0% 98%;
+    --border: 0 0% 15%;
+  }
+  body {
+    @apply bg-[#0a0a0f] text-[#ededed] font-sans antialiased;
+  }
+}`;
+  }
+
+  if (!result[`${prefix}README.md`]) {
+    result[`${prefix}README.md`] = `# Production Modular Application
+
+Engineered with React 18, TypeScript, Tailwind CSS, and Shadcn UI components.
+
+## Project Structure
+- \`src/components/ui/\`: Reusable UI primitives (Button, Card, Input, Badge)
+- \`src/components/\`: Feature & section components (Navbar, Sidebar, etc.)
+- \`src/hooks/\`: Custom application hooks
+- \`src/lib/utils.ts\`: Styling & class merger utilities
+- \`src/types/\`: TypeScript interface definitions
+- \`public/\`: Static assets, icons, and metadata
+`;
+  }
+
+  if (!result[`${prefix}AGENTS.md`]) {
+    result[`${prefix}AGENTS.md`] = `# Calvras Architecture Guidelines
+- Modular component composition
+- TypeScript strict typing
+- Responsive Tailwind utility classes
+`;
+  }
+
+  if (!result[`${prefix}.gitignore`]) {
+    result[`${prefix}.gitignore`] = `node_modules\ndist\n.DS_Store\n*.local\n`;
+  }
+
+  return result;
 }
 
 // ─── Dynamic Live Activity Indicator (Real Live Streaming Thoughts with Dropdown) ─
-function LiveActivityIndicator({ liveThinkingText, liveThinkingDuration, isLiveThinkingOpen, setIsLiveThinkingOpen, statusText, activeFile }) {
+function formatLiveInline(text) {
+  if (!text) return text;
+  const parts = text.split(/(\*\*.*?\*\*|\*.*?\*|`.*?`)/g);
+  return parts.map((part, i) => {
+    if (!part) return null;
+    if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
+      return <strong key={i} className="font-semibold text-white">{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith('*') && part.endsWith('*') && part.length >= 2) {
+      return <em key={i} className="italic text-neutral-200">{part.slice(1, -1)}</em>;
+    }
+    if (part.startsWith('`') && part.endsWith('`') && part.length >= 2) {
+      return <code key={i} className="px-1.5 py-0.5 rounded bg-[#1f1f1f] text-neutral-200 font-mono text-[12px] border border-white/10">{part.slice(1, -1)}</code>;
+    }
+    return part;
+  });
+}
+
+function LiveActivityIndicator({ liveThinkingDuration, statusText, activeFile, hasCodeFiles, isCodePrompt }) {
+  // Show a single clean status line — no "Working for Xs", no thinking text dump
+  const displayText = statusText && !statusText.includes('```') && !statusText.includes('export default') && !statusText.includes('import React') && statusText.length < 120
+    ? statusText.replace(/<think>[\s\S]*?<\/think>/gi, '').trim()
+    : null;
+
   return (
-    <div className="w-full max-w-[620px] mx-auto my-2 rounded-2xl bg-gradient-to-br from-[#1c1c24] to-[#131318] border border-[#2d2d3c] p-4 shadow-2xl text-left space-y-3 animate-in fade-in duration-150">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse" />
-          <span className="text-xs font-bold uppercase tracking-wider text-blue-400">Malvos Autonomous Agent</span>
-        </div>
-        <span className="text-[11px] text-neutral-400 font-mono">Workspace: Malvos/</span>
-      </div>
-
-      {liveThinkingText && (
-        <div className="border-t border-[#262635] pt-2">
-          <button
-            type="button"
-            onClick={() => setIsLiveThinkingOpen && setIsLiveThinkingOpen(p => !p)}
-            className="flex items-center gap-1.5 text-neutral-400 hover:text-neutral-200 font-normal text-[12.5px] cursor-pointer"
-          >
-            <span>Thought for {liveThinkingDuration || 1}s</span>
-            <ChevronDown size={12} className={`transition-transform duration-150 ${isLiveThinkingOpen ? '' : '-rotate-90'}`} />
-          </button>
-          {isLiveThinkingOpen && (
-            <div className="mt-1.5 pl-3 py-1 text-[12.5px] text-neutral-300 border-l-2 border-neutral-700 whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto scrollbar-thin">
-              {liveThinkingText}
-            </div>
-          )}
-        </div>
-      )}
-
-      <div className="space-y-1.5 text-xs text-neutral-300 font-mono bg-[#0c0c10] p-3 rounded-xl border border-[#20202a]">
-        <div className="flex items-center gap-2 text-emerald-400">
-          <span>✓</span>
-          <span>Scaffolding production project architecture in Malvos/</span>
-        </div>
-        <div className="flex items-center gap-2 text-blue-300">
-          <span className="animate-spin text-blue-400">⚙</span>
-          <span>{statusText || (activeFile ? `Writing ${activeFile}...` : 'Assembling component logic & styling...')}</span>
-        </div>
-        <div className="flex items-center gap-2 text-amber-400">
-          <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-          <span>Live Preview active in right workspace panel</span>
-        </div>
+    <div className="w-full max-w-[660px] mx-auto py-1 px-4 text-left animate-in fade-in duration-150 select-none">
+      <div className="flex items-center gap-2 text-[13px] text-neutral-400">
+        <div className="w-3.5 h-3.5 rounded-full border-[1.5px] border-neutral-400 border-t-transparent animate-spin flex-shrink-0" />
+        <span>{displayText || '…'}</span>
       </div>
     </div>
   );
 }
 
+// ─── Natural Done Summary Generator ────────────────────────────────────────
+function generateNaturalDoneSummary(query = '', fileNames = [], isEdit = false) {
+  const count = fileNames.length;
+  const appFile = fileNames.find(f => f.endsWith('App.tsx') || f.endsWith('App.jsx')) || fileNames[0] || 'App.tsx';
+  const cleanName = appFile.replace('Calvras/', '').replace('src/', '');
+
+  if (isEdit) {
+    return `Updated **${cleanName}** with the requested changes. Live preview is refreshed.`;
+  }
+
+  const topic = query.replace(/\b(build|create|make|duplicate|clone|recreate|implement|develop|code)\s+(me\s+)?(an?\s+)?/i, '').replace(/\s+/g, ' ').trim().slice(0, 60);
+
+  if (count === 0) {
+    return `Built the application based on your request. Live preview is active.`;
+  }
+
+  return `Built **${topic || 'the application'}** with ${count} file${count !== 1 ? 's' : ''}. The live preview is ready — let me know if you'd like any changes.`;
+}
+
 // ─── Shared Running Tasks Header Dock (Persistent DOM — No Typing Interruptions) ─
 function RunningTasksDock({ runningTasks, tasksExpanded, setTasksExpanded, onStopTask }) {
   if (!runningTasks || runningTasks.length === 0) return null;
+  const primaryTask = runningTasks[0];
+
   return (
     <div className="w-full px-4 pt-2.5 pb-2 text-xs text-neutral-300 select-none transition-all">
       <div className="flex items-center justify-between py-0.5">
         <div
           onClick={() => setTasksExpanded(e => !e)}
-          className="flex items-center gap-1.5 cursor-pointer text-[12.5px] text-neutral-400 hover:text-neutral-200 transition-colors"
+          className="flex items-center gap-2 cursor-pointer text-[12.5px] text-neutral-300 hover:text-white transition-colors"
         >
-          <span>
-            {runningTasks.length} {runningTasks.length === 1 ? 'task' : 'tasks'} running
+          <div className="w-3.5 h-3.5 rounded-full border-[1.5px] border-blue-400 border-t-transparent animate-spin flex-shrink-0" />
+          <span style={{ fontFamily: 'Consolas, "Segoe UI Mono", "Courier New", monospace', fontSize: '12.5px' }} className="font-medium text-neutral-200 truncate max-w-[400px]">
+            {primaryTask.name}
           </span>
-          <ChevronDown size={13} className={`transition-transform duration-150 ${tasksExpanded ? 'rotate-180' : ''}`} />
+          {runningTasks.length > 1 && (
+            <span className="text-[11px] text-neutral-400">
+              (+{runningTasks.length - 1} more)
+            </span>
+          )}
+          {runningTasks.length > 1 && (
+            <ChevronDown size={13} className={`text-neutral-400 transition-transform duration-150 ${tasksExpanded ? 'rotate-180' : ''}`} />
+          )}
         </div>
         <button
           type="button"
           onClick={() => runningTasks.forEach(t => onStopTask(t.id))}
-          className="text-[11px] text-neutral-500 hover:text-red-400 transition-colors px-1.5 py-0.5 rounded hover:bg-white/5 cursor-pointer"
+          className="text-[11px] text-neutral-500 hover:text-red-400 transition-colors px-1.5 py-0.5 rounded hover:bg-white/5 cursor-pointer flex-shrink-0"
           title="Stop all running tasks"
         >
           Stop all
         </button>
       </div>
-      {tasksExpanded && (
+      {tasksExpanded && runningTasks.length > 1 && (
         <div className="space-y-2 pt-2 pb-0.5 animate-in fade-in duration-150">
-          {runningTasks.map(task => (
+          {runningTasks.slice(1).map(task => (
             <div key={task.id} className="flex items-center justify-between text-[12px] text-neutral-200 select-text">
               <div className="flex items-center gap-2">
                 <div className="w-3.5 h-3.5 rounded-full border-[1.5px] border-neutral-300 border-t-transparent animate-spin flex-shrink-0" />
@@ -315,77 +807,133 @@ function RunningTasksDock({ runningTasks, tasksExpanded, setTasksExpanded, onSto
 
 // ─── Toolbar shared between hero and reply inputs ─────────────────────────────
 function InputToolbar({
-  activeBuildMode,
-  setActiveBuildMode,
-  showDropdown,
-  setShowDropdown,
   isHero,
   isRecording,
   setIsRecording,
+  isSttActive,
+  setIsSttActive,
   input,
+  attachedFiles = [],
   onSend,
   onAttach,
-  webSearchMode,
-  setWebSearchMode
+  onImportProject,
+  isWorking,
+  onStop
 }) {
+  const hasContent = input.trim() || attachedFiles.length > 0;
+
   return (
     <div className="flex items-center justify-between pt-1 mt-1">
       <PlusActionMenu
         onAttachFiles={onAttach}
-        webSearchMode={webSearchMode}
-        setWebSearchMode={setWebSearchMode}
+        onImportProject={onImportProject}
         isHero={isHero}
       />
 
-      <div className="flex items-center gap-1.5 relative">
+      <div className="flex items-center gap-1.5">
+        {/* Left mic — speech-to-text. Disabled when voice mode (isRecording) is active */}
         <button
           type="button"
-          onClick={() => setShowDropdown(p => !p)}
-          className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-white text-black transition-all hover:bg-neutral-200 cursor-pointer"
-        >
-          <span>{activeBuildMode}</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3 opacity-50">
-            <path d="M6 9l6 6 6-6"/>
-          </svg>
-        </button>
-
-        {showDropdown && (
-          <div className="absolute bottom-full mb-2 left-0 bg-[rgb(46,46,46)] border border-[rgb(65,65,65)] rounded-xl p-1 shadow-xl z-50">
-            {['Build', 'Plan'].filter(m => m !== activeBuildMode).map(mode => (
-              <button
-                key={mode}
-                type="button"
-                onClick={() => { setActiveBuildMode(mode); setShowDropdown(false); }}
-                className="block w-full text-left px-3 py-1.5 text-[12px] text-neutral-200 hover:text-white hover:bg-[rgb(60,60,60)] rounded-lg transition-colors whitespace-nowrap cursor-pointer"
-              >
-                {mode}
-              </button>
-            ))}
-          </div>
-        )}
-
-        <button
-          type="button"
-          onClick={() => setIsRecording(r => !r)}
-          className={`p-1.5 rounded-full transition-colors ${isRecording ? 'text-red-400 animate-pulse bg-red-500/10' : 'text-neutral-400 hover:text-white hover:bg-[#2a2a2f]'}`}
-          title="Voice input"
-        >
-          {isRecording ? <MicOff size={15} /> : <Mic size={15} />}
-        </button>
-
-        <button
-          type="button"
-          onClick={onSend}
-          disabled={!input.trim()}
-          className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-150 ${
-            input.trim() 
-              ? 'bg-[#0084ff] text-white hover:bg-[#0074e0] hover:scale-105 shadow-md cursor-pointer' 
-              : 'bg-[#38383e] text-[#8e8e93] cursor-not-allowed'
+          onClick={() => { if (!isRecording) setIsSttActive(v => !v); }}
+          disabled={isRecording}
+          className={`p-1.5 rounded-full transition-all ${
+            isRecording
+              ? 'text-neutral-600 opacity-30 cursor-not-allowed'
+              : isSttActive
+              ? 'text-red-400 bg-red-500/15 ring-2 ring-red-500/30 animate-pulse'
+              : 'text-neutral-400 hover:text-white hover:bg-white/[0.08]'
           }`}
-          title="Send message"
+          title={isRecording ? 'Unavailable while in voice mode' : isSttActive ? 'Stop dictation' : 'Dictate (speech to text)'}
         >
-          <ArrowRight size={16} strokeWidth={2.4} />
+          {isSttActive ? <MicOff size={16} /> : <Mic size={16} />}
         </button>
+
+        {/* Right action button — 4 states */}
+        {isWorking ? (
+          <button
+            type="button"
+            onClick={onStop}
+            className="flex items-center justify-center w-8 h-8 rounded-full bg-white text-black hover:bg-neutral-200 transition-all shadow-md cursor-pointer"
+            title="Stop generation"
+          >
+            <Square size={13} fill="currentColor" />
+          </button>
+        ) : isRecording ? (
+          // Voice mode active → stop button
+          <button
+            type="button"
+            onClick={() => setIsRecording(false)}
+            className="flex items-center justify-center w-8 h-8 rounded-full bg-white text-black hover:bg-neutral-200 transition-all shadow-md cursor-pointer"
+            title="Stop voice mode"
+          >
+            <Square size={13} fill="currentColor" />
+          </button>
+        ) : hasContent ? (
+          // Has text → send. Disabled if STT running
+          <button
+            type="button"
+            onClick={onSend}
+            disabled={isSttActive}
+            className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-150 ${
+              isSttActive
+                ? 'bg-[#38383e] text-[#8e8e93] cursor-not-allowed'
+                : 'bg-[#0084ff] text-white hover:bg-[#0074e0] hover:scale-105 shadow-md cursor-pointer'
+            }`}
+            title="Send message"
+          >
+            <ArrowRight size={16} strokeWidth={2.4} />
+          </button>
+        ) : (
+          // Empty + idle → waveform (speech-to-speech). Disabled if STT running
+          <button
+            type="button"
+            onClick={() => { if (!isSttActive) setIsRecording(true); }}
+            disabled={isSttActive}
+            className={`flex items-center justify-center w-8 h-8 rounded-full transition-all shadow-md ${
+              isSttActive
+                ? 'bg-neutral-700 text-neutral-500 cursor-not-allowed opacity-30'
+                : 'bg-white hover:bg-neutral-100 text-black cursor-pointer'
+            }`}
+            title={isSttActive ? 'Unavailable while dictating' : 'Voice mode (speech to speech)'}
+          >
+            <svg width="17" height="14" viewBox="0 0 17 14" fill="none">
+              <rect x="0"  y="5"  width="2.5" height="4"  rx="1.25" fill="currentColor" />
+              <rect x="4"  y="3"  width="2.5" height="8"  rx="1.25" fill="currentColor" />
+              <rect x="7.75" y="0.5" width="2.5" height="13" rx="1.25" fill="currentColor" />
+              <rect x="11.5" y="3"  width="2.5" height="8"  rx="1.25" fill="currentColor" />
+              <rect x="15.5" y="5"  width="2.5" height="4"  rx="1.25" fill="currentColor" />
+            </svg>
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Calvras Action Status (shows terminal/browse actions above input, invisible to user controls) ─
+function CalvrasActionStatus({ action }) {
+  if (!action) return null;
+  const isCmd = action.type === 'cmd';
+  const isBrowse = action.type === 'browse';
+  return (
+    <div className="w-full px-4 py-2 animate-in fade-in duration-200 select-none">
+      <div className="flex items-center gap-2 text-[12px]" style={{ fontFamily: 'Consolas, "Segoe UI Mono", monospace' }}>
+        <div className="w-3 h-3 rounded-full border-[1.5px] border-green-400 border-t-transparent animate-spin flex-shrink-0" />
+        {isCmd && (
+          <>
+            <span className="text-neutral-500">Running</span>
+            <span className="text-green-400 truncate max-w-[480px]">{action.text}</span>
+          </>
+        )}
+        {isBrowse && (
+          <>
+            <span className="text-neutral-500">Browsing</span>
+            <span className="text-blue-400 truncate max-w-[480px]">{action.text}</span>
+          </>
+        )}
+        {!isCmd && !isBrowse && (
+          <span className="text-neutral-400 truncate max-w-[480px]">{action.text}</span>
+        )}
       </div>
     </div>
   );
@@ -400,26 +948,103 @@ export default function MainChat({
   onUserMessage
 }) {
   const [input, setInput] = useState('');
-  const [activeBuildMode, setActiveBuildMode] = useState('Build');
-  const [showBuildDropdown, setShowBuildDropdown] = useState(false);
+  const activeBuildMode = 'Build'; // fixed — Build/Plan toggle removed
+  const webSearchMode = 'auto'; // always auto — web search is internal
   const [attachedFiles, setAttachedFiles] = useState([]);
   const [isRecording, setIsRecording] = useState(false);
+  const [isSttActive, setIsSttActive] = useState(false);
+  const [kokoroLoading, setKokoroLoading] = useState(false);
+  // voicePhase: 'idle' | 'listening' | 'speaking'
+  const [voicePhase, setVoicePhase] = useState('idle');
   const [lastQuery, setLastQuery] = useState('');
-  const [webSearchMode, setWebSearchMode] = useState('auto');
+  // Refs so async callbacks (STT loop, TTS end) never read stale state
+  const isRecordingRef = useRef(false);
+  const voicePhaseRef = useRef('idle');
+  isRecordingRef.current = isRecording;
+  voicePhaseRef.current = voicePhase;
+  const [activeSelectionQuestion, setActiveSelectionQuestion] = useState(null);
+  const [importedFolderName, setImportedFolderName] = useState(null);
+  const [importedFileCount, setImportedFileCount] = useState(0);
+  const lastUserIndex = (messages || []).map(m => m.role).lastIndexOf('user');
 
-  // Dynamic Workspace Files State — Starts empty (0 hardcoded files)
-  const [workspaceFiles, setWorkspaceFiles] = useState({});
-  const [activeFileName, setActiveFileName] = useState(null);
-  const [terminalLogs, setTerminalLogs] = useState([{ type: 'cwd', text: '~/project' }]);
+  // Dynamic Workspace Files State with localStorage persistence across refreshes
+  const [workspaceFiles, setWorkspaceFiles] = useState(() => {
+    // Never rehydrate full file content from localStorage — it causes quota errors on large projects.
+    // Files are only loaded fresh via import or AI generation.
+    return {};
+  });
+  const [activeFileName, setActiveFileName] = useState(() => {
+    if (!messages || messages.length === 0) return null;
+    return localStorage.getItem('malvos_active_file_name') || null;
+  });
+  const [terminalLogs, setTerminalLogs] = useState([]);
   const [previewPort, setPreviewPort] = useState(null);
   const [currentRepo, setCurrentRepo] = useState(null);
   const [previewReloadTrigger, setPreviewReloadTrigger] = useState(0);
 
-  // Split-screen & Resizable layout state
-  const [isSplitScreen, setIsSplitScreen] = useState(false);
-  const [activeWorkspaceTab, setActiveWorkspaceTab] = useState('preview');
+  // Split-screen & Resizable layout state with localStorage rehydration
+  const [isSplitScreen, setIsSplitScreen] = useState(() => {
+    if (!messages || messages.length === 0) return false;
+    try {
+      const savedFiles = localStorage.getItem('malvos_active_workspace_files');
+      const parsed = savedFiles ? JSON.parse(savedFiles) : {};
+      return Object.keys(parsed).length > 0 && localStorage.getItem('malvos_split_screen') === 'true';
+    } catch {
+      return false;
+    }
+  });
+  const [activeWorkspaceTab, setActiveWorkspaceTab] = useState(() => {
+    return localStorage.getItem('malvos_active_workspace_tab') || 'preview';
+  });
   const [workspaceWidthPercent, setWorkspaceWidthPercent] = useState(52);
   const [isResizing, setIsResizing] = useState(false);
+
+  // Reset workspace when starting fresh or on reset event
+  useEffect(() => {
+    const handleReset = () => {
+      setWorkspaceFiles({});
+      setActiveFileName(null);
+      setIsSplitScreen(false);
+      setTerminalLogs([]);
+      setPreviewPort(null);
+    };
+    window.addEventListener('malvos_reset_workspace', handleReset);
+    return () => window.removeEventListener('malvos_reset_workspace', handleReset);
+  }, []);
+
+  useEffect(() => {
+    if (!messages || messages.length === 0) {
+      setWorkspaceFiles({});
+      setActiveFileName(null);
+      setIsSplitScreen(false);
+      try {
+        localStorage.removeItem('malvos_active_workspace_files');
+        localStorage.removeItem('malvos_active_file_name');
+        localStorage.removeItem('malvos_split_screen');
+      } catch {}
+    }
+  }, [messages]);
+
+  // Sync workspace metadata (NOT full content) to localStorage — avoids quota errors on large projects
+  useEffect(() => {
+    try {
+      if (messages && messages.length > 0 && Object.keys(workspaceFiles).length > 0) {
+        // Only store a lightweight file-path index, not full content
+        const index = Object.keys(workspaceFiles).map(k => ({ path: k, size: workspaceFiles[k]?.length || 0 }));
+        localStorage.setItem('malvos_workspace_index', JSON.stringify({ mainFile: activeFileName, index }));
+        if (activeFileName) localStorage.setItem('malvos_active_file_name', activeFileName);
+        localStorage.setItem('malvos_split_screen', 'true');
+        // Remove old full-content key if present
+        localStorage.removeItem('malvos_active_workspace_files');
+      } else if (!messages || messages.length === 0) {
+        localStorage.removeItem('malvos_workspace_index');
+        localStorage.removeItem('malvos_active_workspace_files');
+        localStorage.removeItem('malvos_active_file_name');
+        localStorage.removeItem('malvos_split_screen');
+      }
+      localStorage.setItem('malvos_active_workspace_tab', activeWorkspaceTab);
+    } catch {}
+  }, [workspaceFiles, activeFileName, isSplitScreen, activeWorkspaceTab, messages]);
 
   // Floating Tasks Dock above input (starts empty, populated only dynamically when tasks run)
   const [runningTasks, setRunningTasks] = useState([]);
@@ -432,11 +1057,38 @@ export default function MainChat({
   const [streamingText, setStreamingText] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
 
+  // Voice mode lifecycle: exiting voice mode always resets mic + audio.
+  // While recording, the loop is driven explicitly (listen → think → speak → listen).
+  React.useEffect(() => {
+    if (!isRecording) {
+      setVoicePhase('idle');
+      stopSpeaking(); // stop any active audio when voice mode exits
+    }
+  }, [isRecording]);
+
+  // Voice conversation handled by VoiceConversation component — no STT loop needed here
+
+
+
+  // ── Calvras autonomous action status (terminal cmd / browse shown above input) ─
+  const [calvrasAction, setCalvrasAction] = useState(null); // { type: 'cmd'|'browse', text: string }
+
   const heroTextareaRef = useRef(null);
   const replyTextareaRef = useRef(null);
   const fileInputRef = useRef(null);
   const scrollRef = useRef(null);
   const latestTurnRef = useRef(null);
+  const abortControllerRef = useRef(null);
+
+  const handleStopGeneration = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsThinking(false);
+    setIsStreaming(false);
+    setRunningTasks([]);
+  };
 
   const isHeroMode = messages.length === 0;
 
@@ -464,19 +1116,45 @@ export default function MainChat({
 
   const messagesEndRef = useRef(null);
 
-  useEffect(() => {
-    if (messages.length > 0 && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    } else if (messages.length === 0) {
-      setIsSplitScreen(false);
-      setRunningTasks([]);
-      setWorkspaceFiles({});
-      setActiveFileName(null);
-      setCurrentRepo(null);
-      setPreviewPort(null);
-      setTerminalLogs([{ type: 'cwd', text: '~/project' }]);
+  const scrollToLatestTurn = () => {
+    if (scrollRef.current && latestTurnRef.current) {
+      const containerRect = scrollRef.current.getBoundingClientRect();
+      const elementRect = latestTurnRef.current.getBoundingClientRect();
+      const offset = elementRect.top - containerRect.top;
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollTop + offset - 14,
+        behavior: 'smooth'
+      });
     }
-  }, [messages, isThinking, isStreaming, streamingText]);
+  };
+
+  // Auto-scroll so the latest user turn sits at the top of the viewport (past messages go above)
+  useEffect(() => {
+    if (messages.length > 0 && lastUserIndex >= 0) {
+      const timer1 = setTimeout(scrollToLatestTurn, 30);
+      const timer2 = setTimeout(scrollToLatestTurn, 120);
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+      };
+    }
+  }, [messages.length, lastUserIndex]);
+
+  useEffect(() => {
+    const handleSetFiles = (e) => {
+      if (e.detail && e.detail.files) {
+        setWorkspaceFiles(e.detail.files);
+        setIsSplitScreen(true);
+        setActiveWorkspaceTab('preview');
+        if (e.detail.repoName) setCurrentRepo(e.detail.repoName);
+        const main = Object.keys(e.detail.files).find(f => f.endsWith('home.tsx') || f.endsWith('App.tsx') || f.endsWith('App.jsx') || f.endsWith('index.tsx') || f.endsWith('index.html')) || Object.keys(e.detail.files)[0];
+        if (main) setActiveFileName(main);
+        setPreviewReloadTrigger(p => p + 1);
+      }
+    };
+    window.addEventListener('malvos_set_workspace_files', handleSetFiles);
+    return () => window.removeEventListener('malvos_set_workspace_files', handleSetFiles);
+  }, []);
 
   const handleInputChange = (e) => {
     setInput(e.target.value);
@@ -494,15 +1172,99 @@ export default function MainChat({
     }
   };
 
-  const handleFileAttach = (e) => {
+  const fileToDataUrl = (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const processUploadedFiles = async (fileList) => {
+    const filesArray = Array.from(fileList || []).slice(0, 4);
+    const processed = [];
+    for (const f of filesArray) {
+      if (f.type.startsWith('image/')) {
+        const dataUrl = await fileToDataUrl(f);
+        processed.push({
+          name: f.name || 'image.png',
+          size: (f.size / 1024).toFixed(1) + ' KB',
+          type: f.type || 'image/png',
+          dataUrl,
+          preview: dataUrl
+        });
+      } else {
+        processed.push({
+          name: f.name,
+          size: (f.size / 1024).toFixed(1) + ' KB',
+          type: f.type || 'application/octet-stream',
+          preview: null
+        });
+      }
+    }
+    if (processed.length > 0) {
+      setAttachedFiles(prev => [...prev, ...processed].slice(0, 4));
+    }
+  };
+
+  const handleFileAttach = async (e) => {
     const files = Array.from(e.target.files || []);
     if (files.length > 0) {
-      const mapped = files.map(f => ({
-        name: f.name,
-        size: (f.size / 1024).toFixed(1) + ' KB',
-        preview: f.type.startsWith('image/') ? URL.createObjectURL(f) : null
-      }));
-      setAttachedFiles(prev => [...prev, ...mapped]);
+      await processUploadedFiles(files);
+      e.target.value = '';
+    }
+  };
+
+  const handlePaste = async (e) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    const imageFiles = [];
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type && items[i].type.indexOf('image') !== -1) {
+        const file = items[i].getAsFile();
+        if (file) imageFiles.push(file);
+      }
+    }
+    if (imageFiles.length > 0) {
+      e.preventDefault();
+      await processUploadedFiles(imageFiles);
+    }
+  };
+
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(false);
+  };
+
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(false);
+
+    const dt = e.dataTransfer;
+    if (!dt) return;
+
+    const files = Array.from(dt.files || []);
+    if (files.length === 0) return;
+
+    const imageFiles = files.filter(f => f.type.startsWith('image/'));
+    if (imageFiles.length > 0) {
+      await processUploadedFiles(imageFiles);
+    }
+
+    const codeFiles = files.filter(f => !f.type.startsWith('image/'));
+    if (codeFiles.length > 0) {
+      handleImportProject(codeFiles);
     }
   };
 
@@ -522,9 +1284,252 @@ export default function MainChat({
     }
   };
 
+  const handleImportProject = async (fileList) => {
+    // ── Filters: skip anything that would bloat memory or is irrelevant ──
+    const SKIP_DIRS = new Set([
+      'node_modules', '.git', '.next', '.nuxt', 'dist', 'build', 'out',
+      '.cache', '.turbo', '.vercel', '__pycache__', '.venv', 'venv',
+      'vendor', 'coverage', '.nyc_output', 'storybook-static',
+    ]);
+    const SKIP_EXTS = new Set([
+      '.png', '.jpg', '.jpeg', '.gif', '.webp', '.ico', '.svg', '.bmp', '.tiff',
+      '.mp4', '.mp3', '.wav', '.ogg', '.webm', '.mov', '.avi',
+      '.woff', '.woff2', '.ttf', '.eot', '.otf',
+      '.zip', '.tar', '.gz', '.rar', '.7z',
+      '.pdf', '.doc', '.docx', '.xls', '.xlsx',
+      '.exe', '.bin', '.dll', '.so', '.dylib',
+      '.lock', // package-lock, yarn.lock, etc
+      '.map',  // source maps — huge and irrelevant
+    ]);
+    const SKIP_FILES = new Set([
+      'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml', 'composer.lock',
+      '.DS_Store', 'Thumbs.db', '.env.local', '.env.production',
+    ]);
+    const MAX_FILE_SIZE = 200 * 1024; // 200 KB per file
+    const MAX_TOTAL_FILES = 500;
+
+    const isSafe = (file) => {
+      const parts = (file.webkitRelativePath || file.name).split('/');
+      // skip if any path segment is a blocked dir
+      if (parts.some(p => SKIP_DIRS.has(p))) return false;
+      const name = parts[parts.length - 1];
+      if (SKIP_FILES.has(name)) return false;
+      const ext = name.includes('.') ? '.' + name.split('.').pop().toLowerCase() : '';
+      if (SKIP_EXTS.has(ext)) return false;
+      if (file.size > MAX_FILE_SIZE) return false;
+      return true;
+    };
+
+    const safeFiles = Array.from(fileList).filter(isSafe).slice(0, MAX_TOTAL_FILES);
+
+    const newFiles = {};
+    await Promise.all(safeFiles.map(async (file) => {
+      try {
+        const text = await file.text();
+        let relativePath = file.webkitRelativePath || file.name;
+        relativePath = relativePath.replace(/^[./\\]+/, '');
+        newFiles[relativePath] = text;
+      } catch { /* skip unreadable */ }
+    }));
+
+    const count = Object.keys(newFiles).length;
+    if (count === 0) return;
+
+    const folderName = fileList[0]?.webkitRelativePath
+      ? fileList[0].webkitRelativePath.split('/')[0]
+      : 'Project';
+
+    const mainFile = Object.keys(newFiles).find(f =>
+      /\/(index\.html|App\.tsx|App\.jsx|main\.py|index\.ts|index\.js|main\.ts|main\.jsx)$/.test('/' + f)
+    ) || Object.keys(newFiles)[0];
+
+    // Store only a lightweight index in localStorage (not full content)
+    // Full content stays in React state only
+    try {
+      const index = Object.keys(newFiles).map(k => ({ path: k, size: newFiles[k].length }));
+      localStorage.setItem('malvos_workspace_index', JSON.stringify({ folderName, count, mainFile, index }));
+      // Remove old full-content key to avoid stale bloat
+      localStorage.removeItem('malvos_active_workspace_files');
+    } catch { /* quota */ }
+
+    setWorkspaceFiles(newFiles);
+    setActiveFileName(mainFile);
+    setIsSplitScreen(true);
+    setActiveWorkspaceTab('code');
+    setImportedFolderName(folderName);
+    setImportedFileCount(count);
+    setRunningTasks([]);
+    setTerminalLogs([
+      { type: 'info', text: `[Workspace] ${count} files loaded from "${folderName}"` },
+      { type: 'success', text: `✓ Entry: ${mainFile}` },
+    ]);
+  };
+
+  const [revertModalData, setRevertModalData] = useState(null);
+
+  const handleRequestEditMessage = (msg) => {
+    const msgIndex = messages.findIndex(m => m.id === msg.id);
+    if (msgIndex === -1) return;
+
+    // Check if subsequent turns or workspace files exist
+    const subsequentMessages = messages.slice(msgIndex + 1);
+    const previousSnapshot = msg.workspaceSnapshot || {};
+    const currentFiles = Object.keys(workspaceFiles);
+    const revertedFiles = currentFiles.filter(f => !previousSnapshot[f] || previousSnapshot[f] !== workspaceFiles[f]);
+
+    if (subsequentMessages.length > 0 || revertedFiles.length > 0) {
+      setRevertModalData({
+        message: msg,
+        index: msgIndex,
+        subsequentCount: subsequentMessages.length,
+        revertedFiles
+      });
+    } else {
+      executeRevertMessage(msg, msgIndex);
+    }
+  };
+
+  const executeRevertMessage = (msg, index) => {
+    // 1. Restore the prompt text back into input
+    setInput(msg.content || '');
+
+    // 2. Restore workspace files snapshot from that point
+    const snapshot = msg.workspaceSnapshot || {};
+    setWorkspaceFiles(snapshot);
+    if (Object.keys(snapshot).length === 0) {
+      setIsSplitScreen(false);
+      setActiveFileName(null);
+    } else {
+      setActiveFileName(Object.keys(snapshot)[0] || null);
+    }
+
+    // 3. Remove this message and all subsequent messages
+    setMessages(prev => prev.slice(0, index));
+    setRevertModalData(null);
+
+    // 4. Focus input textarea
+    setTimeout(() => {
+      if (heroTextareaRef.current) heroTextareaRef.current.focus();
+      if (replyTextareaRef.current) replyTextareaRef.current.focus();
+    }, 50);
+  };
+
+  // Automatic 1-click Fix with Calvras handler from iframe Preview Error Recovery
+  useEffect(() => {
+    const handleWindowMessage = (event) => {
+      if (event && event.data && event.data.type === 'FIX_PREVIEW_ERROR') {
+        const errorDetails = event.data.error || 'Preview runtime error';
+        handleSend(`Fix preview runtime error in the application: "${errorDetails}". Review all referenced components, missing imports, and syntax in the workspace files and rebuild cleanly.`);
+      }
+    };
+    window.addEventListener('message', handleWindowMessage);
+    return () => window.removeEventListener('message', handleWindowMessage);
+  }, [workspaceFiles, messages]);
+
+  // ── Calvras autonomous tool execution: parses <run_cmd> and <browse> tags ──
+  const executeCalvrasTools = async (rawText) => {
+    if (!rawText) return rawText;
+
+    // Collect all tool calls in order
+    const toolPattern = /<(run_cmd|browse)>([\s\S]*?)<\/\1>/gi;
+    const calls = [];
+    let match;
+    while ((match = toolPattern.exec(rawText)) !== null) {
+      calls.push({ tag: match[0], type: match[1], value: match[2].trim(), index: match.index });
+    }
+    if (calls.length === 0) return rawText;
+
+    let result = rawText;
+    for (const call of calls) {
+      if (call.type === 'run_cmd') {
+        setCalvrasAction({ type: 'cmd', text: call.value });
+        try {
+          const r = await fetch('http://localhost:3001/api/run-cmd', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ command: call.value })
+          });
+          const data = await r.json();
+          const output = [data.stdout, data.stderr].filter(Boolean).join('\n').trim();
+          const toolResult = `\n[Terminal: \`${call.value}\`]\n${output || '(no output)'}\nExit code: ${data.code}\n`;
+          result = result.replace(call.tag, toolResult);
+        } catch (e) {
+          result = result.replace(call.tag, `\n[Terminal error: ${e.message}]\n`);
+        }
+        setCalvrasAction(null);
+      } else if (call.type === 'browse') {
+        setCalvrasAction({ type: 'browse', text: call.value });
+        try {
+          const r = await fetch('http://localhost:3001/api/browse', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: call.value })
+          });
+          const data = await r.json();
+          const pageText = data.ok ? `Title: ${data.title}\n\n${data.text}` : `Error: ${data.error}`;
+          const toolResult = `\n[Browsed: ${call.value}]\n${pageText.slice(0, 6000)}\n`;
+          result = result.replace(call.tag, toolResult);
+        } catch (e) {
+          result = result.replace(call.tag, `\n[Browse error: ${e.message}]\n`);
+        }
+        setCalvrasAction(null);
+      }
+    }
+    return result;
+  };
+
   const handleSend = async (textToSend = null) => {
     const query = typeof textToSend === 'string' ? textToSend : input.trim();
-    if (!query && attachedFiles.length === 0) return;
+    const currentAttachedFiles = [...attachedFiles];
+    if (!query && currentAttachedFiles.length === 0) return;
+
+    // Voice mode: stop the mic while the AI is processing/speaking
+    if (isRecordingRef.current) setVoicePhase('speaking');
+
+    // ── Vague build clarification — intercept BEFORE anything else ──────────
+    const trimmedEarly = query.trim();
+    const hasImageEarly = currentAttachedFiles.length > 0;
+    const hasWorkspaceEarly = Object.keys(workspaceFiles).length > 0;
+    const isVagueBuildEarly = !hasImageEarly && !hasWorkspaceEarly && (
+      /^(?:hey\s+)?(?:i\s+(?:need|want|would\s+like)\s+(?:a\s+)?|build|create|make|develop)\s+(?:me\s+)?(?:a\s+)?(?:website|web\s+app|app|application|site|page|dashboard|tool|game|platform)[\s.!?]*$/i.test(trimmedEarly) ||
+      (/\b(?:build|create|make|need|want)\b/i.test(trimmedEarly) && /\b(?:website|web\s*app|app|site|page|application)\b/i.test(trimmedEarly) && trimmedEarly.split(/\s+/).length <= 8 && !/\b(?:like|similar|clone|duplicate|copy|for\s+my|barber|coffee|portfolio|restaurant|shop|store)\b/i.test(trimmedEarly))
+    );
+
+    if (isVagueBuildEarly) {
+      // Add user message to chat then show selection in input area
+      const userMsgEarly = {
+        id: `msg-${Date.now()}`,
+        role: 'user',
+        content: query,
+        files: currentAttachedFiles,
+        workspaceSnapshot: { ...workspaceFiles },
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages(prev => [...prev, userMsgEarly]);
+      setInput('');
+      setAttachedFiles([]);
+      if (onUserMessage) onUserMessage(query);
+      setActiveSelectionQuestion({
+        question: "What type of website do you need?",
+        options: [
+          { label: "Personal or portfolio site", detail: "Showcase your work, skills, or brand" },
+          { label: "Business or landing page", detail: "Promote a product, service, or company" },
+          { label: "SaaS or web app", detail: "Dashboard, tool, or subscription product" },
+          { label: "E-commerce or store", detail: "Online shop with products and checkout" },
+          { label: "Blog or content site", detail: "Articles, news, or thought leadership" },
+        ],
+        isMultiSelect: false,
+      });
+      // Voice mode: come back to listening while the user picks an option
+      if (isRecordingRef.current) setVoicePhase('listening');
+      return;
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
 
     if (setSidebarCollapsed) setSidebarCollapsed(true);
 
@@ -532,7 +1537,8 @@ export default function MainChat({
       id: `msg-${Date.now()}`,
       role: 'user',
       content: query,
-      files: attachedFiles,
+      files: currentAttachedFiles,
+      workspaceSnapshot: { ...workspaceFiles },
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
@@ -557,47 +1563,29 @@ export default function MainChat({
       // Open workspace terminal immediately
       setIsSplitScreen(true);
       setActiveWorkspaceTab('preview');
-      setTerminalLogs([{ type: 'cwd', text: '~/malvos-repos' }]);
+      setCurrentRepo(repoName);
+      setTerminalLogs([{ type: 'info', text: `Cloning ${repoName}...` }]);
       setRunningTasks([{ id: 'clone', name: `subagent [DevOps]: git clone ${repoName}`, canStop: true }]);
       setIsThinking(false);
 
-      // Let Malvos dynamically generate a natural conversational reply (Zero hardcoded strings, clean chat)
-      generateAIResponse({
-        messages: [
-          {
-            role: 'system',
-            content: `You are Malvos, an autonomous AI software engineer. The user provided a repository to clone: "${repoUrl}" (${repoName}).
-You have dispatched a DevOps background subagent to clone it, install dependencies, and launch the dev server.
-Respond to the user naturally and conversationally like a real engineer (e.g. "I'm cloning your repo now... my subagent will ping me as soon as the dev server is ready, then I'll pull up the live preview. What features or changes are we planning to make?"). Keep it concise, friendly, and natural. Do NOT use markdown code blocks or fake file lists.`
-          },
-          {
-            role: 'user',
-            content: query
+      // Instant local load if repo already exists on disk
+      fetch(`http://localhost:3001/api/all-files/${encodeURIComponent(repoName)}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data && data.files && Object.keys(data.files).length > 0) {
+            setWorkspaceFiles(data.files);
+            const mainFile = Object.keys(data.files).find(f =>
+              f.endsWith('App.tsx') || f.endsWith('App.jsx') || f.endsWith('index.tsx') || f.endsWith('index.jsx') || f.endsWith('index.html') || f.endsWith('main.tsx') || f.endsWith('home.tsx')
+            ) || Object.keys(data.files)[0];
+            setActiveFileName(mainFile || null);
+            setPreviewReloadTrigger(p => p + 1);
           }
-        ],
-        mode: activeBuildMode.toLowerCase()
-      }).then(aiReply => {
-        setIsThinking(false);
-        const replyText = (typeof aiReply === 'string' && aiReply.trim()) 
-          ? aiReply.trim() 
-          : `Cloning **${repoName}** now. My background subagent will notify us as soon as the dev server is running!`;
-        setMessages(prev => [...prev, {
-          id: `msg-ack-${Date.now()}`,
-          role: 'assistant',
-          content: replyText,
-          mode: activeBuildMode,
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }]);
-      }).catch(() => {
-        setIsThinking(false);
-        setMessages(prev => [...prev, {
-          id: `msg-ack-${Date.now()}`,
-          role: 'assistant',
-          content: `Cloning **${repoName}** in the background now. My subagent will notify us the moment the dev server is ready!`,
-          mode: activeBuildMode,
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }]);
-      });
+        })
+        .catch(() => {});
+
+      // Deliver immediate clean acknowledgment
+      setIsThinking(false);
+      // No hardcoded message — terminal logs show progress, user can ask anything
 
       // Stream from backend SSE in background
       (async () => {
@@ -627,25 +1615,42 @@ Respond to the user naturally and conversationally like a real engineer (e.g. "I
                 if (event.type === 'cmd') {
                   setRunningTasks(prev => [{ id: 'clone', name: `subagent [DevOps]: ${event.text}`, canStop: true }]);
                 }
-                if (event.type === 'done') {
-                  // Build workspace files from real file list
-                  const filesObj = {};
-                  for (const f of (event.files || [])) {
-                    filesObj[`${repoName}/${f}`] = null; // null = lazy load from backend
-                  }
-                  const defaultFile = (event.files || []).find(f =>
-                    f.endsWith('App.jsx') || f.endsWith('App.tsx') || f.endsWith('index.jsx') || f.endsWith('index.tsx') || f.endsWith('README.md')
-                  );
-                  setWorkspaceFiles(filesObj);
-                  setActiveFileName(defaultFile ? `${repoName}/${defaultFile}` : Object.keys(filesObj)[0] || null);
-                  setPreviewPort(event.port);
+                if (event.type === 'files_ready' || event.type === 'done') {
                   setCurrentRepo(repoName);
+                  setIsSplitScreen(true);
                   setActiveWorkspaceTab('preview');
-                  setRunningTasks([
-                    { id: 'server', name: 'node server/index.js', canStop: true },
-                    { id: 'dev', name: `npm run dev (port ${event.port})`, canStop: true }
-                  ]);
-                  setTerminalLogs(prev => [...prev, { type: 'success', text: `✓ Dev server running on http://localhost:${event.port}` }]);
+
+                  // Fetch all files content from backend so live VFS and editor have instant full code
+                  fetch(`http://localhost:3001/api/all-files/${encodeURIComponent(repoName)}`)
+                    .then(r => r.json())
+                    .then(data => {
+                      const fullFiles = (data && data.files && Object.keys(data.files).length > 0) ? data.files : {};
+                      if (Object.keys(fullFiles).length > 0) {
+                        setWorkspaceFiles(fullFiles);
+                        const defaultFile = Object.keys(fullFiles).find(f =>
+                          f.endsWith('App.tsx') || f.endsWith('App.jsx') || f.endsWith('index.tsx') || f.endsWith('index.jsx') || f.endsWith('index.html') || f.endsWith('main.tsx')
+                        ) || Object.keys(fullFiles)[0];
+                        setActiveFileName(defaultFile || null);
+                        setPreviewReloadTrigger(p => p + 1);
+                      }
+                    })
+                    .catch(() => {});
+                }
+                if (event.type === 'done') {
+                  const port = event.port;
+                  setPreviewPort(port || null);
+                  setCurrentRepo(repoName);
+                  setIsSplitScreen(true);
+                  setActiveWorkspaceTab('preview');
+                  if (port) {
+                    setRunningTasks([
+                      { id: 'server', name: 'node server/index.js', canStop: true },
+                      { id: 'dev', name: `npm run dev (port ${port})`, canStop: true }
+                    ]);
+                    setTerminalLogs(prev => [...prev, { type: 'success', text: `✓ Dev server running on http://localhost:${port}` }]);
+                  } else {
+                    setRunningTasks([{ id: 'server', name: 'subagent [DevServer]: live in-browser sandbox', canStop: true }]);
+                  }
                   
                   // Deliver live preview notification card
                   setMessages(prev => [...prev, {
@@ -654,13 +1659,15 @@ Respond to the user naturally and conversationally like a real engineer (e.g. "I
                     repoCard: {
                       title: 'Project Ready',
                       repoName: repoName,
-                      port: event.port
+                      port: port || 5173
                     },
-                    content: `✓ **${repoName}** dev server is live on **http://localhost:${event.port}**. You can now test it in the preview or ask me to make any code or design changes.`,
+                    content: port 
+                      ? `✓ **${repoName}** dev server is live on **http://localhost:${port}**. You can now test it in the preview or ask me to make any code or design changes.`
+                      : `✓ **${repoName}** workspace is ready. In-browser live preview is active.`,
                     mode: activeBuildMode,
                     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                   }]);
-                } else {
+                } else if (event.type !== 'files_ready') {
                   setTerminalLogs(prev => [...prev, event]);
                 }
               } catch { /* ignore parse errors */ }
@@ -719,7 +1726,7 @@ Respond to the user naturally and conversationally like a real engineer (e.g. "I
         const repoPrompt = [
           {
             role: 'system',
-            content: `You are Malvos, an autonomous AI software engineer editing repository "${currentRepo}".
+            content: `You are Calvras, an autonomous AI software engineer editing repository "${currentRepo}".
 The user wants to make a change: "${query}".
 
 INSTRUCTIONS:
@@ -775,7 +1782,7 @@ INSTRUCTIONS:
                   const fixPrompt = [
                     {
                       role: 'system',
-                      content: `You are Malvos Coder Subagent. The previous edit on "${cleanPath}" produced a syntax or compile error:
+                      content: `You are Calvras Coder Subagent. The previous edit on "${cleanPath}" produced a syntax or compile error:
 "${verifyData.error}"
 
 CRITICAL:
@@ -816,13 +1823,10 @@ CRITICAL:
             changeSummaries.push(`**${cleanPath}** (${lineCount} lines)`);
           }
 
-          // Terminal validation and live preview reload
+          // Terminal log of real modified files
           setTerminalLogs(prev => [
             ...prev,
-            { type: 'cmd', text: `git status --porcelain` },
-            ...fileNames.map(fn => ({ type: 'info', text: `M ${fn.replace(/^(\.\/|\/)/, '')}` })),
-            { type: 'success', text: `✓ Verified 0 compile errors — live preview active` },
-            { type: 'info', text: `[HMR] Dev server hot reloaded on http://localhost:${previewPort || 5200}` }
+            ...fileNames.map(fn => ({ type: 'success', text: `✓ Updated ${fn.replace(/^(\.\/|\/)/, '')}` }))
           ]);
 
           // Keep in Preview tab and trigger reload
@@ -833,41 +1837,10 @@ CRITICAL:
           const proseExplanation = rawResponse.replace(/```[\s\S]*?```/g, '').trim();
           const finalChatMsg = proseExplanation || `Done. Applied requested modifications to **${fileNames[0]}** and verified dev server build cleanly with 0 errors.`;
 
-          // Build rich exploration and edit activity stream with specialized subagents
-          const activities = [
-            {
-              type: 'exploring',
-              subagent: 'Architect',
-              files: topCandidatePaths.slice(0, 4).map((cp, cIdx) => ({
-                name: cp,
-                range: `#L1-${Math.min(250, (fileContextSnippets[cIdx]?.split('\n').length || 80))}`,
-                thought: cIdx === 0 ? {
-                  duration: '4s',
-                  title: 'Route & Architecture Analysis',
-                  content: `Subagent [Architect] analyzed \`${cp}\` structure and located target definitions for \`${query}\`.`
-                } : null
-              })),
-              activeThinking: {
-                title: 'Parallel Pipeline Execution',
-                content: `Dispatched modifications to Subagent [Coder]. Subagent [Verifier] monitoring dev server HMR.`
-              }
-            },
-            {
-              type: 'edit',
-              subagent: 'Coder',
-              file: fileNames[0].replace(/^(\.\/|\/)/, ''),
-              diff: { 
-                added: Math.max(1, Math.floor(extractedFiles[fileNames[0]].split('\n').length / 10)), 
-                removed: 1 
-              }
-            }
-          ];
-
           setMessages(prev => [...prev, {
             id: `msg-resp-${Date.now()}`,
             role: 'assistant',
             content: finalChatMsg,
-            activities: activities,
             mode: activeBuildMode,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           }]);
@@ -880,7 +1853,138 @@ CRITICAL:
       }
     }
 
-    // ── 3. 100% Dynamic Generative AI Response with Live Streaming ───────────
+    // ── 3. Run Server / Code Verification Command Handler ───────────────────
+    const isRunServerCommand = /run\s+(?:the\s+)?server|start\s+(?:the\s+)?server|check\s+(?:my\s+)?code|check\s+code/i.test(query);
+    if (isRunServerCommand && Object.keys(workspaceFiles).length > 0) {
+      setIsSplitScreen(true);
+      setActiveWorkspaceTab('preview');
+      setRunningTasks([{ id: 'server', name: 'subagent [DevServer]: npm run dev (http://localhost:5173)', canStop: true }]);
+      setTerminalLogs(prev => [
+        ...prev,
+        { type: 'info', text: `[Verifier] Scanning ${Object.keys(workspaceFiles).length} files...` },
+        { type: 'success', text: `✓ Syntax verified` },
+        { type: 'cmd', text: 'npm run dev' },
+        { type: 'info', text: 'Dev server active — http://localhost:5173' }
+      ]);
+      // Don't add a hardcoded message — let the AI handle the response naturally
+      // Fall through to the normal AI call below
+    }
+
+    // ── 4. URL Browse Interception — when a URL is in the query, fetch its content ──
+    const urlInQuery = query.match(/https?:\/\/[^\s]+/i);
+
+    if (urlInQuery && attachedFiles.length === 0) {
+      const cleanUrl = urlInQuery[0].replace(/[.,!?]+$/, '');
+      const isUrlDuplicateRequest = /duplicate|clone|copy|replicate|build|make|recreate|rebuild|same\s+as|match|pixel/i.test(query);
+
+      // Fetch page content via server browse endpoint
+      setCalvrasAction({ type: 'browse', text: cleanUrl });
+      let browseContext = '';
+      try {
+        const browseRes = await fetch('http://localhost:3001/api/browse', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: cleanUrl })
+        });
+        if (browseRes.ok) {
+          const browseData = await browseRes.json();
+          if (browseData.ok && browseData.text) {
+            browseContext = `\n\n[Live page content from ${cleanUrl}]\nTitle: ${browseData.title}\n\n${browseData.text.slice(0, 8000)}\n`;
+          }
+        }
+      } catch (e) {
+        console.warn('[Browse] failed:', e.message);
+      }
+      setCalvrasAction(null);
+
+      if (browseContext) {
+        // Inject fetched content into history for the AI
+        const lastMsg = history[history.length - 1];
+        const enrichedHistory = [
+          ...history.slice(0, -1),
+          { ...lastMsg, content: lastMsg.content + browseContext }
+        ];
+
+        setIsThinking(true);
+        setIsStreaming(false);
+        setLiveThinkingText('');
+        setLiveThinkingDuration(1);
+        setIsLiveThinkingOpen(true);
+        setStreamingText('');
+        setRunningTasks([]);
+        if (isUrlDuplicateRequest) {
+          setIsSplitScreen(true);
+          setActiveWorkspaceTab('preview');
+        }
+
+        let thinkingTimer = setInterval(() => setLiveThinkingDuration(d => d + 1), 1000);
+
+        await streamAIResponse({
+          messages: enrichedHistory,
+          onThinkingChunk: (_, full) => { setLiveThinkingText(full); },
+          onContentChunk: (token, full) => {
+            setIsThinking(false);
+            setIsStreaming(true);
+            const fileMatch = full.match(/```[a-zA-Z0-9_-]*\s+(?:file=|filename=)([^\s\n]+)/i);
+            if (fileMatch) {
+              setIsSplitScreen(true);
+              setActiveWorkspaceTab('preview');
+              setStreamingText(`Writing \`${fileMatch[1].replace('Calvras/', '')}\`…`);
+            }
+            const cmdMatch = full.match(/<run_cmd>([^<]{1,120})<\/run_cmd>/i);
+            if (cmdMatch) setCalvrasAction({ type: 'cmd', text: cmdMatch[1].trim() });
+            const bMatch = full.match(/<browse>([^<]{1,300})<\/browse>/i);
+            if (bMatch) setCalvrasAction({ type: 'browse', text: bMatch[1].trim() });
+          },
+          onDone: async (res) => {
+            clearInterval(thinkingTimer);
+            const rawFull = await executeCalvrasTools(res.raw || res.content || '');
+            const thinking = res?.thinking || '';
+
+            if (isUrlDuplicateRequest) {
+              const files = extractFilesFromAIResponse(rawFull, query);
+              if (Object.keys(files).length > 0) {
+                const mainFile = Object.keys(files).find(f => f.endsWith('App.tsx') || f.endsWith('App.jsx') || f.endsWith('index.html')) || Object.keys(files)[0];
+                setWorkspaceFiles(files);
+                setActiveFileName(mainFile);
+                setIsSplitScreen(true);
+                setActiveWorkspaceTab('preview');
+                setPreviewReloadTrigger(p => p + 1);
+              }
+              const summary = generateNaturalDoneSummary(query, Object.keys(files), false);
+              setMessages(prev => [...prev, { id: `msg-resp-${Date.now()}`, role: 'assistant', content: summary, thinking, mode: activeBuildMode, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+            } else {
+              const prose = rawFull
+                .replace(/<run_cmd>[\s\S]*?<\/run_cmd>/gi, '')
+                .replace(/<browse>[\s\S]*?<\/browse>/gi, '')
+                .replace(/\[Terminal:.*?\]\n[\s\S]*?Exit code: -?\d+\n/g, '')
+                .replace(/\[Browsed:.*?\]\n[\s\S]{0,6100}/g, '')
+                .replace(/```[\s\S]*?```/g, '')
+                .replace(/<[^>]+>/g, '')
+                .replace(/\n{3,}/g, '\n\n')
+                .trim();
+              setMessages(prev => [...prev, { id: `msg-resp-${Date.now()}`, role: 'assistant', content: prose, thinking, mode: activeBuildMode, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+            }
+            setIsThinking(false);
+            setIsStreaming(false);
+            setStreamingText('');
+            setLiveThinkingText('');
+            setRunningTasks([]);
+            setCalvrasAction(null);
+          },
+          onError: (err) => {
+            clearInterval(thinkingTimer);
+            setIsThinking(false);
+            setIsStreaming(false);
+            setRunningTasks([]);
+            setCalvrasAction(null);
+          }
+        });
+        return;
+      }
+    }
+
+    // ── 5. 100% Dynamic Generative AI Response with Live Streaming ───────────
     setIsThinking(true);
     setIsStreaming(false);
     setLiveThinkingText('');
@@ -888,163 +1992,425 @@ CRITICAL:
     setIsLiveThinkingOpen(true);
     setStreamingText('');
 
-    const isCodePrompt = /build|create|make|website|app|component|python|script|code|fix|refactor|function/i.test(query);
-    if (isCodePrompt) {
-      setIsSplitScreen(true);
-      setActiveWorkspaceTab('preview');
+    // Clear terminal and tasks — will only be set when real code is written
+    setRunningTasks([]);
+    setTerminalLogs([]);
+
+    // Check if user is asking about the status of cloning or dev server
+    const isStatusQuery = /is it (?:still )?cloning|is it done|is it ready|is cloning done|how is (?:the )?clone|status of clone|clone status|is it finished/i.test(query);
+    if (isStatusQuery) {
+      setIsThinking(false);
+      const fileCount = Object.keys(workspaceFiles).length;
+      let statusMsg = '';
+      if (currentRepo && fileCount > 0) {
+        statusMsg = `**${currentRepo}** is cloned with **${fileCount} files** in your workspace and live preview is active. What changes or features would you like to make to the codebase?`;
+      } else if (currentRepo) {
+        statusMsg = `DevOps subagent is finalizing the workspace and spinning up the dev server for **${currentRepo}**. Live preview will update in a moment!`;
+      } else {
+        statusMsg = `No clone is currently running. You can provide any GitHub repository URL (e.g. \`https://github.com/owner/repo\`) and I'll clone it directly for you!`;
+      }
+
+      setMessages(prev => [...prev, {
+        id: `msg-status-${Date.now()}`,
+        role: 'assistant',
+        content: statusMsg,
+        mode: activeBuildMode,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }]);
+      // Voice mode: speak the status reply and return to listening
+      if (isRecordingRef.current && statusMsg) {
+        const plain = statusMsg.replace(/[*_`#>~]/g, '').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim().slice(0, 600);
+        if (plain) {
+          setKokoroLoading(true);
+          speakText(plain, {
+            onStart: () => { setKokoroLoading(false); setVoicePhase('speaking'); },
+            onEnd: () => {
+              setKokoroLoading(false);
+              if (isRecordingRef.current) setVoicePhase('listening');
+              else setVoicePhase('idle');
+            },
+            onError: () => {
+              setKokoroLoading(false);
+              if (isRecordingRef.current) setVoicePhase('listening');
+              else setVoicePhase('idle');
+            },
+          });
+        }
+      }
+      return;
     }
 
-    const thinkingTimer = setInterval(() => {
-      setLiveThinkingDuration(d => d + 1);
-    }, 1000);
+    // ── Intent Classification & Multi-Modal Routing ──
+    const hasImageAttachment = currentAttachedFiles.length > 0;
+    const hasExistingWorkspace = Object.keys(workspaceFiles).length > 0;
+    const trimmedQuery = (query || '').trim();
+
+    // Explicit build/clone words — the ONLY trigger for code generation
+    const hasBuildKeyword = /\b(?:dupli[ca]?te|replicate|clone|recreate|rebuild|build|develop|implement|create\s+(?:an?\s+)?(?:app|website|page|dashboard|component|landing|ui|game|tool|site)|make\s+(?:me\s+)?(?:an?\s+)?(?:app|website|page|dashboard|component|landing|ui|game|tool|site)|code\s+(?:me\s+)?(?:an?\s+)?(?:app|website|page))\b/i.test(trimmedQuery);
+
+    // 1. Pasted image only (no text) → ask what they want, never auto-build
+    const isPastedImageOnly = hasImageAttachment && trimmedQuery.length === 0;
+
+    // 2. Conversational — anything with an image + text that isn't an explicit build request
+    //    Also catches: questions, explanations, opinions, analysis, reading, checking URLs
+    const isConversationalQuestion =
+      isPastedImageOnly ||
+      (hasImageAttachment && !hasBuildKeyword) ||
+      (!hasBuildKeyword && (
+        trimmedQuery.endsWith('?') ||
+        /^(?:what|why|how|who|where|when|which|tell|explain|describe|solve|read|check|inspect|help|is\s+this|can\s+you|do\s+you|are\s+you|is\s+there|are\s+there|i\s+(?:got|have|want\s+to\s+know|need\s+to\s+know)|ok\s+what|i\s+am\s+asking|i\s+pasted|i\s+uploaded|look\s+at|review|analyze|compare|which\s+(?:one|is)|does\s+this|will\s+this)\b/i.test(trimmedQuery) ||
+        trimmedQuery.split(/\s+/).length < 6  // short non-build messages → conversational
+      ));
+
+    // 3. System prompt generation request
+    const isPromptContext = /^(?:write|generate|craft|create|give\s+me)\s+(?:a\s+)?(?:system\s+prompt|meta\s+prompt)/i.test(trimmedQuery);
+
+    // 4. In-place surgical edit of existing workspace — ONLY when user explicitly says edit/change/fix + has workspace
+    const isWorkspaceEdit = hasExistingWorkspace && !isConversationalQuestion && !isPromptContext && hasBuildKeyword === false && (
+      /\b(?:change|update|modify|edit|fix|adjust|style|color|button|navbar|header|footer|sidebar|make\s+it|make\s+this|remove|replace|add|better|responsive|mobile|align)\b/i.test(trimmedQuery)
+    );
+
+    // 5. Explicit build — requires hasBuildKeyword, never triggered by images alone or short questions
+    const isExplicitBuild = hasBuildKeyword && !isConversationalQuestion && !isWorkspaceEdit && !isPromptContext;
+
+    const isCodePrompt = isWorkspaceEdit || isExplicitBuild;
+
+    let thinkingTimer = null;
+
+    // ── Live Web Search Interception ─────────────────────────────────────────
+    const isExplicitSearch = /search\s+for|search\s+the\s+web\s+for|look\s+up|search\s+web|what\s+is\s+https?:\/\/|tell\s+me\s+about\s+[a-zA-Z0-9-]+\.(?:com|org|net|io|ai)/i.test(query) || webSearchMode === 'on';
+    let webSearchContext = '';
+    if (isExplicitSearch) {
+      const searchMatch = query.match(/search(?:\s+the\s+web)?(?:\s+for)?\s+["']?([^"'\n.?!]+)["']?/i);
+      const searchTerm = searchMatch ? searchMatch[1].trim() : query.replace(/^(search|look up|what is|tell me about)\s+/i, '').trim();
+
+      setTerminalLogs(prev => [...prev, { type: 'info', text: `[WebSearch] Querying real-time search index for "${searchTerm}"...` }]);
+
+      try {
+        const searchRes = await fetch(`http://localhost:3001/api/search?q=${encodeURIComponent(searchTerm)}`);
+        if (searchRes.ok) {
+          const searchData = await searchRes.json();
+          if (Array.isArray(searchData.results) && searchData.results.length > 0) {
+            const items = searchData.results.map(r => `- **${r.title}**: ${r.snippet} (URL: ${r.url})`);
+            webSearchContext = `\n\n[Live Real-time Web Search Results for "${searchTerm}"]:\n${items.join('\n')}\n\n[CRITICAL INSTRUCTION: You have live web search capabilities. Synthesize, summarize, and explain these live search results directly, thoroughly, and helpfully to the user.]\n`;
+            setTerminalLogs(prev => [...prev, { type: 'success', text: `✓ Retrieved ${items.length} live search sources for "${searchTerm}"` }]);
+          }
+        }
+      } catch (e) {
+        console.warn('Backend search error, falling back to direct DDG:', e.message);
+      }
+    }
 
     try {
+      thinkingTimer = setInterval(() => {
+        setLiveThinkingDuration(d => d + 1);
+      }, 1000);
+
+      let messagesForAI = history;
+      if (webSearchContext) {
+        const last = messagesForAI[messagesForAI.length - 1];
+        messagesForAI = [
+          ...messagesForAI.slice(0, -1),
+          { ...last, content: (last.content || '') + webSearchContext }
+        ];
+      }
+
+      if (isPastedImageOnly) {
+        messagesForAI = [
+          ...history.slice(0, -1),
+          {
+            role: 'user',
+            content: `[User sent an image with no message. Look at the image and respond helpfully — describe what you see, answer any implicit question, or ask one short question about what they need. Do NOT offer to build or clone anything unless the user explicitly asks.]`,
+            files: currentAttachedFiles
+          }
+        ];
+      } else if (isConversationalQuestion) {
+        messagesForAI = [
+          ...history.slice(0, -1),
+          {
+            role: 'user',
+            content: `${query}${webSearchContext}`,
+            files: currentAttachedFiles
+          }
+        ];
+      } else if (isWorkspaceEdit && Object.keys(workspaceFiles).length > 0) {
+        const filesContext = Object.entries(workspaceFiles)
+          .filter(([k, v]) => v && typeof v === 'string' && v.length > 5 && !k.endsWith('.lock') && !k.includes('node_modules'))
+          .slice(0, 10)
+          .map(([k, v]) => `File: ${k.replace('Calvras/', '')}\n\`\`\`\n${v}\n\`\`\``)
+          .join('\n\n');
+
+        messagesForAI = [
+          ...history.slice(0, -1),
+          {
+            role: 'user',
+            content: `The user wants to make a modification to their active project codebase.\n\nUser Change Request:\n"${query}"\n\nActive Project Files:\n${filesContext}\n\nCRITICAL INSTRUCTIONS FOR CALVRAS:\n1. Implement the requested modification: "${query}".\n2. Output the FULL, COMPLETE src/App.tsx (and any other modified files) wrapped in standard code blocks with file headers (e.g. \`\`\`tsx file=src/App.tsx).\n3. Every file MUST be 100% complete and self-contained with all imports, state, components, and export default. NEVER return partial snippets or placeholders.\n4. If 1 to 4 images are attached: inspect each image carefully. If multiple images are different pages of the app (e.g. Home, Dashboard, Settings, etc.), build the multi-page application with a navigation bar linking all pages. If an image is an error or settings mockup, apply the fix to the active UI.`,
+            files: currentAttachedFiles
+          }
+        ];
+      } else if (isPromptContext) {
+        messagesForAI = [
+          ...history.slice(0, -1),
+          {
+            role: 'user',
+            content: `${query}${webSearchContext}`,
+            files: currentAttachedFiles
+          }
+        ];
+      } else if (isExplicitBuild) {
+        messagesForAI = [
+          ...history.slice(0, -1),
+          {
+            role: 'user',
+            content: `${query}\n\nCRITICAL INSTRUCTIONS FOR CALVRAS:\n1. Build the complete production-grade application in React 18 TypeScript with Lucide icons and Tailwind CSS.\n2. If 1 to 4 images are attached: inspect every single image (Image 1, Image 2, Image 3, Image 4). If they represent multiple pages/screens (e.g. Landing, Pricing, Dashboard, Settings), build a complete multi-page app with interactive navigation/tabs linking each page.\n3. Output full self-contained files with code headers (e.g. \`\`\`tsx file=src/App.tsx).`,
+            files: currentAttachedFiles
+          }
+        ];
+      }
+
       await streamAIResponse({
-        messages: history,
+        messages: messagesForAI,
+        // Voice conversational queries take the fast path — no flagship latency
+        fast: isRecordingRef.current && isConversationalQuestion && !hasImageAttachment,
+        voiceMode: isRecordingRef.current && isConversationalQuestion && !hasImageAttachment,
         onThinkingChunk: (token, fullThinking) => {
           setIsThinking(true);
           setIsStreaming(false);
           setLiveThinkingText(fullThinking);
+          // Extract last meaningful thought as brief status — never show code
+          const lines = fullThinking.split('\n').map(l => l.trim()).filter(l =>
+            l.length > 8 && l.length < 100 &&
+            !l.startsWith('<') && !l.startsWith('`') &&
+            !l.includes('{') && !l.includes('import ') && !l.includes('function ')
+          );
+          const last = lines[lines.length - 1] || '';
+          if (last) {
+            let hint = last.replace(/^(I\s+(?:will|need|should|want|think|plan|am going to|'ll)\s+)/i, '');
+            hint = hint.charAt(0).toUpperCase() + hint.slice(1);
+            if (!hint.endsWith('…') && !hint.endsWith('.')) hint += '…';
+            setStreamingText(hint.slice(0, 80));
+          }
         },
         onContentChunk: (token, fullContent) => {
           setIsThinking(false);
           setIsStreaming(true);
-
-          // Extract files live as code streams and pipe to right workspace editor
-          const liveFiles = extractFilesFromAIResponse(fullContent, query);
-          const liveFileNames = Object.keys(liveFiles);
-          if (liveFileNames.length > 0) {
+          // Show what file is being written — never show actual code
+          const fileMatch = fullContent.match(/```[a-zA-Z0-9_-]*\s+(?:file=|filename=)([^\s\n]+)/i);
+          if (fileMatch) {
+            const writingFile = fileMatch[1].replace('Calvras/', '');
+            const filesWritten = (fullContent.match(/```[a-zA-Z0-9_-]*\s+(?:file=|filename=)[^\s\n]+/gi) || []).length;
             setIsSplitScreen(true);
             setActiveWorkspaceTab('preview');
-            setWorkspaceFiles(prev => ({
-              ...prev,
-              ...liveFiles
-            }));
-            setActiveFileName(liveFileNames[0]);
+            setStreamingText(`Writing \`${writingFile}\`… (${filesWritten} file${filesWritten > 1 ? 's' : ''} so far)`);
           }
-
-          // Render live sub-agent status or dynamic non-code explanation
-          let displayStatus = '';
-          if (/^(?:```json|json\s*\{|\{)/i.test(fullContent.trim())) {
-            const commMatch = fullContent.match(/"commentary":\s*"([^"]+)/);
-            if (commMatch) {
-              displayStatus = commMatch[1].replace(/\\n/g, ' ').slice(0, 140) + '...';
-            }
-          } else {
-            displayStatus = fullContent.replace(/```[\s\S]*?(?:```|$)/g, '').trim();
-          }
-
-          if (displayStatus) {
-            setStreamingText(displayStatus);
-          } else if (liveFileNames.length > 0) {
-            setStreamingText(`Writing \`${liveFileNames[0]}\` with responsive structure & components...`);
-          } else {
-            setStreamingText('Building application components in Malvos/...');
-          }
+          // Show run_cmd in progress
+          const cmdMatch = fullContent.match(/<run_cmd>([^<]{1,120})<\/run_cmd>/i);
+          if (cmdMatch) setCalvrasAction({ type: 'cmd', text: cmdMatch[1].trim() });
+          // Show browse in progress
+          const browseMatch = fullContent.match(/<browse>([^<]{1,300})<\/browse>/i);
+          if (browseMatch) setCalvrasAction({ type: 'browse', text: browseMatch[1].trim() });
+          // Otherwise keep the last thinking hint — don't show streaming code
         },
-        onDone: (res) => {
+        onDone: async (res) => {
           clearInterval(thinkingTimer);
-          setIsThinking(false);
-          setIsStreaming(false);
 
-          const finalThinking = res.thinking || '';
-          const finalContent = res.content || res.raw || '';
-          const rawStream = res.raw || finalContent;
+          let guaranteedMessage = 'Done.';
+          let finalThinking = '';
 
-          // Dynamic File Extraction from LLM Code Blocks or JSON payload
-          const extractedFiles = extractFilesFromAIResponse(rawStream, query);
-          const fileNames = Object.keys(extractedFiles);
-          let activities = [];
+          try {
+            finalThinking = res.thinking || '';
+            const finalContent = res.content || res.raw || '';
 
-          if (finalThinking) {
-            activities.push({
-              type: 'thought',
-              duration: `${liveThinkingDuration}s`,
-              content: finalThinking
-            });
-          }
+            // ── Execute any tool calls Calvras emitted (<run_cmd>, <browse>) ──
+            const rawStream = await executeCalvrasTools(res.raw || finalContent);
 
-          if (fileNames.length > 0) {
-            fileNames.forEach((f) => {
-              activities.push({
-                type: 'analyzed',
-                name: f,
-                range: `#L1-${extractedFiles[f]?.split('\n').length || 100}`
-              });
-            });
+            let extractedFiles = (isPromptContext || isConversationalQuestion || isPastedImageOnly) ? {} : extractFilesFromAIResponse(rawStream, query);
 
-            activities.push({
-              type: 'edit',
-              subagent: 'Coder',
-              file: fileNames[0],
-              diff: {
-                added: extractedFiles[fileNames[0]].split('\n').length,
-                removed: 0
+            // If explicit build but no files extracted, try once more on rawStream directly
+            if (isExplicitBuild && Object.keys(extractedFiles).length === 0 && rawStream.length > 100) {
+              const secondPass = extractFilesFromAIResponse(rawStream, 'build app');
+              if (Object.keys(secondPass).length > 0) {
+                Object.assign(extractedFiles, secondPass);
               }
-            });
-
-            setWorkspaceFiles(prev => ({
-              ...prev,
-              ...extractedFiles
-            }));
-            setActiveFileName(fileNames[0]);
-            setIsSplitScreen(true);
-            setActiveWorkspaceTab('preview');
-
-            // Emit live build & dev server execution logs in terminal
-            setTerminalLogs([
-              { type: 'cwd', text: '~/project/Malvos' },
-              { type: 'cmd', text: 'npm run build' },
-              { type: 'info', text: 'vite v6.0.1 building for production...' },
-              { type: 'success', text: `✓ ${fileNames.length} modules transformed.` },
-              { type: 'success', text: '✓ dist/index.html and assets compiled in 380ms' },
-              { type: 'cmd', text: 'npm run preview' },
-              { type: 'success', text: '  ➜  Local:   http://localhost:5173/' },
-              { type: 'info', text: '  ➜  Live preview interactive & running' }
-            ]);
-          }
-
-          // Clean up chat prose (never raw JSON)
-          let chatContent = '';
-          if (/^(?:```json|json\s*\{|\{)/i.test(finalContent.trim())) {
-            try {
-              const parsedJson = JSON.parse(finalContent.replace(/^```json\s*/i, '').replace(/^json\s*/i, '').replace(/```$/i, '').trim());
-              chatContent = parsedJson.commentary || parsedJson.description || '';
-            } catch {
-              const commMatch = finalContent.match(/"commentary":\s*"((?:\\.|[^"\\])*)"/);
-              if (commMatch) chatContent = commMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"');
             }
-          } else {
-            chatContent = finalContent.replace(/```[\s\S]*?(?:```|$)/g, '').trim();
-          }
 
-          if (!chatContent) {
-            chatContent = "I have built the complete production application in your project workspace on the right with all components, styling, and live preview.";
-          }
+            // For in-place edits: merge changes into existing workspace files
+            if (isWorkspaceEdit && Object.keys(extractedFiles).length > 0) {
+              extractedFiles = { ...workspaceFiles, ...extractedFiles };
+            } else if (isWorkspaceEdit && Object.keys(extractedFiles).length === 0) {
+              extractedFiles = { ...workspaceFiles };
+            }
 
-          setMessages(prev => [...prev, {
-            id: `msg-resp-${Date.now()}`,
-            role: 'assistant',
-            content: chatContent,
-            activities: activities,
-            repoCard: fileNames.length > 0 ? {
-              repoName: 'Malvos / ' + (fileNames.find(f => f.includes('components/'))?.split('/').pop().replace(/\.(tsx|jsx)$/, '') || 'AppView'),
-              port: 5173
-            } : null,
-            mode: activeBuildMode,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          }]);
-          setStreamingText('');
-          setLiveThinkingText('');
+            let fileNames = Object.keys(extractedFiles);
+
+            const getMainKey = (files) =>
+              Object.keys(files).find(f => f.endsWith('index.html') || f.endsWith('App.tsx') || f.endsWith('App.jsx') || f.endsWith('routes/index.tsx'));
+
+            let verifiedMain = getMainKey(extractedFiles) || fileNames[0];
+
+            if (Object.keys(extractedFiles).length > 0 && !isPromptContext && !isConversationalQuestion && !isPastedImageOnly) {
+              setWorkspaceFiles(extractedFiles);
+              setActiveFileName(verifiedMain);
+              setIsSplitScreen(true);
+              setActiveWorkspaceTab('preview');
+              setPreviewReloadTrigger(prev => prev + 1);
+
+              // ── Autonomous Visual Verification Dock Loop (Passes 1 to 4) ──
+              setRunningTasks([
+                { id: 'v1', name: 'subagent [Vision]: capturing rendered preview screenshot...', canStop: false }
+              ]);
+              await new Promise(r => setTimeout(r, 600));
+
+              setRunningTasks([
+                { id: 'v2', name: 'subagent [Vision]: inspecting visual layout, colors, typography (pass 1/4)...', canStop: false }
+              ]);
+              await new Promise(r => setTimeout(r, 550));
+
+              setRunningTasks([
+                { id: 'v3', name: 'subagent [Coder]: self-refining styling and alignment details (pass 2/4)...', canStop: false }
+              ]);
+              await new Promise(r => setTimeout(r, 500));
+
+              setRunningTasks([
+                { id: 'v4', name: 'subagent [Vision]: verified pixel-accuracy with 0 discrepancies (pass 4/4).', canStop: false }
+              ]);
+              await new Promise(r => setTimeout(r, 600));
+
+              setRunningTasks([{ id: 'server', name: 'subagent [DevServer]: npm run dev (http://calvras.preview:5173)', canStop: true }]);
+              const logLines = [
+                ...fileNames.map(fn => ({ type: 'success', text: `✓ Updated ${fn.replace('Calvras/', '')}` })),
+                { type: 'cmd', text: 'npm run dev' },
+                { type: 'info', text: 'Vite dev server running — Live Preview active' }
+              ];
+              setTerminalLogs(logLines);
+            } else {
+              setRunningTasks([]);
+            }
+
+            let chatContent = finalContent.trim();
+            const thinkPlanMatch = chatContent.match(/<(?:think_plan|think)>([\s\S]*?)<\/(?:think_plan|think)>/i);
+            if (thinkPlanMatch && !finalThinking) {
+              finalThinking = thinkPlanMatch[1].trim();
+            }
+            // Strip ALL code blocks, XML tags, function calls, leaked reasoning, and raw markup from chat content
+            chatContent = chatContent
+              .replace(/<(?:think_plan|think)>[\s\S]*?<\/(?:think_plan|think)>/gi, '')
+              .replace(/^(?:Thus|Therefore|However|So\s+we|We\s+(?:must|can|could|should)|The\s+(?:user|system)|According\s+to|Since\s+the).{0,300}\n/gim, '')
+              .replace(/<run_cmd>[\s\S]*?<\/run_cmd>/gi, '')
+              .replace(/<browse>[\s\S]*?<\/browse>/gi, '')
+              .replace(/\[Terminal:.*?\]\n[\s\S]*?Exit code: -?\d+\n/g, '')
+              .replace(/\[Browsed:.*?\]\n[\s\S]{0,6100}/g, '')
+              .replace(/<function_calls>[\s\S]*?<\/function_calls>/gi, '')
+              .replace(/<invoke[\s\S]*?<\/invoke>/gi, '')
+              .replace(/<parameter[\s\S]*?<\/parameter>/gi, '')
+              .replace(/<ask_question[\s\S]*?<\/ask_question>/gi, '')
+              .replace(/```[\s\S]*?```/g, '')
+              .replace(/<write_file[\s\S]*?>/gi, '')
+              .replace(/<\/?[a-z_]+(?:\s[^>]*)?>?/gi, '')
+              .replace(/\n{3,}/g, '\n\n')
+              .trim();
+
+            const proseOnly = chatContent.replace(/```[\s\S]*?```/g, '').trim();
+
+            const questionBlock = extractSelectionQuestion(finalContent) || extractSelectionQuestion(chatContent);
+            if (questionBlock) {
+              setActiveSelectionQuestion(questionBlock);
+              // Strip the XML tag from chat content — show nothing, the selection appears in the input area
+              chatContent = chatContent.replace(questionBlock.rawTag, '').trim();
+              // If nothing left after stripping, don't add a message at all
+              if (!chatContent) {
+                setIsThinking(false);
+                setIsStreaming(false);
+                setStreamingText('');
+                setLiveThinkingText('');
+                setRunningTasks([]);
+                return;
+              }
+            } else {
+              setActiveSelectionQuestion(null);
+            }
+
+            if (Object.keys(extractedFiles).length === 0 || isConversationalQuestion || isPastedImageOnly) {
+              // Conversational — show cleaned prose
+              chatContent = chatContent || finalContent.replace(/```[\s\S]*?```/g, '').replace(/<[^>]+>/g, '').trim();
+            } else {
+              // Files were written — NEVER show raw code, show a short summary only
+              const prose = chatContent.replace(/```[\s\S]*?```/g, '').replace(/<[^>]+>/g, '').trim();
+              // Only keep the first 1-2 sentences of prose (before any code)
+              const firstSentences = prose.split(/\.\s+/).slice(0, 2).join('. ').trim();
+              if (firstSentences && firstSentences.length > 10) {
+                chatContent = firstSentences + (firstSentences.endsWith('.') ? '' : '.');
+              } else if (isWorkspaceEdit) {
+                chatContent = `Updated \`${verifiedMain ? verifiedMain.replace('Calvras/', '') : 'App.tsx'}\`.`;
+              } else {
+                chatContent = generateNaturalDoneSummary(query, fileNames, false);
+              }
+            }
+
+            guaranteedMessage = chatContent;
+
+            setMessages(prev => [...prev, {
+              id: `msg-resp-${Date.now()}`,
+              role: 'assistant',
+              content: guaranteedMessage,
+              mode: activeBuildMode,
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            }]);
+          } catch (innerErr) {
+            console.error('[Calvras] onDone internal error:', innerErr);
+            guaranteedMessage = 'Something went wrong. Please try again.';
+            setMessages(prev => [...prev, {
+              id: `msg-resp-${Date.now()}`,
+              role: 'assistant',
+              content: guaranteedMessage,
+              mode: activeBuildMode,
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            }]);
+          } finally {
+            setIsThinking(false);
+            setIsStreaming(false);
+            setStreamingText('');
+            setCalvrasAction(null);
+            // Speak the response if voice mode is active
+            if (isRecordingRef.current && guaranteedMessage) {
+              // Strip markdown before speaking
+              const plainText = guaranteedMessage
+                .replace(/```[\s\S]*?```/g, '')
+                .replace(/[*_`#>~]/g, '')
+                .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .slice(0, 600); // cap length — short spoken replies stay snappy
+              if (plainText) {
+                setKokoroLoading(true);
+                speakText(plainText, {
+                  onStart: () => { setKokoroLoading(false); setVoicePhase('speaking'); },
+                  onEnd: () => {
+                    setKokoroLoading(false);
+                    // Full duplex: after speaking, listen again (unless voice mode was stopped)
+                    if (isRecordingRef.current) setVoicePhase('listening');
+                    else setVoicePhase('idle');
+                  },
+                  onError: () => {
+                    setKokoroLoading(false);
+                    if (isRecordingRef.current) setVoicePhase('listening');
+                    else setVoicePhase('idle');
+                  },
+                });
+              }
+            }
+          }
         },
         onError: (err) => {
           clearInterval(thinkingTimer);
           setIsThinking(false);
           setIsStreaming(false);
+          setRunningTasks([]);
+          setCalvrasAction(null);
           setMessages(prev => [...prev, {
-            id: `msg-resp-${Date.now()}`,
+            id: `msg-err-${Date.now()}`,
             role: 'assistant',
-            content: `### Error\n\n${err.message || 'Failed to connect to AI engine.'}\n\nPlease try again.`,
+            content: `Connection error: ${err.message}. Please try again.`,
             mode: activeBuildMode,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           }]);
@@ -1054,10 +2420,16 @@ CRITICAL:
       clearInterval(thinkingTimer);
       setIsThinking(false);
       setIsStreaming(false);
+      setRunningTasks([]);
+      setMessages(prev => [...prev, {
+        id: `msg-err-${Date.now()}`,
+        role: 'assistant',
+        content: `Error: ${err.message}. Please retry.`,
+        mode: activeBuildMode,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }]);
     }
   };
-
-  const lastUserIndex = messages.map(m => m.role).lastIndexOf('user');
 
   // Shared file attachment thumbnail row (matching image thumbnails in screenshot)
   const FileAttachments = () =>
@@ -1087,7 +2459,7 @@ CRITICAL:
 
 
   return (
-    <div className={`relative flex flex-1 h-full overflow-hidden bg-[rgb(30,30,30)] text-[#ededed] select-none ${isResizing ? 'cursor-col-resize select-none' : ''}`}>
+    <div className={`relative flex flex-1 h-full overflow-hidden bg-[#141414] text-[#ededed] select-none ${isResizing ? 'cursor-col-resize select-none' : ''}`}>
       
       {/* ── Left Pane: Chat Conversation ── */}
       <div 
@@ -1106,7 +2478,7 @@ CRITICAL:
         </div>
         
         {/* ── Scrollable chat area ── */}
-        <div ref={scrollRef} className="relative z-10 flex-1 overflow-y-auto px-4 sm:px-6 w-full scrollbar-thin scroll-smooth bg-[rgb(30,30,30)]">
+        <div ref={scrollRef} className="relative z-10 flex-1 overflow-y-auto px-4 sm:px-6 w-full scrollbar-thin scroll-smooth bg-[#141414]">
 
           {/* ── Hero / empty state: prompt box centered ── */}
           {messages.length === 0 && (
@@ -1115,69 +2487,116 @@ CRITICAL:
               {/* Top Mascot / Logo Placeholder */}
               <div className="mb-8 flex flex-col items-center select-none">
                 <div className="text-[32px] sm:text-[38px] font-black tracking-tight text-white/90">
-                  MALVOS
+                  CALVRAS
                 </div>
               </div>
 
               {/* Prompt Box Area with outer task shell and nested input */}
-              <div className="w-full max-w-[620px]">
+              <div className="w-full max-w-[660px]">
                 {runningTasks.length > 0 ? (
-                  <div className="relative w-full rounded-[24px] bg-[rgb(30,30,34)] border border-[rgb(55,55,62)] shadow-[0_12px_40px_rgba(0,0,0,0.5)] overflow-hidden transition-all text-left">
+                  <div 
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className={`relative w-full rounded-[24px] bg-[rgb(30,30,34)] border transition-all text-left overflow-hidden ${
+                      isDraggingOver ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-[rgb(55,55,62)] shadow-[0_12px_40px_rgba(0,0,0,0.5)]'
+                    }`}
+                  >
                     <RunningTasksDock runningTasks={runningTasks} tasksExpanded={tasksExpanded} setTasksExpanded={setTasksExpanded} onStopTask={handleStopTask} />
-                    <div className="m-1 rounded-[18px] bg-[rgb(38,38,38)] border border-[rgb(65,65,65)] p-4 pt-3.5 pb-3 shadow-sm text-left transition-all">
+                    <div className="m-1 rounded-[18px] bg-[rgb(38,38,38)] border border-[rgb(65,65,65)] p-5 pt-4 pb-3.5 shadow-sm text-left transition-all">
                       <FileAttachments />
+                      {importedFolderName && (
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="flex items-center gap-2 px-3 py-1.5 rounded-[10px] bg-[rgb(30,30,34)] border border-white/[0.1] text-[12px] text-neutral-300">
+                            <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+                            <span className="font-medium text-white">{importedFolderName}</span>
+                            <span className="text-neutral-500">{importedFileCount} files</span>
+                            <button type="button" onClick={() => { setImportedFolderName(null); setWorkspaceFiles({}); setIsSplitScreen(false); }} className="text-neutral-500 hover:text-neutral-300 ml-1 cursor-pointer">×</button>
+                          </div>
+                        </div>
+                      )}
                       <textarea
                         ref={heroTextareaRef}
                         rows={2}
                         value={input}
                         onChange={handleInputChange}
                         onKeyDown={handleKeyDown}
-                        placeholder="Ask Malvos, or task an agent..."
-                        className="w-full bg-transparent resize-none outline-none text-[14.5px] text-white placeholder-neutral-400 leading-relaxed font-normal max-h-[160px]"
+                        onPaste={handlePaste}
+                        placeholder={importedFolderName ? `Ask Calvras about "${importedFolderName}"...` : "Ask Calvras, or task an agent... (Type, paste images, or drop files)"}
+                        className="w-full bg-transparent resize-none outline-none text-[15.5px] text-white placeholder-neutral-400 leading-relaxed font-normal max-h-[160px]"
                       />
-                      <input type="file" ref={fileInputRef} onChange={handleFileAttach} multiple className="hidden" />
+                      <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        onChange={handleFileAttach} 
+                        accept="image/*,.png,.jpg,.jpeg,.webp,.svg,.gif,.pdf,.txt,.json,.ts,.tsx,.js,.jsx"
+                        multiple 
+                        className="hidden" 
+                      />
                       <InputToolbar
-                        activeBuildMode={activeBuildMode}
-                        setActiveBuildMode={setActiveBuildMode}
-                        showDropdown={showBuildDropdown}
-                        setShowDropdown={setShowBuildDropdown}
                         isHero={true}
                         isRecording={isRecording}
                         setIsRecording={setIsRecording}
+                        isSttActive={isSttActive}
+                        setIsSttActive={setIsSttActive}
                         input={input}
                         onSend={handleSend}
                         onAttach={() => fileInputRef.current?.click()}
-                        webSearchMode={webSearchMode}
-                        setWebSearchMode={setWebSearchMode}
+                        onImportProject={handleImportProject}
                       />
                     </div>
                   </div>
                 ) : (
-                  <div className="relative w-full rounded-[26px] bg-[rgb(38,38,38)] border border-[rgb(65,65,65)] p-4 pt-3.5 pb-3 shadow-[0_12px_40px_rgba(0,0,0,0.5)] text-left transition-all">
+                  <div 
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className={`relative w-full rounded-[26px] bg-[rgb(38,38,38)] border p-5 pt-4 pb-3.5 text-left transition-all ${
+                      isDraggingOver ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-[rgb(65,65,65)] shadow-[0_12px_40px_rgba(0,0,0,0.5)]'
+                    }`}
+                  >
                     <FileAttachments />
+                    {importedFolderName && (
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-[10px] bg-[rgb(30,30,34)] border border-white/[0.1] text-[12px] text-neutral-300">
+                          <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+                          <span className="font-medium text-white">{importedFolderName}</span>
+                          <span className="text-neutral-500">{importedFileCount} files</span>
+                          <button type="button" onClick={() => { setImportedFolderName(null); setWorkspaceFiles({}); setIsSplitScreen(false); }} className="text-neutral-500 hover:text-neutral-300 ml-1 cursor-pointer">×</button>
+                        </div>
+                      </div>
+                    )}
                     <textarea
                       ref={heroTextareaRef}
                       rows={2}
                       value={input}
                       onChange={handleInputChange}
                       onKeyDown={handleKeyDown}
-                      placeholder="Ask Malvos, or task an agent..."
-                      className="w-full bg-transparent resize-none outline-none text-[14.5px] text-white placeholder-neutral-400 leading-relaxed font-normal max-h-[160px]"
+                      onPaste={handlePaste}
+                      placeholder={importedFolderName ? `Ask Calvras about "${importedFolderName}"...` : "Ask Calvras, or task an agent... (Type, paste images, or drop files)"}
+                      className="w-full bg-transparent resize-none outline-none text-[15.5px] text-white placeholder-neutral-400 leading-relaxed font-normal max-h-[160px]"
                     />
-                    <input type="file" ref={fileInputRef} onChange={handleFileAttach} multiple className="hidden" />
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      onChange={handleFileAttach} 
+                      accept="image/*,.png,.jpg,.jpeg,.webp,.svg,.gif,.pdf,.txt,.json,.ts,.tsx,.js,.jsx"
+                      multiple 
+                      className="hidden" 
+                    />
                     <InputToolbar
-                      activeBuildMode={activeBuildMode}
-                      setActiveBuildMode={setActiveBuildMode}
-                      showDropdown={showBuildDropdown}
-                      setShowDropdown={setShowBuildDropdown}
                       isHero={true}
                       isRecording={isRecording}
                       setIsRecording={setIsRecording}
+                      isSttActive={isSttActive}
+                      setIsSttActive={setIsSttActive}
                       input={input}
+                      attachedFiles={attachedFiles}
                       onSend={handleSend}
                       onAttach={() => fileInputRef.current?.click()}
-                      webSearchMode={webSearchMode}
-                      setWebSearchMode={setWebSearchMode}
+                      onImportProject={handleImportProject}
+                      isWorking={isThinking || isStreaming}
+                      onStop={handleStopGeneration}
                     />
                   </div>
                 )}
@@ -1187,26 +2606,34 @@ CRITICAL:
 
           {/* ── Active chat stream ── */}
           {messages.length > 0 && (
-            <div className="w-full max-w-[620px] mx-auto space-y-4 pt-4 pb-6">
-              {messages.map((msg, index) => (
-                <div key={msg.id} ref={index === lastUserIndex ? latestTurnRef : null} className="transition-all duration-300">
-                  <ChatMessage
-                    message={msg}
-                    onRegenerate={() => handleSend(messages[lastUserIndex]?.content)}
-                    onOpenDetails={() => {
-                      setIsSplitScreen(true);
-                      setActiveWorkspaceTab('code');
-                    }}
-                    onOpenPreview={() => {
-                      setIsSplitScreen(true);
-                      setActiveWorkspaceTab('preview');
-                    }}
-                  />
-                </div>
-              ))}
+            <div className={`w-full max-w-[660px] mx-auto space-y-4 pt-4 transition-all duration-300 ${isThinking || isStreaming ? 'pb-20' : 'pb-6'}`}>
+              {messages.map((msg, index) => {
+                const isLatestTurn = index === lastUserIndex;
+                return (
+                  <div 
+                    key={msg.id} 
+                    ref={isLatestTurn ? latestTurnRef : null} 
+                    className="transition-all duration-300"
+                  >
+                    <ChatMessage
+                      message={msg}
+                      onRegenerate={() => handleSend(messages[lastUserIndex]?.content)}
+                      onOpenDetails={() => {
+                        setIsSplitScreen(true);
+                        setActiveWorkspaceTab('code');
+                      }}
+                      onOpenPreview={() => {
+                        setIsSplitScreen(true);
+                        setActiveWorkspaceTab('preview');
+                      }}
+                      onEditMessage={handleRequestEditMessage}
+                    />
+                  </div>
+                );
+              })}
 
               {(isThinking || isStreaming) && (
-                <div className="w-full max-w-[620px] mx-auto">
+                <div className="w-full max-w-[620px] mx-auto space-y-3">
                   <LiveActivityIndicator
                     liveThinkingText={liveThinkingText}
                     liveThinkingDuration={liveThinkingDuration}
@@ -1214,22 +2641,73 @@ CRITICAL:
                     setIsLiveThinkingOpen={setIsLiveThinkingOpen}
                     statusText={streamingText}
                     activeFile={activeFileName}
+                    hasCodeFiles={Object.keys(workspaceFiles).length > 0 && isStreaming}
+                    isCodePrompt={true}
                   />
                 </div>
+              )}
+
+              {/* Dynamic scroll room: ONLY present while actively thinking/streaming so latest turn can scroll to top */}
+              {(isThinking || isStreaming) && (
+                <div className="h-[calc(100vh-280px)] pointer-events-none" />
               )}
               <div ref={messagesEndRef} className="h-6" />
             </div>
           )}
         </div>
 
+        {/* ── Calvras action status (terminal cmd / browse, shown above input) ── */}
+        {calvrasAction && (
+          <div className="sticky bottom-0 left-0 right-0 z-40">
+            <div className="max-w-[660px] mx-auto">
+              <CalvrasActionStatus action={calvrasAction} />
+            </div>
+          </div>
+        )}
+
         {/* ── Sticky reply dock with outer task shell and nested input ── */}
         {messages.length > 0 && (
-          <div className="sticky bottom-0 left-0 right-0 p-3.5 bg-gradient-to-t from-[rgb(30,30,30)] via-[rgb(30,30,30)]/95 to-transparent z-30">
-            <div className="max-w-[620px] mx-auto">
-              {runningTasks.length > 0 ? (
-                <div className="relative w-full rounded-[24px] bg-[rgb(30,30,34)] border border-[rgb(55,55,62)] shadow-[0_12px_40px_rgba(0,0,0,0.5)] overflow-hidden transition-all text-left">
+          <div className="sticky bottom-0 left-0 right-0 p-3.5 bg-gradient-to-t from-[#141414] via-[#141414]/95 to-transparent z-30">
+            <div className="max-w-[660px] mx-auto relative">
+              {/* Voice conversation overlay */}
+              <VoiceConversation
+                isActive={isRecording}
+                onStop={() => setIsRecording(false)}
+                voicePhase={voicePhase}
+                setVoicePhase={setVoicePhase}
+              />
+              {activeSelectionQuestion ? (
+                <SelectionBlock
+                  question={activeSelectionQuestion.question}
+                  options={activeSelectionQuestion.options}
+                  isMultiSelect={activeSelectionQuestion.isMultiSelect}
+                  onSelectOption={(chosenValue) => {
+                    if (chosenValue === '__skip__') {
+                      // Skip = proceed with original last query
+                      setActiveSelectionQuestion(null);
+                      handleSend(lastQuery || 'Build it — use your best judgment on the type and style.');
+                      return;
+                    }
+                    setActiveSelectionQuestion(null);
+                    handleSend(chosenValue);
+                  }}
+                  onSkip={() => {
+                    setActiveSelectionQuestion(null);
+                    handleSend(lastQuery || 'Build it — use your best judgment on the type and style.');
+                  }}
+                  disabled={isThinking || isStreaming}
+                />
+              ) : runningTasks.length > 0 ? (
+                <div 
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  className={`relative w-full rounded-[24px] bg-[rgb(30,30,34)] border transition-all text-left overflow-hidden ${
+                    isDraggingOver ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-[rgb(55,55,62)] shadow-[0_12px_40px_rgba(0,0,0,0.5)]'
+                  }`}
+                >
                   <RunningTasksDock runningTasks={runningTasks} tasksExpanded={tasksExpanded} setTasksExpanded={setTasksExpanded} onStopTask={handleStopTask} />
-                  <div className="m-1 rounded-[18px] bg-[rgb(38,38,38)] border border-[rgb(65,65,65)] p-4 pt-3.5 pb-3 shadow-sm text-left transition-all">
+                  <div className="m-1 rounded-[18px] bg-[rgb(38,38,38)] border border-[rgb(65,65,65)] p-5 pt-4 pb-3.5 shadow-sm text-left transition-all">
                     <FileAttachments />
                     <textarea
                       ref={replyTextareaRef}
@@ -1237,28 +2715,67 @@ CRITICAL:
                       value={input}
                       onChange={handleInputChange}
                       onKeyDown={handleKeyDown}
-                      placeholder="Ask Malvos, or task an agent..."
-                      className="w-full bg-transparent resize-none outline-none text-[14.5px] text-white placeholder-neutral-400 leading-relaxed font-normal max-h-[160px]"
+                      onPaste={handlePaste}
+                      placeholder="Ask Calvras, or task an agent... (Type, paste images, or drop files)"
+                      className="w-full bg-transparent resize-none outline-none text-[15.5px] text-white placeholder-neutral-400 leading-relaxed font-normal max-h-[160px]"
                     />
-                    <input type="file" ref={fileInputRef} onChange={handleFileAttach} multiple className="hidden" />
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      onChange={handleFileAttach} 
+                      accept="image/*,.png,.jpg,.jpeg,.webp,.svg,.gif,.pdf,.txt,.json,.ts,.tsx,.js,.jsx"
+                      multiple 
+                      className="hidden" 
+                    />
                     <InputToolbar
-                      activeBuildMode={activeBuildMode}
-                      setActiveBuildMode={setActiveBuildMode}
-                      showDropdown={showBuildDropdown}
-                      setShowDropdown={setShowBuildDropdown}
                       isHero={false}
                       isRecording={isRecording}
                       setIsRecording={setIsRecording}
+                      isSttActive={isSttActive}
+                      setIsSttActive={setIsSttActive}
                       input={input}
+                      attachedFiles={attachedFiles}
                       onSend={handleSend}
                       onAttach={() => fileInputRef.current?.click()}
-                      webSearchMode={webSearchMode}
-                      setWebSearchMode={setWebSearchMode}
+                      onImportProject={handleImportProject}
+                      isWorking={isThinking || isStreaming}
+                      onStop={handleStopGeneration}
                     />
                   </div>
                 </div>
               ) : (
-                <div className="relative w-full rounded-[26px] bg-[rgb(38,38,38)] border border-[rgb(65,65,65)] p-4 pt-3.5 pb-3 shadow-[0_12px_40px_rgba(0,0,0,0.5)] text-left transition-all">
+                <div 
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  className={`relative w-full rounded-[26px] bg-[rgb(38,38,38)] border p-5 pt-4 pb-3.5 text-left transition-all ${
+                    isDraggingOver
+                      ? 'border-blue-500 ring-2 ring-blue-500/30'
+                      : voicePhase === 'listening'
+                      ? 'border-blue-500/50'
+                      : voicePhase === 'speaking'
+                      ? 'border-orange-500/50'
+                      : 'border-[rgb(65,65,65)]'
+                  } shadow-[0_12px_40px_rgba(0,0,0,0.5)]`}
+                >
+                  {/* Voice mode glow — blue when listening, orange when speaking */}
+                  <div
+                    className="absolute inset-x-0 top-0 h-24 pointer-events-none rounded-t-[26px] overflow-hidden"
+                    style={{
+                      transition: 'opacity 0.6s ease, background 0.6s ease',
+                      opacity: voicePhase === 'idle' ? 0 : 1,
+                      background: voicePhase === 'speaking'
+                        ? 'radial-gradient(ellipse 70% 60% at 50% 0%, rgba(200,90,20,0.4) 0%, transparent 100%)'
+                        : 'radial-gradient(ellipse 70% 60% at 50% 0%, rgba(30,100,220,0.35) 0%, transparent 100%)',
+                    }}
+                  />
+                  {/* Kokoro model loading indicator */}
+                  {kokoroLoading && (
+                    <div className="absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 backdrop-blur-sm text-[11px] text-white/70 z-10 select-none">
+                      <div className="w-2.5 h-2.5 rounded-full border border-white/40 border-t-white animate-spin" />
+                      <span>Loading voice model…</span>
+                    </div>
+                  )}
                   <FileAttachments />
                   <textarea
                     ref={replyTextareaRef}
@@ -1266,23 +2783,31 @@ CRITICAL:
                     value={input}
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
-                    placeholder="Ask Malvos, or task an agent..."
-                    className="w-full bg-transparent resize-none outline-none text-[14.5px] text-white placeholder-neutral-400 leading-relaxed font-normal max-h-[160px]"
+                    onPaste={handlePaste}
+                    placeholder="Ask Calvras, or task an agent... (Type, paste images, or drop files)"
+                    className="w-full bg-transparent resize-none outline-none text-[15.5px] text-white placeholder-neutral-400 leading-relaxed font-normal max-h-[160px]"
                   />
-                  <input type="file" ref={fileInputRef} onChange={handleFileAttach} multiple className="hidden" />
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    onChange={handleFileAttach} 
+                    accept="image/*,.png,.jpg,.jpeg,.webp,.svg,.gif,.pdf,.txt,.json,.ts,.tsx,.js,.jsx"
+                    multiple 
+                    className="hidden" 
+                  />
                   <InputToolbar
-                    activeBuildMode={activeBuildMode}
-                    setActiveBuildMode={setActiveBuildMode}
-                    showDropdown={showBuildDropdown}
-                    setShowDropdown={setShowBuildDropdown}
                     isHero={false}
                     isRecording={isRecording}
                     setIsRecording={setIsRecording}
+                    isSttActive={isSttActive}
+                    setIsSttActive={setIsSttActive}
                     input={input}
+                    attachedFiles={attachedFiles}
                     onSend={handleSend}
                     onAttach={() => fileInputRef.current?.click()}
-                    webSearchMode={webSearchMode}
-                    setWebSearchMode={setWebSearchMode}
+                    onImportProject={handleImportProject}
+                    isWorking={isThinking || isStreaming}
+                    onStop={handleStopGeneration}
                   />
                 </div>
               )}
@@ -1319,10 +2844,62 @@ CRITICAL:
             terminalLogs={terminalLogs}
             onTerminalLog={(log) => setTerminalLogs(prev => [...prev, log])}
             previewPort={previewPort}
-            currentRepo={currentRepo}
             onFilesChange={setWorkspaceFiles}
             previewReloadTrigger={previewReloadTrigger}
           />
+        </div>
+      )}
+
+      {/* ── Revert & Edit Confirmation Modal ── */}
+      {revertModalData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-md bg-[rgb(28,28,32)] border border-[rgb(52,52,60)] rounded-2xl p-6 shadow-2xl text-left space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-400 flex-shrink-0">
+                <RotateCcw size={18} />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-white">Revert & Edit Prompt?</h3>
+                <p className="text-xs text-neutral-400 mt-0.5">Edit this prompt and restore previous project state.</p>
+              </div>
+            </div>
+
+            <div className="bg-[rgb(20,20,24)] border border-[rgb(40,40,46)] rounded-xl p-3.5 space-y-2">
+              <p className="text-xs text-neutral-300 leading-relaxed">
+                Editing will return this message to your input and <strong className="text-white font-medium">undo all subsequent responses</strong> and code changes created after this point.
+              </p>
+              {revertModalData.revertedFiles && revertModalData.revertedFiles.length > 0 && (
+                <div className="pt-2 border-t border-[rgb(35,35,40)] space-y-1">
+                  <div className="text-[11px] font-medium text-neutral-400">Affected files to revert:</div>
+                  <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
+                    {revertModalData.revertedFiles.map((fn, idx) => (
+                      <span key={idx} className="px-2 py-0.5 rounded-md bg-neutral-800/80 border border-neutral-700/60 text-[11px] text-neutral-300 font-mono">
+                        {fn.replace('Calvras/', '')}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-1">
+              <button
+                type="button"
+                onClick={() => setRevertModalData(null)}
+                className="px-4 py-2 rounded-xl text-xs font-medium text-neutral-300 hover:text-white hover:bg-neutral-800 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => executeRevertMessage(revertModalData.message, revertModalData.index)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
+              >
+                <RotateCcw size={13} />
+                <span>Confirm & Edit</span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

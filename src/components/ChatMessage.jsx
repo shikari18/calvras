@@ -13,16 +13,21 @@ import {
   Eye,
   ChevronDown,
   ChevronRight,
-  Brain
+  RotateCcw,
+  Pencil,
+  Code
 } from 'lucide-react';
-import AgentExecutionStream from './AgentExecutionStream';
 import { splitThinkingAndContent } from '../services/aiService';
+import { generateLivePreviewSrcdoc } from './ProjectWorkspacePane';
 
-export default function ChatMessage({ message, onRegenerate, onOpenDetails, onOpenPreview }) {
+export default function ChatMessage({ message, onRegenerate, onOpenDetails, onOpenPreview, onEditMessage }) {
   const [copied, setCopied] = useState(false);
+  const [showRawCode, setShowRawCode] = useState(false);
+  const [isUserExpanded, setIsUserExpanded] = useState(false);
   const [liked, setLiked] = useState(null);
   const [showSources, setShowSources] = useState(false);
   const [isThinkingExpanded, setIsThinkingExpanded] = useState(false);
+  const [isComparisonCollapsed, setIsComparisonCollapsed] = useState(false);
 
   const isAssistant = message.role === 'assistant';
 
@@ -57,27 +62,111 @@ export default function ChatMessage({ message, onRegenerate, onOpenDetails, onOp
     });
   };
 
+  const userBubbleRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (!isUserExpanded) return;
+    const handleOutsideClick = (e) => {
+      if (userBubbleRef.current && !userBubbleRef.current.contains(e.target)) {
+        setIsUserExpanded(false);
+      }
+    };
+    document.addEventListener('pointerdown', handleOutsideClick);
+    return () => document.removeEventListener('pointerdown', handleOutsideClick);
+  }, [isUserExpanded]);
+
   if (!isAssistant) {
+    const isLongMessage = (message.content || '').length > 130 || (message.content || '').split('\n').length > 3;
+
     return (
-      <div className="flex justify-end w-full max-w-[620px] mx-auto px-4 py-1.5 animate-message-in">
-        <div className="bg-[#262626] text-neutral-200 px-4 py-2.5 rounded-2xl text-[14px] font-normal shadow-sm max-w-[85%] break-words whitespace-pre-wrap leading-relaxed transition-all hover:bg-[#2c2c2c]">
-          {renderUserTextWithLinks(message.content)}
+      <div className="flex justify-end w-full max-w-[660px] mx-auto px-4 py-1.5 animate-message-in group">
+        <div className="flex flex-col items-end gap-1.5 max-w-[85%]">
+          {/* Render uploaded images outside the text bubble with 100px by 100px thumbnail */}
+          {message.files && message.files.length > 0 && (
+            <div className="flex flex-wrap gap-2 justify-end select-none">
+              {message.files.map((file, idx) => (
+                <div key={idx} className="relative w-[100px] h-[100px] rounded-xl overflow-hidden border border-neutral-700 bg-neutral-900 shadow-md flex-shrink-0">
+                  {file.dataUrl || file.preview ? (
+                    <img 
+                      src={file.dataUrl || file.preview} 
+                      alt={file.name || 'Uploaded image'} 
+                      className="w-[100px] h-[100px] object-cover cursor-pointer hover:scale-105 transition-transform"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(file.dataUrl || file.preview, '_blank');
+                      }}
+                      title="Click to view full image"
+                    />
+                  ) : (
+                    <div className="w-[100px] h-[100px] flex flex-col items-center justify-center p-2 text-center text-xs text-neutral-300">
+                      <FileCode size={22} className="text-blue-400 mb-1" />
+                      <span className="truncate w-full text-[10px]">{file.name}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Clean User text bubble */}
+          {message.content && (
+            <div
+              ref={userBubbleRef}
+              onClick={() => isLongMessage && setIsUserExpanded(p => !p)}
+              className={`relative bg-[#262626] text-neutral-200 px-5 py-3.5 rounded-2xl text-[15.5px] font-normal shadow-sm break-words whitespace-pre-wrap leading-relaxed transition-all hover:bg-[#2c2c2c] ${isLongMessage ? 'cursor-pointer select-none' : ''} ${isLongMessage && !isUserExpanded ? 'max-h-[82px] overflow-hidden' : 'max-h-none'}`}
+              title={isLongMessage ? (isUserExpanded ? "Click to collapse" : "Click to expand message") : undefined}
+            >
+              {renderUserTextWithLinks(message.content)}
+              {isLongMessage && !isUserExpanded && (
+                <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#262626] via-[#262626]/85 to-transparent pointer-events-none rounded-b-2xl" />
+              )}
+            </div>
+          )}
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 pr-1 pt-0.5">
+            <button
+              type="button"
+              onClick={() => copyContent(message.content)}
+              className="p-1 rounded-lg text-neutral-400 hover:text-neutral-100 hover:bg-[#2a2a2e] transition-all cursor-pointer select-none"
+              title="Copy message"
+            >
+              {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} className="text-neutral-400" />}
+            </button>
+            {onEditMessage && (
+              <button
+                type="button"
+                onClick={() => onEditMessage(message)}
+                className="p-1 rounded-lg text-neutral-400 hover:text-neutral-100 hover:bg-[#2a2a2e] transition-all cursor-pointer select-none"
+                title="Edit prompt"
+              >
+                <RotateCcw size={12} className="text-neutral-400" />
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );
   }
 
-  // Parse inline markdown: **bold**, `code`, *italic*, [link](url), raw URLs
+  // Parse inline markdown: **bold**, `code`, <think> tags, *italic*, [link](url), raw URLs
   const renderInlineMarkdown = (text) => {
     if (!text) return text;
-    const tokens = text.split(/(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|\[[^\]]+\]\([^)]+\)|https?:\/\/[^\s]+)/g);
+    const tokens = text.split(/(<think>[\s\S]*?<\/think>|`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|\[[^\]]+\]\([^)]+\)|https?:\/\/[^\s]+)/g);
 
     return tokens.map((token, i) => {
       if (!token) return null;
-      if (token.startsWith('`') && token.endsWith('`') && token.length > 2) {
+      if (token.startsWith('<think>') && token.endsWith('</think>')) {
         return (
-          <code key={i} className="px-1.5 py-0.5 rounded bg-[#25252b] text-pink-300 font-mono text-[12.5px] border border-white/5 mx-0.5">
-            {token.slice(1, -1)}
+          <code key={i} className="px-1.5 py-0.5 rounded-md bg-[#2d1b22] text-[#f472b6] font-mono text-[12px] border border-pink-500/20 mx-0.5 inline-block">
+            {token}
+          </code>
+        );
+      }
+      if (token.startsWith('`') && token.endsWith('`') && token.length > 2) {
+        const inner = token.slice(1, -1);
+        const isThinkTag = inner.includes('<think>') || inner.includes('</think>');
+        return (
+          <code key={i} className={`px-1.5 py-0.5 rounded-md ${isThinkTag ? 'bg-[#2d1b22] text-[#f472b6] border-pink-500/20' : 'bg-[#202025] text-neutral-200 border-white/10'} font-mono text-[12px] border mx-0.5`}>
+            {inner}
           </code>
         );
       }
@@ -125,38 +214,111 @@ export default function ChatMessage({ message, onRegenerate, onOpenDetails, onOp
     const parsed = rows.map(r =>
       r.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim())
     );
-    const header = parsed[0];
+    const header = parsed[0] || [];
     const body = parsed.slice(1).filter(r => !isSeparatorRow(r));
     return { header, body };
   };
 
+  // Render a single table cell value with smart formatting:
+  // ✅ / ✓ / true / yes → green tick icon
+  // ✗ / ✘ / — / no / false → dash
+  // Everything else → inline markdown
+  const renderCellValue = (raw) => {
+    // Strip surrounding ** bold markers that the AI sometimes wraps section names in
+    const v = raw.trim().replace(/^\*\*(.+)\*\*$/, '$1').trim();
+    if (/^(✅|✓|true|yes)$/i.test(v)) {
+      return (
+        <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-emerald-500/20 border border-emerald-500/30">
+          <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+            <path d="M1.5 5.5L4 8L9.5 2.5" stroke="#10b981" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </span>
+      );
+    }
+    if (/^(✗|✘|false|no)$/i.test(v)) {
+      return <span className="text-neutral-600 font-medium">—</span>;
+    }
+    if (v === '—' || v === '-' || v === '') {
+      return <span className="text-neutral-600">—</span>;
+    }
+    return renderInlineMarkdown(v);
+  };
+
   const renderTableBlock = (block, key) => {
     const { header, body } = parseTableBlock(block);
+    if (!header || header.length === 0) return null;
+    const colCount = header.length;
+
+    // Apple-style: same surface as input, hairline separators only, clean typography
+    const BG = 'rgb(22,22,22)';
+    const SEP = '1px solid rgba(255,255,255,0.07)';
+
     return (
-      <div key={key} className="my-3 overflow-x-auto rounded-xl border border-[#2a2a2a]">
-        <table className="w-full text-[13px] border-collapse">
+      <div key={key} className="my-4 overflow-x-auto" style={{
+        borderRadius: 12,
+        background: BG,
+        border: '1px solid rgba(255,255,255,0.08)',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
+      }}>
+        <table className="w-full text-left" style={{ borderCollapse: 'collapse' }}>
           <thead>
-            <tr className="bg-[#1e1e1e] border-b border-[#2e2e2e]">
+            <tr style={{ borderBottom: SEP }}>
               {header.map((cell, ci) => (
-                <th key={ci} className="px-4 py-2.5 text-left text-xs font-semibold text-neutral-200 uppercase tracking-wide whitespace-nowrap">
-                  {renderInlineMarkdown(cell)}
+                <th key={ci} style={{
+                  padding: '13px 18px',
+                  fontSize: 12,
+                  fontWeight: 500,
+                  color: 'rgba(255,255,255,0.45)',
+                  letterSpacing: '0.02em',
+                  borderRight: ci < header.length - 1 ? SEP : 'none',
+                  background: 'rgba(255,255,255,0.03)',
+                }}>
+                  {cell}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {body.map((row, ri) => (
-              <tr
-                key={ri}
-                className={`border-b border-[#222222] transition-colors hover:bg-[#1c1c1c] ${ri % 2 === 0 ? 'bg-[#161616]' : 'bg-[#191919]'}`}
-              >
-                {row.map((cell, ci) => (
-                  <td key={ci} className="px-4 py-2.5 text-neutral-300 text-[13px] leading-relaxed">
-                    {renderInlineMarkdown(cell)}
-                  </td>
-                ))}
-              </tr>
-            ))}
+            {body.map((row, ri) => {
+              const firstCellClean = row[0]?.trim().replace(/^\*\*(.+)\*\*$/, '$1').trim();
+              const isSectionHeader = row.slice(1).every(c => !c || c.trim() === '—' || c.trim() === '-' || c.trim() === '');
+              const isLast = ri === body.length - 1;
+
+              if (isSectionHeader) {
+                return (
+                  <tr key={ri} style={{ borderBottom: SEP, background: 'rgba(255,255,255,0.03)' }}>
+                    <td colSpan={colCount} style={{
+                      padding: '10px 18px',
+                      fontSize: 11.5,
+                      fontWeight: 600,
+                      color: 'rgba(255,255,255,0.35)',
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                    }}>
+                      {firstCellClean}
+                    </td>
+                  </tr>
+                );
+              }
+
+              return (
+                <tr key={ri} style={{ borderBottom: isLast ? 'none' : SEP }}>
+                  {row.map((cell, ci) => (
+                    <td key={ci} style={{
+                      padding: '13px 18px',
+                      fontSize: 13,
+                      color: ci === 0 ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.85)',
+                      fontWeight: ci === 0 ? 400 : 400,
+                      borderRight: ci < row.length - 1 ? SEP : 'none',
+                      lineHeight: 1.55,
+                      verticalAlign: 'top',
+                    }}>
+                      {renderCellValue(cell)}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -164,95 +326,287 @@ export default function ChatMessage({ message, onRegenerate, onOpenDetails, onOp
   };
 
   const renderTextLines = (text, key) => {
-    const lines = text.split('\n');
+    const normalisedText = text
+      .replace(/([^\n])\s+(\d+\.\s+[A-Z])/g, '$1\n$2')
+      .replace(/(\s+-\s+)/g, '\n- ');
+    const rawLines = normalisedText.split('\n');
+
+    // Group lines into paragraphs and table blocks
+    const elements = [];
+    let tableBuffer = [];
+
+    const flushTable = (idx) => {
+      if (tableBuffer.length > 0) {
+        elements.push(renderTableBlock(tableBuffer.join('\n'), `tbl-${idx}`));
+        tableBuffer = [];
+      }
+    };
+
+    rawLines.forEach((line, lIdx) => {
+      const trimmed = line.trim();
+
+      // Table line detection: starts and ends with pipe '|' or contains multiple pipes
+      if (trimmed.startsWith('|') && trimmed.endsWith('|') && trimmed.length > 2) {
+        tableBuffer.push(trimmed);
+        return;
+      } else {
+        flushTable(lIdx);
+      }
+
+      if (!trimmed) return;
+
+      // File header indicator (e.g. tsx file=src/App.tsx)
+      if (/^(?:tsx|jsx|js|ts|html|css|json|py|python|bash|sh)\s+file=([^\s]+)/i.test(trimmed)) {
+        const match = trimmed.match(/^(?:tsx|jsx|js|ts|html|css|json|py|python|bash|sh)\s+file=([^\s]+)/i);
+        elements.push(
+          <div key={lIdx} className="my-1.5 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-[#1a1a1a] border border-white/10 font-mono text-[11.5px] text-blue-400 font-medium shadow-sm">
+            <span className="text-neutral-500">file:</span>
+            <span>{match[1]}</span>
+          </div>
+        );
+        return;
+      }
+
+      // Strip solitary orphan backticks or closing artifacts
+      if (trimmed === '```' || trimmed === '````' || trimmed === '`' || trimmed === ').') {
+        return;
+      }
+
+      // Heading 1 (# Title)
+      if (trimmed.startsWith('# ')) {
+        elements.push(
+          <h1 key={lIdx} className="text-[17px] sm:text-[18px] font-bold text-white tracking-tight mt-3.5 mb-1.5 border-b border-neutral-800 pb-1.5">
+            {renderInlineMarkdown(trimmed.slice(2))}
+          </h1>
+        );
+        return;
+      }
+
+      // Heading 2 (## Subtitle)
+      if (trimmed.startsWith('## ')) {
+        elements.push(
+          <h2 key={lIdx} className="text-[14.5px] sm:text-[15px] font-semibold text-neutral-100 tracking-tight mt-3 mb-1">
+            {renderInlineMarkdown(trimmed.slice(3))}
+          </h2>
+        );
+        return;
+      }
+
+      // Heading 3 (### Section)
+      if (trimmed.startsWith('### ')) {
+        elements.push(
+          <h3 key={lIdx} className="text-[13.5px] font-semibold text-neutral-200 mt-2.5 mb-0.5">
+            {renderInlineMarkdown(trimmed.slice(4))}
+          </h3>
+        );
+        return;
+      }
+
+      // Heading 4 (#### Sub-section)
+      if (trimmed.startsWith('#### ')) {
+        elements.push(
+          <h4 key={lIdx} className="text-[12.5px] font-semibold text-neutral-300 mt-2 mb-0.5">
+            {renderInlineMarkdown(trimmed.slice(5))}
+          </h4>
+        );
+        return;
+      }
+
+      // Horizontal divider
+      if (/^(-{3,}|\*{3,}|_{3,})$/.test(trimmed)) {
+        elements.push(
+          <div key={lIdx} className="py-2">
+            <div className="h-[1px] bg-neutral-800/80 w-full" />
+          </div>
+        );
+        return;
+      }
+
+      // Numbered section header like "0. OPERATING PRINCIPLES"
+      const sectionHeaderMatch = trimmed.match(/^(\d+)\.\s+([A-Z\s\(\)]+.*)$/);
+      if (sectionHeaderMatch && sectionHeaderMatch[2] === sectionHeaderMatch[2].toUpperCase() && sectionHeaderMatch[2].length > 4) {
+        elements.push(
+          <div key={lIdx} className="text-[13.5px] font-bold text-white uppercase tracking-wide mt-3 mb-1.5">
+            {sectionHeaderMatch[1]}. {renderInlineMarkdown(sectionHeaderMatch[2])}
+          </div>
+        );
+        return;
+      }
+
+      // Numbered list item
+      const numbered = trimmed.match(/^(\d+)\.\s+(.*)/);
+      if (numbered) {
+        elements.push(
+          <div key={lIdx} className="flex items-start gap-2.5 text-[13.5px] text-neutral-200 mt-1.5 mb-0.5 leading-relaxed pl-1">
+            <span className="text-neutral-400 font-mono text-[12.5px] mt-0.5 flex-shrink-0 font-medium">{numbered[1]}.</span>
+            <span className="flex-1">{renderInlineMarkdown(numbered[2])}</span>
+          </div>
+        );
+        return;
+      }
+
+      // Bullet items (with nested indent support)
+      if (trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.startsWith('• ')) {
+        const isSubBullet = line.startsWith('   ') || line.startsWith('\t') || line.startsWith('  ');
+        elements.push(
+          <div key={lIdx} className={`flex items-start gap-2 text-[13px] text-neutral-300 py-0.5 leading-relaxed ${isSubBullet ? 'ml-6 pl-1' : 'ml-2'}`}>
+            <span className="text-neutral-500 text-[8px] mt-1.5 flex-shrink-0">●</span>
+            <span className="flex-1">{renderInlineMarkdown(trimmed.replace(/^[-*•]\s+/, ''))}</span>
+          </div>
+        );
+        return;
+      }
+
+      // Standard paragraph
+      elements.push(
+        <p key={lIdx} className="text-[13.5px] text-neutral-300 my-0.5 leading-relaxed">
+          {renderInlineMarkdown(line)}
+        </p>
+      );
+    });
+
+    flushTable('end');
+
     return (
-      <div key={key} className="space-y-1.5">
-        {lines.map((line, lIdx) => {
-          const trimmed = line.trim();
-          if (trimmed.startsWith('### ')) return <h3 key={lIdx} className="text-sm font-semibold text-white mt-2.5 mb-1">{renderInlineMarkdown(trimmed.slice(4))}</h3>;
-          if (trimmed.startsWith('#### ')) return <h4 key={lIdx} className="text-xs font-semibold text-neutral-200 mt-2 mb-1">{renderInlineMarkdown(trimmed.slice(5))}</h4>;
-          if (trimmed.startsWith('## ')) return <h2 key={lIdx} className="text-base font-bold text-white mt-3 mb-1">{renderInlineMarkdown(trimmed.slice(3))}</h2>;
-          if (trimmed.startsWith('# ')) return <h1 key={lIdx} className="text-lg font-bold text-white mt-3 mb-1.5">{renderInlineMarkdown(trimmed.slice(2))}</h1>;
-          if (trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.startsWith('• ')) {
-            return (
-              <div key={lIdx} className="flex items-start gap-2 text-[14px] text-neutral-200 ml-2 leading-relaxed">
-                <span className="text-neutral-500 mt-1 flex-shrink-0">•</span>
-                <span>{renderInlineMarkdown(trimmed.replace(/^[-*•]\s+/, ''))}</span>
-              </div>
-            );
-          }
-          const numbered = trimmed.match(/^(\d+)\.\s+(.*)/);
-          if (numbered) {
-            return (
-              <div key={lIdx} className="flex items-start gap-2 text-[14px] text-neutral-200 ml-2 leading-relaxed">
-                <span className="text-neutral-400 font-mono text-xs mt-0.5 flex-shrink-0">{numbered[1]}.</span>
-                <span>{renderInlineMarkdown(numbered[2])}</span>
-              </div>
-            );
-          }
-          if (/^(-{3,}|\*{3,}|_{3,})$/.test(trimmed)) {
-            return (
-              <div key={lIdx} className="flex items-center my-4">
-                <div className="flex-1 h-[1.5px] rounded-full bg-gradient-to-r from-transparent via-[#444444] to-transparent" />
-              </div>
-            );
-          }
-          if (trimmed.length === 0) return <div key={lIdx} className="h-1" />;
-          return <p key={lIdx} className="text-[14px] text-neutral-200 leading-relaxed">{renderInlineMarkdown(line)}</p>;
-        })}
+      <div key={key} className="space-y-1.5 text-left leading-relaxed font-sans text-neutral-300">
+        {elements}
       </div>
     );
   };
 
   const renderFormattedContent = (content) => {
     if (!content || typeof content !== 'string') return null;
-    // First split out code blocks
-    const codeParts = content.split(/(```[\s\S]*?```)/g);
-    const elements = [];
 
-    codeParts.forEach((part, pIdx) => {
-      if (part.startsWith('```')) {
-        const lines = part.slice(3, -3).trim().split('\n');
-        const lang = lines[0].trim();
-        const code = lines.slice(lang.match(/^[a-zA-Z0-9_-]+$/) ? 1 : 0).join('\n');
-        elements.push(
-          <div key={`code-${pIdx}`} className="my-2.5 rounded-xl overflow-hidden border border-[#2e2e2e] bg-[#0f0f0f]">
-            <div className="flex items-center justify-between px-3 py-1.5 bg-[#1a1a1a] border-b border-[#262626] text-xs text-neutral-400 font-mono">
-              <span className="text-[11px] font-semibold text-neutral-300 uppercase tracking-wider">{lang || 'CODE'}</span>
-              <button
-                onClick={() => copyContent(code)}
-                className="flex items-center gap-1 text-[11px] hover:text-white px-2 py-0.5 rounded hover:bg-[#252525] transition-colors"
-              >
-                {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
-                <span>{copied ? 'Copied' : 'Copy'}</span>
-              </button>
+    let cleanContent = content
+      .replace(/\[TOOL_CALL:.*?\]/gs, '')
+      .replace(/<tool_call>.*?<\/tool_call>/gs, '')
+      .replace(/\[\/?(SEARCH|FILE_WRITE|FILE_EDIT|COMMAND|TERMINAL).*?\]/g, '')
+      .trim();
+
+    if (!cleanContent) return null;
+
+    // Check if entire message is explicitly a prompt/system-prompt template
+    // (NOT generic code blocks — those are handled by the fenced-block renderer below)
+    const isDocumentPrompt =
+      cleanContent.startsWith('```prompt') ||
+      cleanContent.startsWith('```system_prompt') ||
+      cleanContent.startsWith('--- SYSTEM PROMPT') ||
+      message.isPromptTemplate;
+
+    if (isDocumentPrompt) {
+      let docText = cleanContent;
+      // Strip outer backticks if present
+      if (docText.startsWith('````') && docText.endsWith('````')) {
+        docText = docText.slice(4, -4).trim();
+      } else if (docText.startsWith('```') && docText.endsWith('```')) {
+        docText = docText.slice(3, -3).trim();
+      }
+      docText = docText.replace(/^(?:prompt|system_prompt|markdown|md|text)\n/i, '');
+
+      return (
+        <div className="relative my-2.5 rounded-2xl border border-[#383838] bg-[#262626] group shadow-sm pt-4 pb-[20px] pl-5 pr-4 text-left transition-all">
+          <div className="absolute top-3.5 right-3.5 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all z-10">
+            <button
+              type="button"
+              onClick={() => setShowRawCode(prev => !prev)}
+              className={`p-1.5 rounded-lg border transition-all cursor-pointer shadow-md flex items-center gap-1 text-[11px] ${showRawCode ? 'bg-[#3d3d42] text-blue-400 border-blue-500/50' : 'bg-[#303030]/80 hover:bg-[#3d3d3d] text-neutral-400 hover:text-white border-[#444444]'}`}
+              title={showRawCode ? "Switch to Formatted view" : "View raw Markdown (##)"}
+            >
+              <Code size={13} />
+            </button>
+            <button
+              type="button"
+              onClick={() => copyContent(docText)}
+              className="p-1.5 rounded-lg bg-[#303030]/80 hover:bg-[#3d3d3d] text-neutral-400 hover:text-white border border-[#444444] transition-all cursor-pointer shadow-md flex items-center gap-1 text-[11px]"
+              title="Copy prompt"
+            >
+              {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+              {copied && <span className="text-emerald-400 font-mono text-[11px]">Copied</span>}
+            </button>
+          </div>
+          <div className="pl-0.5 pr-14">
+            {showRawCode ? (
+              <pre className="text-[13px] font-mono text-neutral-200 whitespace-pre-wrap leading-relaxed overflow-x-auto">
+                <code>{docText}</code>
+              </pre>
+            ) : (
+              renderTextLines(docText, 'unified-prompt-doc')
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // Split on fenced code blocks so they render as real code blocks
+    const fenceRegex = /```(\w*)\n?([\s\S]*?)```/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+    let partIdx = 0;
+
+    while ((match = fenceRegex.exec(cleanContent)) !== null) {
+      // Text before this fence
+      if (match.index > lastIndex) {
+        const before = cleanContent.slice(lastIndex, match.index).trim();
+        if (before) {
+          parts.push(
+            <div key={`text-${partIdx}`} className="text-left my-1">
+              {renderTextLines(before, `pre-fence-${partIdx}`)}
             </div>
-            <pre className="p-3 text-xs font-mono overflow-x-auto text-[#e2e2e8] leading-relaxed">
-              <code>{code}</code>
-            </pre>
+          );
+        }
+      }
+
+      const lang = match[1] || 'text';
+      const code = match[2];
+      parts.push(
+        <div key={`fence-${partIdx}`} className="my-3 rounded-xl overflow-hidden border border-[#303038] bg-[#18181f] shadow-md">
+          {/* Language label + copy button */}
+          <div className="flex items-center justify-between px-4 py-2 bg-[#222230] border-b border-[#303038]">
+            <span className="text-[11px] font-mono font-semibold text-neutral-400 uppercase tracking-wider">{lang || 'code'}</span>
+            <button
+              type="button"
+              onClick={() => copyContent(code)}
+              className="flex items-center gap-1 text-[11px] text-neutral-400 hover:text-white px-2 py-0.5 rounded-lg hover:bg-[#2d2d3a] transition-all"
+              title="Copy code"
+            >
+              {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+              <span>{copied ? 'Copied' : 'Copy'}</span>
+            </button>
+          </div>
+          <pre className="px-4 py-3.5 text-[12.5px] font-mono text-neutral-200 whitespace-pre overflow-x-auto leading-relaxed">
+            <code>{code}</code>
+          </pre>
+        </div>
+      );
+
+      lastIndex = match.index + match[0].length;
+      partIdx++;
+    }
+
+    // Remaining text after last fence
+    if (lastIndex < cleanContent.length) {
+      const remaining = cleanContent.slice(lastIndex).trim();
+      if (remaining) {
+        parts.push(
+          <div key={`text-end-${partIdx}`} className="text-left my-1">
+            {renderTextLines(remaining, `post-fence-${partIdx}`)}
           </div>
         );
-        return;
       }
+    }
 
-      // Within non-code blocks, split out table blocks (lines all starting with |)
-      const tableRegex = /((?:\|[^\n]+\|\n?){2,})/g;
-      let lastIdx = 0;
-      let m;
+    // If we found any fences, return the split render
+    if (parts.length > 0) {
+      return <div className="space-y-1">{parts}</div>;
+    }
 
-      while ((m = tableRegex.exec(part)) !== null) {
-        if (m.index > lastIdx) {
-          elements.push(renderTextLines(part.slice(lastIdx, m.index), `text-${pIdx}-${lastIdx}`));
-        }
-        elements.push(renderTableBlock(m[0], `table-${pIdx}-${m.index}`));
-        lastIdx = m.index + m[0].length;
-      }
-      if (lastIdx < part.length) {
-        elements.push(renderTextLines(part.slice(lastIdx), `text-${pIdx}-end`));
-      }
-    });
-
-    return elements;
+    // Otherwise render standard mixed text
+    return (
+      <div className="text-left my-1">
+        {renderTextLines(cleanContent, 'msg-content')}
+      </div>
+    );
   };
 
   // Extract thinking content if present in message using robust parser
@@ -276,6 +630,10 @@ export default function ChatMessage({ message, onRegenerate, onOpenDetails, onOp
     }
   }
 
+  // Clean pseudo tool calls if any model returns them
+  cleanContent = cleanContent.replace(/\[TOOL_CALL\][\s\S]*?\[\/TOOL_CALL\]/gi, '').trim();
+  cleanContent = cleanContent.replace(/<tool_call>[\s\S]*?<\/tool_call>/gi, '').trim();
+
   // Clean JSON payloads if raw string leaked into message
   if (/^(?:```json|json\s*\{|\{)/i.test(cleanContent.trim())) {
     try {
@@ -287,59 +645,41 @@ export default function ChatMessage({ message, onRegenerate, onOpenDetails, onOp
     }
   }
 
-  if (!cleanContent.trim()) {
-    cleanContent = "I have built the complete production application in your project workspace on the right with all components, styling, and live preview.";
+  // Only strip raw code lines when there are NO code fences in the message.
+  // If the AI wrapped something in ``` we must preserve it for renderFormattedContent to display it properly.
+  if (isAssistant) {
+    const hasCodeFences = /```/.test(cleanContent);
+    if (!hasCodeFences) {
+      // No fenced blocks — strip loose bare code lines (legacy behaviour for older responses)
+      const lines = cleanContent.split('\n').filter(line => {
+        const t = line.trim();
+        if (!t) return false;
+        if (/^(const|let|var|import|export|function|class|return|if|while|for|switch|case|\{|\}|\(|\)|\[|\]|\/\*|\*\/|\/\/)\b/.test(t)) return false;
+        if (/[;{}]$/.test(t) && (t.includes('=') || t.includes('('))) return false;
+        if (t.includes('=>') || t.includes('useCallback') || t.includes('useState') || t.includes('useEffect') || t.includes('setChats') || t.includes('setActiveId')) return false;
+        return true;
+      });
+      const finalFiltered = lines.join('\n').trim();
+      if (finalFiltered) {
+        cleanContent = finalFiltered;
+      } else if (rawContent && rawContent.trim()) {
+        cleanContent = rawContent.trim();
+      }
+    }
+    // If hasCodeFences: leave cleanContent as-is so fenced blocks render correctly
   }
 
   const thoughtDuration = message.thoughtDuration || '4s';
 
-  // Assemble combined activities stream (only real LLM thoughts, files and edits)
-  let finalActivities = [];
-  if (message.activities && message.activities.length > 0) {
-    finalActivities = [...message.activities];
-  } else if (thoughtContent) {
-    finalActivities.push({
-      type: 'thought',
-      duration: thoughtDuration,
-      content: thoughtContent
-    });
-  }
-
   return (
-    <div className="w-full max-w-[620px] mx-auto px-4 py-2 text-left font-sans animate-message-in">
-      {/* ── Seamless Agent Execution & Thought Stream (Exact Image 2 format) ── */}
-      {finalActivities.length > 0 && (
-        <AgentExecutionStream activities={finalActivities} />
-      )}
-
-      {/* Stylish Single Live Preview Card */}
-      {message.repoCard && (
-        <div className="w-full my-3.5 rounded-2xl bg-gradient-to-br from-[#1d1d23] to-[#16161b] border border-[#2d2d38] p-3.5 shadow-xl flex items-center justify-between gap-3 select-none">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-blue-400 flex-shrink-0">
-              <Sparkles size={18} />
-            </div>
-            <div className="min-w-0">
-              <div className="text-[13.5px] font-semibold text-white truncate">
-                {message.repoCard.repoName || 'Project Preview'}
-              </div>
-              <div className="text-[11.5px] text-neutral-400 truncate">
-                Live dev server active {message.repoCard.port ? `• Port ${message.repoCard.port}` : ''}
-              </div>
-            </div>
-          </div>
-          <button
-            onClick={() => onOpenPreview && onOpenPreview(message.repoCard)}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#0084ff] to-[#0066d6] hover:from-[#0074e0] hover:to-[#0055b8] text-white text-xs font-semibold shadow-md shadow-blue-500/25 flex items-center gap-1.5 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] flex-shrink-0"
-          >
-            <Eye size={13} strokeWidth={2.4} />
-            <span>Open Preview</span>
-          </button>
-        </div>
-      )}
+    <div className="w-full max-w-[660px] mx-auto px-4 py-2.5 text-left font-sans animate-message-in">
+      {/* ── Working and Seconds Only ── */}
+      <div className="flex items-center gap-1.5 text-neutral-400 font-normal text-[13px] mb-2 select-none">
+        <span>Worked for {thoughtDuration}</span>
+      </div>
 
       {/* Main Response Content */}
-      <div className="text-[14px] leading-relaxed text-[#ededed] font-normal mb-2.5">
+      <div className="text-[15.5px] leading-relaxed text-[#ededed] font-normal mb-2.5 space-y-2.5">
         {renderFormattedContent(cleanContent || rawContent)}
       </div>
 

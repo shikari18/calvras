@@ -3,5 +3,11 @@ dist/
 .env
 .env.local
 *.log
+*.err.log
 .DS_Store
 Thumbs.db
+server/*.onnx
+server/*.bin
+server/*.wav
+server/__pycache__/
+.vscode/

@@ -8,11 +8,104 @@ import AccountSettingsModal from './components/Modals/AccountSettingsModal';
 import FeedbackModal from './components/Modals/FeedbackModal';
 import BrowseAllModal from './components/Modals/BrowseAllModal';
 import CodeStudioModal from './components/Modals/CodeStudioModal';
+import DeveloperModal from './components/Modals/DeveloperModal';
+import SkeletonLoader from './components/SkeletonLoader';
+import AuthPage from './components/AuthPage';
+import PricingOnboarding from './components/PricingOnboarding';
+import LandingPage from './components/LandingPage';
+
+function getInitialRoute() {
+  try {
+    const path = window.location.pathname.toLowerCase();
+    const hash = window.location.hash.toLowerCase();
+
+    // Explicit URL-based route detection
+    if (path.startsWith('/pricing')) return 'pricing';
+    if (path.startsWith('/auth') || path.startsWith('/login') || path.startsWith('/signup') ||
+        hash.includes('login') || hash.includes('auth')) return 'auth';
+    if (path.startsWith('/chat') || path.startsWith('/app') || hash.includes('chat')) {
+      const savedUser = localStorage.getItem('coded_user');
+      return savedUser ? 'chat' : 'landing';
+    }
+    if (path.startsWith('/landing') || hash.includes('landing')) return 'landing';
+
+    // For root "/" or unknown paths — restore from last saved route
+    const saved = localStorage.getItem('malvos_current_route');
+    if (saved === 'pricing') return 'pricing';
+    if (saved === 'chat') {
+      const savedUser = localStorage.getItem('coded_user');
+      return savedUser ? 'chat' : 'landing';
+    }
+    if (saved === 'auth') {
+      const savedUser = localStorage.getItem('coded_user');
+      return savedUser ? 'chat' : 'auth';
+    }
+
+    // First visit — if user is logged in go to chat, else landing
+    const savedUser = localStorage.getItem('coded_user');
+    return savedUser ? 'chat' : 'landing';
+  } catch {
+    return 'landing';
+  }
+}
 
 export default function App() {
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeNav, setActiveNav] = useState('home');
-  const [messages, setMessages] = useState([]);
+  const [currentRoute, setCurrentRoute] = useState(getInitialRoute);
+  const [pendingUser, setPendingUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('coded_pending_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const navigateTo = (route) => {
+    setCurrentRoute(route);
+    try {
+      localStorage.setItem('malvos_current_route', route);
+      const url = route === 'chat' ? '/' : `/${route}`;
+      window.history.pushState(null, '', url);
+    } catch {}
+  };
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentRoute(getInitialRoute());
+    };
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('hashchange', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('hashchange', handlePopState);
+    };
+  }, []);
+
+  const [messages, setMessages] = useState(() => {
+    try {
+      const activeId = localStorage.getItem('coded_active_session');
+      const savedSessions = localStorage.getItem('coded_sessions');
+      if (savedSessions) {
+        const parsed = JSON.parse(savedSessions);
+        if (activeId) {
+          const active = parsed.find(s => s.id === activeId);
+          if (active && active.messages && active.messages.length > 0) {
+            return active.messages;
+          }
+        }
+        if (parsed.length > 0 && parsed[0].messages && parsed[0].messages.length > 0) {
+          return parsed[0].messages;
+        }
+      }
+      const savedDirect = localStorage.getItem('malvos_active_messages');
+      return savedDirect ? JSON.parse(savedDirect) : [];
+    } catch {
+      return [];
+    }
+  });
 
   // Sessions
   const [sessions, setSessions] = useState(() => {
@@ -23,15 +116,17 @@ export default function App() {
       return [];
     }
   });
-  const [activeSession, setActiveSession] = useState(null);
+  const [activeSession, setActiveSession] = useState(() => {
+    return localStorage.getItem('coded_active_session') || null;
+  });
 
-  // User profile — pulled from localStorage, no hardcoded values
-  const [user] = useState(() => {
+  // User profile — pulled from localStorage, null if logged out
+  const [user, setUser] = useState(() => {
     try {
       const saved = localStorage.getItem('coded_user');
-      return saved ? JSON.parse(saved) : { name: 'User', plan: 'Free plan', avatar: null };
+      return saved ? JSON.parse(saved) : null;
     } catch {
-      return { name: 'User', plan: 'Free plan', avatar: null };
+      return null;
     }
   });
 
@@ -43,12 +138,31 @@ export default function App() {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [isBrowseAllOpen, setIsBrowseAllOpen] = useState(false);
   const [isCodeStudioOpen, setIsCodeStudioOpen] = useState(false);
+  const [isDeveloperOpen, setIsDeveloperOpen] = useState(false);
 
   useEffect(() => {
     try {
       localStorage.setItem('coded_sessions', JSON.stringify(sessions));
+      localStorage.setItem('malvos_active_messages', JSON.stringify(messages));
+      if (activeSession) {
+        localStorage.setItem('coded_active_session', activeSession);
+      } else {
+        localStorage.removeItem('coded_active_session');
+      }
     } catch {}
-  }, [sessions]);
+  }, [sessions, messages, activeSession]);
+
+  useEffect(() => {
+    if (activeSession && messages.length > 0) {
+      setSessions(prev => prev.map(s => s.id === activeSession ? { ...s, messages } : s));
+    }
+    // Also persist messages directly so they survive page refresh even before session flush
+    try {
+      if (messages.length > 0) {
+        localStorage.setItem('malvos_active_messages', JSON.stringify(messages));
+      }
+    } catch {}
+  }, [messages, activeSession]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -66,6 +180,13 @@ export default function App() {
     setActiveSession(null);
     setActiveNav('home');
     setSidebarCollapsed(false);
+    localStorage.removeItem('malvos_active_messages');
+    localStorage.removeItem('coded_active_session');
+    localStorage.removeItem('malvos_active_workspace');
+    localStorage.removeItem('malvos_active_workspace_files');
+    localStorage.removeItem('malvos_active_file_name');
+    localStorage.removeItem('malvos_split_screen');
+    window.dispatchEvent(new CustomEvent('malvos_reset_workspace'));
   };
 
   const handleSelectSession = (sessionId) => {
@@ -99,8 +220,83 @@ export default function App() {
     }
   };
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsInitialLoading(false);
+    }, 280);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleSignOut = () => {
+    localStorage.removeItem('coded_user');
+    localStorage.removeItem('coded_pending_user');
+    localStorage.removeItem('malvos_active_messages');
+    localStorage.removeItem('coded_sessions');
+    localStorage.removeItem('coded_active_session');
+    localStorage.removeItem('malvos_active_workspace');
+    localStorage.removeItem('malvos_active_workspace_files');
+    localStorage.removeItem('malvos_active_file_name');
+    setUser(null);
+    setPendingUser(null);
+    setMessages([]);
+    setActiveSession(null);
+    navigateTo('landing');
+  };
+
+  // ─── 0. Standalone Landing Page ───
+  if (currentRoute === 'landing' || (!user && currentRoute !== 'auth' && currentRoute !== 'pricing')) {
+    return (
+      <LandingPage
+        onSignUp={() => navigateTo('auth')}
+        onSignIn={() => navigateTo('auth')}
+        onNavigatePricing={() => navigateTo('pricing')}
+      />
+    );
+  }
+
+  // ─── 1. Standalone Independent Pricing Page ───
+  if (currentRoute === 'pricing') {
+    return (
+      <PricingOnboarding
+        user={user || pendingUser}
+        onCompletePlan={(updatedUser) => {
+          setUser(updatedUser);
+          setPendingUser(null);
+          localStorage.removeItem('coded_pending_user');
+          navigateTo('chat');
+        }}
+        onSkip={() => {
+          const fallback = user || pendingUser || { name: 'Developer', email: 'user@calvras.ai', plan: 'Starter' };
+          setUser(fallback);
+          setPendingUser(null);
+          localStorage.removeItem('coded_pending_user');
+          localStorage.setItem('coded_user', JSON.stringify(fallback));
+          navigateTo('chat');
+        }}
+      />
+    );
+  }
+
+  // ─── 2. Standalone Independent Auth Page (Sign Up / Sign In) ───
+  if (currentRoute === 'auth' || !user) {
+    return (
+      <AuthPage
+        onAuthSuccess={(userData) => {
+          setPendingUser(userData);
+          localStorage.setItem('coded_pending_user', JSON.stringify(userData));
+          navigateTo('pricing');
+        }}
+      />
+    );
+  }
+
+  // ─── 3. Initial Workspace Loading Skeleton ───
+  if (isInitialLoading) {
+    return <SkeletonLoader />;
+  }
+
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#18181b] text-[#ececed] p-2 pl-0.5 gap-2">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#0f0f0e] text-[#ececed] p-2 pl-0.5 gap-2 animate-in fade-in duration-200" style={{ overflow: 'hidden' }}>
       {/* Sidebar on the left */}
       <div className="h-full flex-shrink-0">
         <Sidebar
@@ -109,10 +305,14 @@ export default function App() {
           activeNav={activeNav}
           setActiveNav={setActiveNav}
           onNewChat={handleNewChat}
-          onOpenUpgrade={() => setIsAccountOpen(true)}
+          onOpenUpgrade={() => navigateTo('pricing')}
           onOpenComputer={() => setIsCodeStudioOpen(true)}
           onOpenArtifacts={() => setIsCodeStudioOpen(true)}
-          onOpenCustomize={() => setIsAccountOpen(true)}
+          onOpenCustomize={() => navigateTo('pricing')}
+          onOpenDeveloper={() => setIsDeveloperOpen(true)}
+          onOpenAccount={() => navigateTo('pricing')}
+          onOpenCustomerService={() => setIsFeedbackOpen(true)}
+          onSignOut={handleSignOut}
           sessions={sessions}
           activeSession={activeSession}
           setActiveSession={handleSelectSession}
@@ -123,7 +323,7 @@ export default function App() {
 
       {/* Main Chat Inset Frame with clear top and all-around border */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        <div className="relative flex flex-col flex-1 h-full overflow-hidden rounded-[20px] border border-[#52525a] bg-[rgb(30,30,30)] shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+        <div className="relative flex flex-col flex-1 h-full overflow-hidden rounded-[20px] border border-[#52525a] bg-[#141414] shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
           <MainChat
             messages={messages}
             setMessages={setMessages}
@@ -180,6 +380,11 @@ export default function App() {
         onClose={() => setIsBrowseAllOpen(false)}
         onSelectProject={() => setIsCodeStudioOpen(true)}
       />
+
+      <DeveloperModal
+        isOpen={isDeveloperOpen}
+        onClose={() => setIsDeveloperOpen(false)}
+      />
     </div>
   );
 }
@@ -202,7 +407,7 @@ export class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-[rgb(30,30,30)] text-white p-6 text-center">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-[#0f0f0e] text-white p-6 text-center">
           <h2 className="text-xl font-bold text-red-400 mb-2">Something went wrong</h2>
           <p className="text-sm text-neutral-400 max-w-md mb-4">{this.state.error?.message || 'Unknown render error'}</p>
           <button

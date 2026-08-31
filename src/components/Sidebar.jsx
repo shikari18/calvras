@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Plus, 
   ChevronRight, 
@@ -7,7 +7,11 @@ import {
   ArrowUpCircle,
   Trash2,
   User,
-  PanelLeft
+  PanelLeft,
+  Settings,
+  Headphones,
+  LogOut,
+  MoreVertical
 } from 'lucide-react';
 
 export default function Sidebar({ 
@@ -20,6 +24,10 @@ export default function Sidebar({
   onOpenCustomize,
   onOpenArtifacts,
   onOpenComputer,
+  onOpenDeveloper,
+  onOpenAccount,
+  onOpenCustomerService,
+  onSignOut,
   sessions,
   activeSession,
   setActiveSession,
@@ -28,6 +36,20 @@ export default function Sidebar({
 }) {
   const [sessionsOpen, setSessionsOpen] = useState(true);
   const [projectsOpen, setProjectsOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setUserMenuOpen(false);
+      }
+    };
+    if (userMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [userMenuOpen]);
 
   const displayName = user?.name || 'User';
   const displayPlan = user?.plan || 'Free plan';
@@ -35,7 +57,7 @@ export default function Sidebar({
 
   return (
     <aside 
-      className={`relative flex flex-col h-full bg-[#18181b] text-[#b4b4b8] transition-all duration-200 z-30 select-none overflow-hidden ${
+      className={`relative flex flex-col h-full bg-[#0f0f0e] text-[#b4b4b8] transition-all duration-200 z-30 select-none overflow-hidden ${
         collapsed ? 'w-14' : 'w-[230px]'
       }`}
     >
@@ -46,20 +68,20 @@ export default function Sidebar({
           className="flex items-center gap-2 cursor-pointer hover:opacity-85 transition-opacity"
           title={collapsed ? 'Expand sidebar' : 'New Chat'}
         >
-          <div className="w-6 h-6 rounded-lg bg-[#27272a] border border-[#3f3f46] flex items-center justify-center text-white">
+          <div className="w-6 h-6 rounded-lg bg-[rgb(32,32,32)] border border-[rgb(50,50,50)] flex items-center justify-center text-white">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
               <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M4.93 19.07l14.14-14.14" strokeWidth="1.8" />
             </svg>
           </div>
           {!collapsed && (
-            <span className="font-bold text-[13.5px] text-white tracking-tight">MALVOS</span>
+            <span className="font-bold text-[13.5px] text-white tracking-tight">CALVRAS</span>
           )}
         </div>
 
         {!collapsed && (
           <button 
             onClick={() => setCollapsed(true)}
-            className="p-1.5 text-neutral-400 hover:text-white rounded-lg hover:bg-[#27272a] transition-colors"
+            className="p-1.5 text-neutral-400 hover:text-white rounded-lg hover:bg-[rgb(32,32,32)] transition-colors"
             title="Collapse sidebar"
           >
             <PanelLeft size={16} strokeWidth={1.8} />
@@ -71,7 +93,7 @@ export default function Sidebar({
       <div className="px-2.5 py-1">
         <button 
           onClick={onNewChat}
-          className={`flex items-center gap-2.5 w-full px-2.5 py-1.5 rounded-xl text-neutral-200 hover:text-white hover:bg-[#27272a] transition-colors text-[13.5px] font-normal border border-transparent hover:border-[#3f3f46] ${
+          className={`flex items-center gap-2.5 w-full px-2.5 py-1.5 rounded-xl text-neutral-200 hover:text-white hover:bg-[rgb(32,32,32)] transition-colors text-[13.5px] font-normal border border-transparent hover:border-[rgb(50,50,50)] ${
             collapsed ? 'justify-center px-1' : ''
           }`}
         >
@@ -81,7 +103,7 @@ export default function Sidebar({
           {!collapsed && (
             <div className="flex items-center justify-between flex-1">
               <span>New Chat</span>
-              <span className="text-[10px] text-neutral-400 font-mono bg-[#27272a] px-1.5 py-0.5 rounded border border-[#3f3f46]">Ctrl K</span>
+              <span className="text-[10px] text-neutral-400 font-mono bg-[rgb(32,32,32)] px-1.5 py-0.5 rounded border border-[rgb(50,50,50)]">Ctrl K</span>
             </div>
           )}
         </button>
@@ -91,8 +113,8 @@ export default function Sidebar({
       <div className="px-2.5 space-y-0.5 text-[13.5px] font-normal text-[#b4b4b8] mt-1">
         <button 
           onClick={() => { setActiveNav('computer'); onOpenComputer?.(); }}
-          className={`flex items-center gap-2.5 w-full px-2.5 py-1.5 rounded-xl hover:bg-[#27272a] hover:text-white transition-colors ${
-            activeNav === 'computer' ? 'bg-[#27272a] text-white font-medium' : ''
+          className={`flex items-center gap-2.5 w-full px-2.5 py-1.5 rounded-xl hover:bg-[rgb(32,32,32)] hover:text-white transition-colors ${
+            activeNav === 'computer' ? 'bg-[rgb(32,32,32)] text-white font-medium' : ''
           } ${collapsed ? 'justify-center' : ''}`}
           title="Computer"
         >
@@ -111,8 +133,8 @@ export default function Sidebar({
 
         <button 
           onClick={() => { setActiveNav('artifacts'); onOpenArtifacts?.(); }}
-          className={`flex items-center gap-2.5 w-full px-2.5 py-1.5 rounded-xl hover:bg-[#27272a] hover:text-white transition-colors ${
-            activeNav === 'artifacts' ? 'bg-[#27272a] text-white font-medium' : ''
+          className={`flex items-center gap-2.5 w-full px-2.5 py-1.5 rounded-xl hover:bg-[rgb(32,32,32)] hover:text-white transition-colors ${
+            activeNav === 'artifacts' ? 'bg-[rgb(32,32,32)] text-white font-medium' : ''
           } ${collapsed ? 'justify-center' : ''}`}
           title="Artifacts"
         >
@@ -129,8 +151,8 @@ export default function Sidebar({
 
         <button 
           onClick={() => { setActiveNav('customize'); onOpenCustomize?.(); }}
-          className={`flex items-center gap-2.5 w-full px-2.5 py-1.5 rounded-xl hover:bg-[#27272a] hover:text-white transition-colors ${
-            activeNav === 'customize' ? 'bg-[#27272a] text-white font-medium' : ''
+          className={`flex items-center gap-2.5 w-full px-2.5 py-1.5 rounded-xl hover:bg-[rgb(32,32,32)] hover:text-white transition-colors ${
+            activeNav === 'customize' ? 'bg-[rgb(32,32,32)] text-white font-medium' : ''
           } ${collapsed ? 'justify-center' : ''}`}
           title="Customize"
         >
@@ -141,6 +163,28 @@ export default function Sidebar({
             </svg>
           </div>
           {!collapsed && <span>Customize</span>}
+        </button>
+
+        <button 
+          onClick={() => { setActiveNav('developer'); onOpenDeveloper?.(); }}
+          className={`flex items-center gap-2.5 w-full px-2.5 py-1.5 rounded-xl hover:bg-[rgb(32,32,32)] hover:text-white transition-colors ${
+            activeNav === 'developer' ? 'bg-[rgb(32,32,32)] text-white font-medium' : ''
+          } ${collapsed ? 'justify-center' : ''}`}
+          title="Developer & API Keys"
+        >
+          <div className="w-5 h-5 flex items-center justify-center text-neutral-400">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-[17px] h-[17px]">
+              <path d="m18 16 4-4-4-4" />
+              <path d="m6 8-4 4 4 4" />
+              <path d="m14.5 4-5 16" />
+            </svg>
+          </div>
+          {!collapsed && (
+            <div className="flex items-center justify-between flex-1">
+              <span>Developer</span>
+              <span className="text-[9.5px] text-blue-400 font-mono bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20">API</span>
+            </div>
+          )}
         </button>
       </div>
 
@@ -175,8 +219,8 @@ export default function Sidebar({
                       onClick={() => setActiveSession(session.id)}
                       className={`group flex items-center justify-between w-full px-2 py-1.5 rounded-lg text-xs transition-all cursor-pointer ${
                         activeSession === session.id 
-                          ? 'bg-[#27272a] text-white font-medium shadow-sm' 
-                          : 'text-neutral-300 hover:text-white hover:bg-[#202023]'
+                          ? 'bg-[rgb(34,34,34)] text-white font-medium shadow-sm' 
+                          : 'text-neutral-300 hover:text-white hover:bg-[rgb(28,28,28)]'
                       }`}
                     >
                       <span className="truncate">{session.title}</span>
@@ -199,40 +243,113 @@ export default function Sidebar({
                     No recent sessions
                   </div>
                 )}
-
-                <div className="pt-2 pb-1 px-1 flex justify-center">
-                  <button
-                    onClick={onOpenUpgrade}
-                    className="flex items-center justify-center gap-1.5 w-full py-1.5 px-3 rounded-full bg-[#242427] hover:bg-[#2f2f34] border border-[#38383e] text-neutral-300 hover:text-white text-[11px] font-medium transition-colors"
-                  >
-                    <ArrowUpCircle size={12} className="text-neutral-400" />
-                    <span>Upgrade plan</span>
-                  </button>
-                </div>
               </div>
             )}
           </div>
         </div>
       )}
 
-      {/* Footer Profile */}
-      <div className="p-2.5 border-t border-[#27272a] bg-[#18181b]">
-        <div className="flex items-center justify-between">
+      {/* Footer Profile & Menu Popover */}
+      <div ref={userMenuRef} className="relative p-2.5 border-t border-[rgb(34,34,34)] bg-[#0f0f0e]">
+        {/* User Action Popover Menu */}
+        {userMenuOpen && (
+          <div className="absolute bottom-[58px] left-1.5 right-1.5 w-[220px] rounded-2xl bg-[#16161a]/98 backdrop-blur-2xl border border-[#33333d] shadow-[0_16px_50px_rgba(0,0,0,0.85)] p-1.5 space-y-1 z-50 animate-in fade-in zoom-in-95 slide-in-from-bottom-2 duration-150">
+            {/* Header User Card */}
+            <div className="px-3 py-2.5 rounded-xl bg-[#1f1f26]/80 border border-[#2b2b36] flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="relative flex-shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-500 flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                    {displayName.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-[#1f1f26]" />
+                </div>
+                <div className="truncate text-left">
+                  <div className="text-[12.5px] font-semibold text-white truncate leading-tight">{displayName}</div>
+                  <div className="text-[10px] text-neutral-400 truncate mt-0.5">{user?.email || 'Active session'}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Menu Actions */}
+            <div className="space-y-0.5">
+              <button
+                onClick={() => {
+                  setUserMenuOpen(false);
+                  if (onOpenAccount) onOpenAccount();
+                  else if (onOpenUpgrade) onOpenUpgrade();
+                }}
+                className="group flex items-center justify-between w-full px-2.5 py-2 rounded-xl text-xs text-neutral-300 hover:text-white hover:bg-white/[0.07] transition-all cursor-pointer text-left"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="p-1.5 rounded-lg bg-neutral-800/80 group-hover:bg-neutral-700 text-neutral-400 group-hover:text-white transition-colors">
+                    <Settings size={13} />
+                  </div>
+                  <span className="font-medium">Manage account</span>
+                </div>
+                <ChevronRight size={13} className="text-neutral-500 group-hover:text-neutral-300 group-hover:translate-x-0.5 transition-all" />
+              </button>
+
+              <button
+                onClick={() => {
+                  setUserMenuOpen(false);
+                  if (onOpenCustomerService) onOpenCustomerService();
+                  else if (onOpenCustomize) onOpenCustomize();
+                }}
+                className="group flex items-center justify-between w-full px-2.5 py-2 rounded-xl text-xs text-neutral-300 hover:text-white hover:bg-white/[0.07] transition-all cursor-pointer text-left"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="p-1.5 rounded-lg bg-neutral-800/80 group-hover:bg-neutral-700 text-neutral-400 group-hover:text-white transition-colors">
+                    <Headphones size={13} />
+                  </div>
+                  <span className="font-medium">Customer service</span>
+                </div>
+                <span className="text-[9.5px] px-1.5 py-0.5 rounded-full bg-blue-500/15 text-blue-400 border border-blue-500/25 font-medium">Help</span>
+              </button>
+            </div>
+
+            <div className="border-t border-[#292933] my-1" />
+
+            {/* Sign Out */}
+            <button
+              onClick={() => {
+                setUserMenuOpen(false);
+                if (onSignOut) onSignOut();
+                else {
+                  localStorage.clear();
+                  window.location.reload();
+                }
+              }}
+              className="group flex items-center justify-between w-full px-2.5 py-2 rounded-xl text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-all cursor-pointer text-left"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="p-1.5 rounded-lg bg-rose-500/10 group-hover:bg-rose-500/20 text-rose-400 transition-colors">
+                  <LogOut size={13} />
+                </div>
+                <span className="font-medium">Sign out</span>
+              </div>
+            </button>
+          </div>
+        )}
+
+        <div 
+          onClick={() => setUserMenuOpen(prev => !prev)}
+          className="flex items-center justify-between p-1 -m-1 rounded-xl hover:bg-[rgb(30,30,30)] transition-colors cursor-pointer"
+        >
           <div className="flex items-center gap-2 overflow-hidden">
             {avatarUrl ? (
               <img
                 src={avatarUrl}
                 alt="Profile"
-                className="w-6 h-6 rounded-full object-cover border border-[#3f3f46] flex-shrink-0 shadow-sm"
+                className="w-6 h-6 rounded-full object-cover border border-[rgb(50,50,50)] flex-shrink-0 shadow-sm"
                 onError={(e) => { e.currentTarget.style.display = 'none'; }}
               />
             ) : (
-              <div className="w-6 h-6 rounded-full bg-[#27272a] border border-[#3f3f46] flex items-center justify-center flex-shrink-0">
+              <div className="w-6 h-6 rounded-full bg-[rgb(32,32,32)] border border-[rgb(50,50,50)] flex items-center justify-center flex-shrink-0">
                 <User size={13} className="text-neutral-400" />
               </div>
             )}
             {!collapsed && (
-              <div className="truncate">
+              <div className="truncate text-left">
                 <div className="text-xs font-semibold text-neutral-200 leading-tight">{displayName}</div>
                 <div className="text-[10px] text-neutral-400">{displayPlan}</div>
               </div>
@@ -240,9 +357,9 @@ export default function Sidebar({
           </div>
 
           {!collapsed && (
-            <button className="p-1 text-neutral-400 hover:text-neutral-200 rounded transition-colors" title="Notifications">
-              <Bell size={14} />
-            </button>
+            <div className="flex items-center gap-1 text-neutral-400 hover:text-neutral-200">
+              <MoreVertical size={14} />
+            </div>
           )}
         </div>
       </div>
