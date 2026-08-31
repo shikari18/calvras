@@ -64,3 +64,18 @@ export const BUILD_MODES = [
   { id: 'plan', name: 'Plan', desc: 'Create technical specifications and database schemas' },
   { id: 'edit', name: 'Edit', desc: 'Refactor existing code and implement components' },
 ];
+
+export const INSPIRATIONS = [
+  { tag: 'SaaS', category: 'Coding', title: 'Subscription billing dashboard', description: 'Build a SaaS dashboard with Stripe billing, plan management, and usage analytics.' },
+  { tag: 'App', category: 'Coding', title: 'Real-time chat app', description: 'Create a full-stack chat application with rooms, typing indicators, and message history.' },
+  { tag: 'E-commerce', category: 'Coding', title: 'Online store with cart', description: 'Build a product listing, cart, and checkout flow with Stripe payments integration.' },
+  { tag: 'Portfolio', category: 'Coding', title: 'Developer portfolio site', description: 'Generate a sleek personal portfolio with projects, skills, and contact form.' },
+  { tag: 'API', category: 'Architecture', title: 'REST API with auth', description: 'Scaffold a Node.js REST API with JWT authentication, rate limiting, and CRUD endpoints.' },
+  { tag: 'Agent', category: 'Swarm Agents', title: 'Autonomous research agent', description: 'Build a multi-step AI agent that searches the web, summarizes findings, and writes reports.' },
+  { tag: 'Marketing', category: 'Coding', title: 'Landing page with CTA', description: 'Create a high-converting landing page with hero, features, pricing section, and email capture.' },
+  { tag: 'Analytics', category: 'Coding', title: 'Analytics dashboard', description: 'Build a real-time analytics dashboard with charts, filters, and data export.' },
+  { tag: 'AI', category: 'Swarm Agents', title: 'AI content pipeline', description: 'Create an agent that generates blog posts, social captions, and email sequences from one brief.' },
+  { tag: 'Design', category: 'Design', title: 'Component library', description: 'Generate a reusable React component library with buttons, forms, modals, and dark mode.' },
+  { tag: 'Data', category: 'Data', title: 'CSV data visualizer', description: 'Build a drag-and-drop CSV uploader with automatic chart generation and filtering.' },
+  { tag: 'Mobile', category: 'Coding', title: 'Responsive mobile app', description: 'Create a mobile-first PWA with offline support, push notifications, and app shell.' },
+];

@@ -33,6 +33,7 @@ import { generateFullArchitectureApp } from '../services/fullAppGenerator';
 import { BUILD_MODES } from '../data/mockData';
 import { generateAIResponse, streamAIResponse, MALVOS_SYSTEM_PROMPT } from '../services/aiService';
 import { speakText, stopSpeaking } from '../services/kokoroVoice';
+import InspirationDrawer from './InspirationDrawer';
 import VoiceConversation from './VoiceConversation';
 
 // ─── Extract Real Generated Files from AI Output (Zero Hardcoding) ───────────
@@ -2470,11 +2471,28 @@ CRITICAL:
         <div className="absolute top-3.5 right-4 z-40 flex items-center gap-2">
           <button
             onClick={() => setIsSplitScreen(prev => !prev)}
-            className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer hidden sm:flex"
             title={isSplitScreen ? 'Collapse workspace' : 'Expand workspace'}
           >
             {isSplitScreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
           </button>
+        </div>
+
+        {/* Mobile top bar — hamburger + new chat */}
+        <div className="sm:hidden flex items-center justify-between px-4 py-3 border-b border-white/5 flex-shrink-0">
+          <button
+            type="button"
+            onClick={() => setSidebarCollapsed(prev => !prev)}
+            className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <rect x="1" y="3.5" width="16" height="1.5" rx="0.75" fill="currentColor"/>
+              <rect x="1" y="8.25" width="16" height="1.5" rx="0.75" fill="currentColor"/>
+              <rect x="1" y="13" width="16" height="1.5" rx="0.75" fill="currentColor"/>
+            </svg>
+          </button>
+          <span className="text-sm font-bold text-white tracking-tight">Calvras</span>
+          <div className="w-8" /> {/* spacer */}
         </div>
         
         {/* ── Scrollable chat area ── */}
@@ -2482,11 +2500,11 @@ CRITICAL:
 
           {/* ── Hero / empty state: prompt box centered ── */}
           {messages.length === 0 && (
-            <div className="flex flex-col items-center justify-center min-h-[90vh] max-w-4xl mx-auto w-full text-center px-4">
+            <div className="flex flex-col items-center justify-center min-h-[calc(100vh-60px)] sm:min-h-[90vh] max-w-4xl mx-auto w-full text-center px-3 sm:px-4">
               
               {/* Top Mascot / Logo Placeholder */}
-              <div className="mb-8 flex flex-col items-center select-none">
-                <div className="text-[32px] sm:text-[38px] font-black tracking-tight text-white/90">
+              <div className="mb-6 sm:mb-8 flex flex-col items-center select-none">
+                <div className="text-[26px] sm:text-[38px] font-black tracking-tight text-white/90">
                   CALVRAS
                 </div>
               </div>
@@ -2601,6 +2619,14 @@ CRITICAL:
                   </div>
                 )}
               </div>
+
+              {/* ── Template / Inspiration strip ── */}
+              <div className="mt-4">
+                <InspirationDrawer onSelectPrompt={(prompt) => {
+                  setInput(prompt);
+                  setTimeout(() => heroTextareaRef.current?.focus(), 50);
+                }} />
+              </div>
             </div>
           )}
 
@@ -2667,7 +2693,7 @@ CRITICAL:
 
         {/* ── Sticky reply dock with outer task shell and nested input ── */}
         {messages.length > 0 && (
-          <div className="sticky bottom-0 left-0 right-0 p-3.5 bg-gradient-to-t from-[#141414] via-[#141414]/95 to-transparent z-30">
+          <div className="sticky bottom-0 left-0 right-0 p-2 sm:p-3.5 bg-gradient-to-t from-[#141414] via-[#141414]/95 to-transparent z-30">
             <div className="max-w-[660px] mx-auto relative">
               {/* Voice conversation overlay */}
               <VoiceConversation

@@ -296,9 +296,22 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#0f0f0e] text-[#ececed] p-2 pl-0.5 gap-2 animate-in fade-in duration-200" style={{ overflow: 'hidden' }}>
-      {/* Sidebar on the left */}
-      <div className="h-full flex-shrink-0">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#0f0f0e] text-[#ececed] p-2 pl-0.5 gap-2 animate-in fade-in duration-200 sm:p-2 p-0" style={{ overflow: 'hidden' }}>
+      {/* Mobile sidebar overlay backdrop */}
+      {!sidebarCollapsed && (
+        <div
+          className="fixed inset-0 bg-black/60 z-40 sm:hidden"
+          onClick={() => setSidebarCollapsed(true)}
+        />
+      )}
+
+      {/* Sidebar — hidden on mobile unless open, always visible on sm+ */}
+      <div className={`
+        h-full flex-shrink-0 z-50
+        sm:relative sm:translate-x-0 sm:block
+        fixed top-0 left-0 bottom-0 transition-transform duration-200
+        ${sidebarCollapsed ? '-translate-x-full sm:translate-x-0' : 'translate-x-0'}
+      `}>
         <Sidebar
           collapsed={sidebarCollapsed}
           setCollapsed={setSidebarCollapsed}
@@ -321,9 +334,9 @@ export default function App() {
         />
       </div>
 
-      {/* Main Chat Inset Frame with clear top and all-around border */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
-        <div className="relative flex flex-col flex-1 h-full overflow-hidden rounded-[20px] border border-[#52525a] bg-[#141414] shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+      {/* Main Chat Inset Frame */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
+        <div className="relative flex flex-col flex-1 h-full overflow-hidden sm:rounded-[20px] rounded-none border sm:border-[#52525a] border-transparent bg-[#141414] shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
           <MainChat
             messages={messages}
             setMessages={setMessages}
