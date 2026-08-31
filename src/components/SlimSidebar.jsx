@@ -17,12 +17,10 @@ export default function SlimSidebar({ activeTab, setActiveTab, onNewChat, onOpen
         {/* Brand Logo matching Lovable */}
         <button 
           onClick={onNewChat}
-          className="relative w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 via-rose-500 to-pink-600 flex items-center justify-center shadow-md shadow-rose-500/30 hover:scale-105 transition-transform overflow-hidden"
-          title="Lovable Dashboard"
+          className="relative w-7 h-7 flex items-center justify-center hover:opacity-80 transition-opacity"
+          title="Calvras"
         >
-          <div className="w-3.5 h-3.5 bg-[#db2777] rounded-sm flex items-center justify-center text-[10px] font-black text-white">
-            b
-          </div>
+          <img src="/logo.png" alt="Calvras" className="w-7 h-7 object-contain" />
         </button>
 
         {/* Navigation Icon List */}

@@ -68,11 +68,11 @@ export default function Sidebar({
           className="flex items-center gap-2 cursor-pointer hover:opacity-85 transition-opacity"
           title={collapsed ? 'Expand sidebar' : 'New Chat'}
         >
-          <div className="w-6 h-6 rounded-lg bg-[rgb(32,32,32)] border border-[rgb(50,50,50)] flex items-center justify-center text-white">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
-              <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M4.93 19.07l14.14-14.14" strokeWidth="1.8" />
-            </svg>
-          </div>
+          <img
+            src="/logo.png"
+            alt="Calvras"
+            className="w-6 h-6 object-contain"
+          />
           {!collapsed && (
             <span className="font-bold text-[13.5px] text-white tracking-tight">CALVRAS</span>
           )}

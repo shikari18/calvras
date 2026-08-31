@@ -1,23 +1,76 @@
 /**
  * VoiceConversation — full speech-to-speech conversation loop.
- * Flow: listen → /api/voice-chat (fast model) → /api/tts (Kokoro af_heart) → repeat
+ * Flow: listen → /api/voice-chat (edge fn or local) → speak (browser TTS or Kokoro) → repeat
+ *
+ * Works both on calvras.com (Cloudflare Pages) and localhost.
  */
 import React, { useEffect, useRef, useState } from 'react';
 
-const VOICE_CHAT_URL = 'http://localhost:3001/api/voice-chat';
-const TTS_URL = 'http://localhost:3001/api/tts';
+// ── Smart URL detection ───────────────────────────────────────────────────────
+// On localhost:5173 or localhost:3001 → use local Express backend
+// On any deployed domain → use relative Cloudflare Pages Function path
+const IS_LOCAL = typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-// ── Inline TTS (no import needed, avoids stale closure) ──────────────────────
+const VOICE_CHAT_URL = IS_LOCAL
+  ? 'http://localhost:3001/api/voice-chat'
+  : '/api/voice-chat';  // Cloudflare Pages Function (edge)
+
+const TTS_URL = IS_LOCAL
+  ? 'http://localhost:3001/api/tts'
+  : null; // No server TTS in cloud — use browser speech synthesis
+
+// ── TTS ───────────────────────────────────────────────────────────────────────
 let _currentAudio = null;
+let _utterance = null;
 
-function playTTS(text) {
+// Pick the best English female voice available
+function pickVoice() {
+  if (!window.speechSynthesis) return null;
+  const voices = window.speechSynthesis.getVoices();
+  return (
+    voices.find(v => /en[-_]US/i.test(v.lang) && /female|samantha|zira|aria|google us english/i.test(v.name)) ||
+    voices.find(v => /en[-_]GB/i.test(v.lang) && /female|hazel|kate|google/i.test(v.name)) ||
+    voices.find(v => /en[-_](US|GB|AU)/i.test(v.lang)) ||
+    null
+  );
+}
+
+function speakWithBrowser(text) {
+  return new Promise((resolve) => {
+    if (!window.speechSynthesis) { resolve(); return; }
+    window.speechSynthesis.cancel();
+
+    const u = new SpeechSynthesisUtterance(text.trim().slice(0, 2000));
+    u.lang = 'en-US';
+    u.rate = 1.1;
+    u.pitch = 1.05;
+    u.volume = 1.0;
+
+    // voices may load async
+    const doSpeak = () => {
+      const v = pickVoice();
+      if (v) u.voice = v;
+      _utterance = u;
+      u.onend = () => { _utterance = null; resolve(); };
+      u.onerror = () => { _utterance = null; resolve(); };
+      window.speechSynthesis.speak(u);
+    };
+
+    if (window.speechSynthesis.getVoices().length > 0) {
+      doSpeak();
+    } else {
+      window.speechSynthesis.onvoiceschanged = doSpeak;
+    }
+  });
+}
+
+async function speakWithKokoro(text) {
   return new Promise(async (resolve) => {
-    // Stop any current audio
     if (_currentAudio) {
       try { _currentAudio.pause(); _currentAudio.src = ''; } catch {}
       _currentAudio = null;
     }
-
     try {
       const res = await fetch(TTS_URL, {
         method: 'POST',
@@ -32,10 +85,18 @@ function playTTS(text) {
       _currentAudio.onerror = () => { URL.revokeObjectURL(url); _currentAudio = null; resolve(); };
       await _currentAudio.play();
     } catch (err) {
-      console.warn('[VoiceTTS]', err.message);
+      console.warn('[VoiceTTS] Kokoro failed, falling back to browser:', err.message);
+      await speakWithBrowser(text);
       resolve();
     }
   });
+}
+
+function playTTS(text) {
+  // Cloud: always browser TTS (instant, no server needed)
+  // Local: try Kokoro ONNX first, browser as fallback
+  if (!TTS_URL) return speakWithBrowser(text);
+  return speakWithKokoro(text);
 }
 
 function stopTTS() {
@@ -43,9 +104,13 @@ function stopTTS() {
     try { _currentAudio.pause(); _currentAudio.src = ''; } catch {}
     _currentAudio = null;
   }
+  if (_utterance) {
+    try { window.speechSynthesis?.cancel(); } catch {}
+    _utterance = null;
+  }
 }
 
-// ── Inline STT ────────────────────────────────────────────────────────────────
+// ── STT ───────────────────────────────────────────────────────────────────────
 function listenOnce() {
   return new Promise((resolve) => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -76,11 +141,8 @@ function listenOnce() {
 export default function VoiceConversation({ isActive, setVoicePhase }) {
   const activeRef = useRef(false);
   const historyRef = useRef([]);
-  const [status, setStatus] = useState('');
-  const [phase, setPhase] = useState('idle'); // local phase for display
 
   const updatePhase = (p) => {
-    setPhase(p);
     setVoicePhase(p);
   };
 
@@ -89,27 +151,27 @@ export default function VoiceConversation({ isActive, setVoicePhase }) {
       activeRef.current = false;
       stopTTS();
       updatePhase('idle');
-      setStatus('');
       return;
     }
 
     activeRef.current = true;
     historyRef.current = [];
 
+    // Pre-load browser voices on activation
+    if (window.speechSynthesis) window.speechSynthesis.getVoices();
+
     const loop = async () => {
       while (activeRef.current) {
-        // ── Listen ────────────────────────────────────────────────────────
+        // ── Listen ──────────────────────────────────────────────────────────
         updatePhase('listening');
-        setStatus('Listening...');
 
         const transcript = await listenOnce();
 
         if (!activeRef.current) break;
-        if (!transcript.trim()) continue; // silence — listen again
+        if (!transcript.trim()) continue;
 
-        // ── Think ─────────────────────────────────────────────────────────
+        // ── Think ────────────────────────────────────────────────────────────
         updatePhase('speaking');
-        setStatus('Thinking...');
 
         historyRef.current.push({ role: 'user', content: transcript });
 
@@ -125,7 +187,6 @@ export default function VoiceConversation({ isActive, setVoicePhase }) {
           replyText = data.text || '';
         } catch (err) {
           console.error('[VoiceChat]', err.message);
-          setStatus('Error — retrying...');
           await new Promise(r => setTimeout(r, 800));
           continue;
         }
@@ -135,17 +196,14 @@ export default function VoiceConversation({ isActive, setVoicePhase }) {
 
         historyRef.current.push({ role: 'assistant', content: replyText });
 
-        // ── Speak ─────────────────────────────────────────────────────────
-        setStatus('Speaking...');
+        // ── Speak ────────────────────────────────────────────────────────────
         await playTTS(replyText);
 
         if (!activeRef.current) break;
-        // small pause before listening again
         await new Promise(r => setTimeout(r, 200));
       }
 
       updatePhase('idle');
-      setStatus('');
     };
 
     loop();
@@ -157,6 +215,6 @@ export default function VoiceConversation({ isActive, setVoicePhase }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive]);
 
-  // Pure headless speech-to-speech engine — no floating button/pill above the input
+  // Headless — no UI rendered
   return null;
 }
