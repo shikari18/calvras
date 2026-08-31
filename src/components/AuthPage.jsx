@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Check, ArrowLeft, Sparkles } from 'lucide-react';
 
-const GOOGLE_CLIENT_ID = '139207574445-ol2q2cbgf5kqd6dnlnn6b95vdp349h9c.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = '139207574445-9cs49lurhscd7m867e9igoh1rte2rksp.apps.googleusercontent.com';
 
 function parseJwt(token) {
   try {
