@@ -38,7 +38,7 @@ export const TEMPLATE_ITEMS = [
   },
   {
     id: 'slides',
-    title: 'LovableSlides',
+    title: 'CalvrasSlides',
     subtitle: 'Interactive code presentations',
     category: 'Presentation',
     prompt: 'Build an interactive presentation and pitch deck generator with slide transitions, presenter mode, and code blocks.',
@@ -47,7 +47,7 @@ export const TEMPLATE_ITEMS = [
         <div className="w-6 h-6 rounded-lg bg-white/20 backdrop-blur-md flex items-center justify-center mb-1.5 border border-white/25 shadow-sm">
           <Monitor size={12} className="text-white" />
         </div>
-        <div className="text-[12px] font-black tracking-tight text-white drop-shadow-sm">LovableSlides</div>
+        <div className="text-[12px] font-black tracking-tight text-white drop-shadow-sm">CalvrasSlides</div>
         <div className="text-[7.5px] text-white/80 max-w-[150px] mt-0.5 leading-tight line-clamp-2">
           Build stunning, interactive presentations with the power of code
         </div>
@@ -148,7 +148,7 @@ export const TEMPLATE_ITEMS = [
 
 export default function InspirationDrawer({ onSelectPrompt, onOpenBrowseAll }) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTag, setSelectedTag] = useState('Lovable templates');
+  const [selectedTag, setSelectedTag] = useState('Calvras templates');
 
   const filtered = TEMPLATE_ITEMS.filter(item => {
     if (!searchTerm.trim()) return true;
@@ -172,7 +172,6 @@ export default function InspirationDrawer({ onSelectPrompt, onOpenBrowseAll }) {
           />
           <button
             type="button"
-            onClick={() => setSelectedTag(prev => prev === 'Lovable templates' ? 'Calvras templates' : 'Lovable templates')}
             className="px-2.5 py-0.5 rounded-full bg-[#2c2c34] hover:bg-[#363640] border border-white/10 text-[11px] font-medium text-neutral-200 transition-colors flex-shrink-0 cursor-pointer"
           >
             {selectedTag}
