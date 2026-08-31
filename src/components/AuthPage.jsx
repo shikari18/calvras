@@ -1,222 +1,35 @@
 import React, { useState } from 'react';
-import { Check, Phone, Mail, ArrowLeft, Sparkles } from 'lucide-react';
+import { Check, ArrowLeft, Sparkles } from 'lucide-react';
+import { useSignIn, useSignUp } from '@clerk/clerk-react';
 
-// ─── Onboarding Steps Data ────────────────────────────────────────────────────
-const STEPS = [
-  {
-    id: 'usecase',
-    question: 'What do you plan to use Calvras for?',
-    sub: "If you'll use Calvras for a few reasons, pick the main one.",
-    multi: false,
-    options: ['Coding & Development', 'AI Marketing & Copy', 'Full-Stack Apps', 'Autonomous Agents', 'Other'],
-    image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=900&q=90&auto=format&fit=crop',
-    badge: 'Creative Workspace',
-  },
-  {
-    id: 'role',
-    question: 'What kind of work do you do?',
-    sub: 'Pick the role that best describes your daily focus.',
-    multi: false,
-    options: ['Developer / Engineer', 'Growth Marketer', 'Founder / Entrepreneur', 'Agency / Freelancer', 'Designer / Creative', 'Other'],
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=900&q=90&auto=format&fit=crop',
-    badge: 'Creator Studio',
-  },
-  {
-    id: 'create',
-    question: 'What do you plan to create with Calvras?',
-    sub: 'Select all that apply.',
-    multi: true,
-    options: [
-      'Full-stack apps & websites', 'AI marketing campaigns & funnels',
-      'SEO & high-converting landing pages', 'Ad hooks & viral copy',
-      'Autonomous backend APIs', 'Email automation sequences',
-      'SaaS MVPs & databases', 'Other',
-    ],
-    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=900&q=90&auto=format&fit=crop',
-    badge: 'Visual Concept Art',
-  },
-  {
-    id: 'source',
-    question: 'How did you hear about us?',
-    sub: 'Help us know where you discovered Calvras.',
-    multi: false,
-    options: ['X (Twitter)', 'YouTube', 'Reddit', 'LinkedIn', 'Web search', 'Newsletters', 'Friends & family', 'TikTok / Instagram', 'Other'],
-    image: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=900&q=90&auto=format&fit=crop',
-    badge: 'Social Discovery',
-  },
-];
-
-// ─── Chip Button ──────────────────────────────────────────────────────────────
-function Chip({ label, active, onClick }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="px-3.5 py-2 rounded-full text-[12.5px] font-medium transition-all cursor-pointer border select-none"
-      style={{
-        background: active ? 'white' : 'rgba(255,255,255,0.06)',
-        color: active ? '#111' : '#c4c4c4',
-        borderColor: active ? 'white' : 'rgba(255,255,255,0.12)',
-      }}
-    >
-      {label}
-    </button>
-  );
-}
-
-// ─── Onboarding Flow ──────────────────────────────────────────────────────────
-function OnboardingFlow({ onComplete }) {
-  const [stepIdx, setStepIdx] = useState(0);
-  const [answers, setAnswers] = useState({});
-  const [otherText, setOtherText] = useState({});
-
-  const step = STEPS[stepIdx];
-  const current = answers[step.id] || (step.multi ? [] : null);
-
-  const toggle = (opt) => {
-    if (step.multi) {
-      const arr = current || [];
-      setAnswers(prev => ({
-        ...prev,
-        [step.id]: arr.includes(opt) ? arr.filter(x => x !== opt) : [...arr, opt],
-      }));
-    } else {
-      setAnswers(prev => ({ ...prev, [step.id]: opt }));
-    }
-  };
-
-  const isActive = (opt) => step.multi ? (current || []).includes(opt) : current === opt;
-  const otherSelected = isActive('Other');
-  const otherVal = otherText[step.id] || '';
-
-  const canContinue = step.multi
-    ? (current || []).length > 0 && (!otherSelected || otherVal.trim().length > 0)
-    : !!current && (current !== 'Other' || otherVal.trim().length > 0);
-
-  const handleContinue = () => {
-    if (!canContinue) return;
-    // Substitute "Other" with the typed value
-    let finalAnswers = { ...answers };
-    if (otherVal.trim()) {
-      if (step.multi) {
-        finalAnswers[step.id] = (finalAnswers[step.id] || []).map(v => v === 'Other' ? otherVal.trim() : v);
-      } else if (finalAnswers[step.id] === 'Other') {
-        finalAnswers[step.id] = otherVal.trim();
-      }
-    }
-    if (stepIdx < STEPS.length - 1) {
-      setStepIdx(i => i + 1);
-    } else {
-      onComplete(finalAnswers);
-    }
-  };
-
-  const handleBack = () => {
-    if (stepIdx > 0) setStepIdx(i => i - 1);
-  };
-
-  const isLast = stepIdx === STEPS.length - 1;
+// ─── "What should we call you?" onboarding ───────────────────────────────────
+function NameOnboarding({ onComplete, defaultName = '' }) {
+  const [name, setName] = useState(defaultName);
 
   return (
-    <div className="h-screen w-screen bg-[#0f0f0e] text-white flex font-sans overflow-hidden">
+    <div className="min-h-screen w-screen bg-[#0f0f0e] text-white flex items-center justify-center p-6 font-sans">
+      <div className="w-full max-w-[380px] text-center">
+        <div className="text-[28px] font-black tracking-tight mb-2">Welcome to Calvras</div>
+        <p className="text-sm text-neutral-400 mb-8">What should we call you?</p>
 
-      {/* ── Left pane ── */}
-      <div className="flex-1 flex flex-col px-12 py-8 min-w-0" style={{ height: '100vh' }}>
+        <input
+          autoFocus
+          type="text"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter' && name.trim()) onComplete(name.trim()); }}
+          placeholder="Your name..."
+          className="w-full h-12 px-4 rounded-xl bg-[rgb(30,30,30)] border border-[rgb(55,55,55)] text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-400 transition-colors mb-4 text-center text-[16px]"
+        />
 
-        {/* Top brand */}
         <button
-          onClick={stepIdx > 0 ? handleBack : undefined}
-          className="flex items-center gap-2 text-[13px] text-neutral-400 hover:text-white transition-colors cursor-pointer w-fit flex-shrink-0 mb-0"
+          type="button"
+          onClick={() => name.trim() && onComplete(name.trim())}
+          disabled={!name.trim()}
+          className="w-full h-12 rounded-xl bg-white text-black text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:bg-neutral-200 cursor-pointer"
         >
-          <ArrowLeft size={14} />
-          <span className="font-semibold">Calvras</span>
+          Continue →
         </button>
-
-        {/* Question — takes remaining space, scrollable if needed */}
-        <div className="flex-1 overflow-y-auto flex flex-col justify-center py-8 max-w-[460px]">
-          <h1 className="text-[26px] font-bold text-white tracking-tight leading-snug mb-2">
-            {step.question}
-          </h1>
-          <p className="text-[13px] text-neutral-500 mb-7">{step.sub}</p>
-
-          <div className="flex flex-wrap gap-2">
-            {step.options.map(opt => (
-              <Chip key={opt} label={opt} active={isActive(opt)} onClick={() => toggle(opt)} />
-            ))}
-          </div>
-
-          {/* Other text field — shows when Other is selected */}
-          {otherSelected && (
-            <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-150">
-              <input
-                autoFocus
-                type="text"
-                value={otherVal}
-                onChange={e => setOtherText(prev => ({ ...prev, [step.id]: e.target.value }))}
-                placeholder="Please describe..."
-                className="w-full max-w-[360px] h-10 px-4 rounded-xl bg-[rgba(255,255,255,0.07)] border border-white/15 text-[13px] text-white placeholder-neutral-500 focus:outline-none focus:border-white/40 transition-colors"
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Bottom nav — always pinned at bottom, never cut off */}
-        <div className="flex items-center justify-between flex-shrink-0 pb-4 pt-4 border-t border-white/5">
-          <div className="flex items-center gap-1.5">
-            {STEPS.map((_, i) => (
-              <div
-                key={i}
-                className="h-1.5 rounded-full transition-all"
-                style={{
-                  width: i === stepIdx ? '24px' : '8px',
-                  background: i <= stepIdx ? 'white' : 'rgba(255,255,255,0.2)',
-                }}
-              />
-            ))}
-          </div>
-
-          <div className="flex items-center gap-3">
-            {stepIdx > 0 && (
-              <button
-                type="button"
-                onClick={handleBack}
-                className="px-5 py-2.5 rounded-full text-[13px] font-medium text-neutral-400 hover:text-white transition-colors cursor-pointer"
-              >
-                Back
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={handleContinue}
-              disabled={!canContinue}
-              className="px-6 py-2.5 rounded-full text-[13px] font-semibold transition-all"
-              style={{
-                background: canContinue ? 'white' : 'rgba(255,255,255,0.1)',
-                color: canContinue ? '#111' : '#555',
-                cursor: canContinue ? 'pointer' : 'not-allowed',
-              }}
-            >
-              {isLast ? 'Continue to Plans' : 'Continue'}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Right image pane ── */}
-      <div className="w-[46%] flex-shrink-0 p-4 hidden lg:block">
-        <div className="relative w-full h-full rounded-[24px] overflow-hidden" style={{ minHeight: 'calc(100vh - 32px)' }}>
-          <img
-            key={step.image}
-            src={step.image}
-            alt={step.badge}
-            className="w-full h-full object-cover object-center"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
-          <div className="absolute bottom-5 left-5 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-sm border border-white/10 text-[11px] font-semibold text-white">
-            <Sparkles size={11} className="text-amber-400" />
-            {step.badge}
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -224,13 +37,18 @@ function OnboardingFlow({ onComplete }) {
 
 // ─── Auth Page ────────────────────────────────────────────────────────────────
 export default function AuthPage({ onAuthSuccess }) {
-  const [step, setStep] = useState('auth');
-  const [pendingUser, setPendingUser] = useState(null);
+  const [step, setStep] = useState('auth'); // 'auth' | 'verify' | 'name'
+  const [authMode, setAuthMode] = useState('signin');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [authMethod, setAuthMethod] = useState('email');
-  const [rememberMe, setRememberMe] = useState(true);
+  const [password, setPassword] = useState('');
+  const [code, setCode] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [pendingUser, setPendingUser] = useState(null);
   const [activeSlide, setActiveSlide] = useState(0);
+
+  const { signIn, setActive: setSignInActive, isLoaded: signInLoaded } = useSignIn();
+  const { signUp, setActive: setSignUpActive, isLoaded: signUpLoaded } = useSignUp();
 
   const slides = [
     { badge: 'CALVRAS INTELLIGENCE', title: 'FULL-STACK AI', image: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=1600&q=95&auto=format&fit=crop' },
@@ -243,27 +61,152 @@ export default function AuthPage({ onAuthSuccess }) {
     return () => clearInterval(t);
   }, []);
 
-  const signIn = (provider = 'email') => {
-    let name = 'Developer';
-    let userEmail = email || 'user@calvras.ai';
-    if (provider === 'google') { name = 'Google User'; userEmail = 'user@gmail.com'; }
-    else if (provider === 'phone') { name = 'User'; userEmail = `${phone.replace(/\D/g, '')}@phone.calvras.ai`; }
-    else if (email) { name = email.split('@')[0]; }
-    setPendingUser({ name, email: userEmail, avatar: null });
-    setStep('onboarding');
+  // ── Google OAuth ────────────────────────────────────────────────────────────
+  const handleGoogle = async () => {
+    if (!signInLoaded) return;
+    setError('');
+    try {
+      await signIn.authenticateWithRedirect({
+        strategy: 'oauth_google',
+        redirectUrl: window.location.origin + '/sso-callback',
+        redirectUrlComplete: window.location.origin,
+      });
+    } catch (err) {
+      setError(err.errors?.[0]?.message || 'Google sign-in failed.');
+    }
   };
 
-  if (step === 'onboarding') {
+  // ── Email auth submit ───────────────────────────────────────────────────────
+  const handleEmailSubmit = async (e) => {
+    e.preventDefault();
+    if (!signInLoaded || !signUpLoaded) return;
+    setError('');
+    setLoading(true);
+
+    try {
+      if (authMode === 'signin') {
+        const result = await signIn.create({ identifier: email, password });
+        if (result.status === 'complete') {
+          await setSignInActive({ session: result.createdSessionId });
+          const u = result.userData || {};
+          const name = u.firstName ? `${u.firstName} ${u.lastName || ''}`.trim() : email.split('@')[0];
+          setPendingUser({ name, email, avatar: u.imageUrl || null });
+          setStep('name');
+        } else {
+          setError('Sign in incomplete. Please try again.');
+        }
+      } else {
+        const result = await signUp.create({ emailAddress: email, password });
+        if (result.status === 'missing_requirements') {
+          await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+          setStep('verify');
+        } else if (result.status === 'complete') {
+          await setSignUpActive({ session: result.createdSessionId });
+          setPendingUser({ name: email.split('@')[0], email, avatar: null });
+          setStep('name');
+        }
+      }
+    } catch (err) {
+      setError(err.errors?.[0]?.longMessage || err.errors?.[0]?.message || 'Something went wrong.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── Verify OTP code ─────────────────────────────────────────────────────────
+  const handleVerify = async (e) => {
+    e.preventDefault();
+    if (!signUpLoaded) return;
+    setError('');
+    setLoading(true);
+    try {
+      const result = await signUp.attemptEmailAddressVerification({ code });
+      if (result.status === 'complete') {
+        await setSignUpActive({ session: result.createdSessionId });
+        const u = result.createdUserId ? {} : {};
+        setPendingUser({ name: email.split('@')[0], email, avatar: null });
+        setStep('name');
+      } else {
+        setError('Verification failed. Please try again.');
+      }
+    } catch (err) {
+      setError(err.errors?.[0]?.longMessage || err.errors?.[0]?.message || 'Invalid code.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── After name onboarding ───────────────────────────────────────────────────
+  const handleNameComplete = (chosenName) => {
+    const user = { ...pendingUser, name: chosenName };
+    if (onAuthSuccess) onAuthSuccess(user);
+  };
+
+  // ── Render: name onboarding ─────────────────────────────────────────────────
+  if (step === 'name') {
     return (
-      <OnboardingFlow
-        user={pendingUser}
-        onComplete={(data) => {
-          if (onAuthSuccess) onAuthSuccess({ ...pendingUser, ...data });
-        }}
+      <NameOnboarding
+        defaultName={pendingUser?.name || ''}
+        onComplete={handleNameComplete}
       />
     );
   }
 
+  // ── Render: OTP verification ────────────────────────────────────────────────
+  if (step === 'verify') {
+    return (
+      <div className="min-h-screen w-screen bg-[#0f0f0e] text-white flex items-center justify-center p-6 font-sans">
+        <div className="w-full max-w-[360px]">
+          <button onClick={() => setStep('auth')} className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white mb-8 transition-colors cursor-pointer">
+            <ArrowLeft size={14} /> Back
+          </button>
+
+          <h1 className="text-[24px] font-bold mb-1">Check your email</h1>
+          <p className="text-xs text-neutral-400 mb-6">
+            We sent a 6-digit code to <span className="text-white font-medium">{email}</span>
+          </p>
+
+          {error && (
+            <div className="mb-4 px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">{error}</div>
+          )}
+
+          {/* 6-digit code input */}
+          <form onSubmit={handleVerify} className="space-y-4">
+            <input
+              autoFocus
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              required
+              placeholder="000000"
+              value={code}
+              onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              className="w-full h-14 px-4 rounded-xl bg-[rgb(30,30,30)] border border-[rgb(55,55,55)] text-2xl text-white placeholder-neutral-600 focus:outline-none focus:border-neutral-400 transition-colors text-center tracking-[0.4em] font-mono"
+            />
+            <button
+              type="submit"
+              disabled={loading || code.length < 6}
+              className="w-full h-11 rounded-xl bg-white text-black text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:bg-neutral-200 cursor-pointer"
+            >
+              {loading ? 'Verifying...' : 'Verify Email'}
+            </button>
+          </form>
+
+          <button
+            type="button"
+            onClick={async () => {
+              try { await signUp.prepareEmailAddressVerification({ strategy: 'email_code' }); } catch {}
+            }}
+            className="w-full mt-3 text-xs text-neutral-500 hover:text-white transition-colors"
+          >
+            Resend code
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Render: main auth ───────────────────────────────────────────────────────
   return (
     <div className="min-h-screen w-screen bg-[#0f0f0e] text-[#ececed] select-none flex items-center justify-between p-4 md:p-5 font-sans overflow-hidden">
 
@@ -274,14 +217,26 @@ export default function AuthPage({ onAuthSuccess }) {
         </div>
 
         <div className="w-full max-w-[360px] mx-auto my-auto py-6">
-          <h1 className="text-2xl md:text-[26px] font-bold tracking-tight text-white mb-1.5">
-            Welcome to Calvras
+          <h1 className="text-2xl font-bold tracking-tight text-white mb-1.5">
+            {authMode === 'signin' ? 'Welcome back' : 'Create your account'}
           </h1>
-          <p className="text-xs text-neutral-400 mb-7">Sign in or create your account to get started.</p>
+          <p className="text-xs text-neutral-400 mb-6">
+            {authMode === 'signin' ? 'Sign in to your Calvras account.' : 'Join Calvras and start building.'}
+          </p>
+
+          {/* Sign in / Sign up toggle */}
+          <div className="flex rounded-xl bg-[rgb(28,28,28)] border border-[rgb(45,45,45)] p-1 mb-5">
+            {[{ id: 'signin', label: 'Sign In' }, { id: 'signup', label: 'Sign Up' }].map(({ id, label }) => (
+              <button key={id} type="button" onClick={() => { setAuthMode(id); setError(''); }}
+                className={`flex-1 flex items-center justify-center h-8 rounded-lg text-xs font-medium transition-all cursor-pointer ${authMode === id ? 'bg-[rgb(50,50,55)] text-white shadow-sm' : 'text-neutral-500 hover:text-neutral-300'}`}>
+                {label}
+              </button>
+            ))}
+          </div>
 
           {/* Google */}
-          <button type="button" onClick={() => signIn('google')}
-            className="w-full h-11 mb-3 rounded-xl bg-[rgb(30,30,30)] hover:bg-[rgb(38,38,38)] border border-[rgb(55,55,55)] text-xs text-white flex items-center justify-center gap-2.5 transition-colors cursor-pointer font-medium">
+          <button type="button" onClick={handleGoogle}
+            className="w-full h-11 mb-4 rounded-xl bg-[rgb(30,30,30)] hover:bg-[rgb(38,38,38)] border border-[rgb(55,55,55)] text-xs text-white flex items-center justify-center gap-2.5 transition-colors cursor-pointer font-medium">
             <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
               <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -292,61 +247,40 @@ export default function AuthPage({ onAuthSuccess }) {
           </button>
 
           {/* Divider */}
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-center gap-3 mb-4">
             <div className="flex-1 h-px bg-[rgb(45,45,45)]" />
             <span className="text-[10px] text-neutral-500 uppercase tracking-wider font-mono">or</span>
             <div className="flex-1 h-px bg-[rgb(45,45,45)]" />
           </div>
 
-          {/* Toggle email / phone */}
-          <div className="flex rounded-xl bg-[rgb(28,28,28)] border border-[rgb(45,45,45)] p-1 mb-3">
-            {[{ id: 'email', Icon: Mail, label: 'Email' }, { id: 'phone', Icon: Phone, label: 'Phone' }].map(({ id, Icon, label }) => (
-              <button key={id} type="button" onClick={() => setAuthMethod(id)}
-                className={`flex-1 flex items-center justify-center gap-1.5 h-8 rounded-lg text-xs font-medium transition-all cursor-pointer ${authMethod === id ? 'bg-[rgb(50,50,55)] text-white shadow-sm' : 'text-neutral-500 hover:text-neutral-300'}`}>
-                <Icon size={13} /><span>{label}</span>
-              </button>
-            ))}
-          </div>
-
-          {authMethod === 'email' ? (
-            <form onSubmit={(e) => { e.preventDefault(); signIn('email'); }} className="space-y-3">
-              <input type="email" required placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)}
-                className="w-full h-11 px-4 rounded-xl bg-[rgb(30,30,30)] border border-[rgb(55,55,55)] text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-400 transition-colors" />
-              <div className="flex items-center gap-2">
-                <button type="button" onClick={() => setRememberMe(!rememberMe)}
-                  className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-colors cursor-pointer ${rememberMe ? 'bg-white text-black' : 'bg-[rgb(30,30,30)] border border-[rgb(55,55,55)]'}`}>
-                  {rememberMe && <Check size={10} strokeWidth={3} />}
-                </button>
-                <span className="text-xs text-neutral-400">Remember me</span>
-              </div>
-              <button type="submit" className="w-full h-11 rounded-xl bg-white hover:bg-neutral-200 text-black text-xs font-semibold tracking-wide transition-all cursor-pointer shadow-md">
-                Continue with Email
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={(e) => { e.preventDefault(); signIn('phone'); }} className="space-y-3">
-              <div className="flex items-center gap-2">
-                <div className="h-11 px-3 rounded-xl bg-[rgb(30,30,30)] border border-[rgb(55,55,55)] flex items-center text-xs text-neutral-400 flex-shrink-0">+1</div>
-                <input type="tel" required placeholder="Phone number" value={phone} onChange={(e) => setPhone(e.target.value)}
-                  className="flex-1 h-11 px-4 rounded-xl bg-[rgb(30,30,30)] border border-[rgb(55,55,55)] text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-400 transition-colors" />
-              </div>
-              <button type="submit" className="w-full h-11 rounded-xl bg-white hover:bg-neutral-200 text-black text-xs font-semibold tracking-wide transition-all cursor-pointer shadow-md">
-                Continue with Phone
-              </button>
-            </form>
+          {/* Error */}
+          {error && (
+            <div className="mb-3 px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">{error}</div>
           )}
+
+          {/* Email + password form */}
+          <form onSubmit={handleEmailSubmit} className="space-y-3">
+            <input type="email" required placeholder="Email address" value={email} onChange={e => setEmail(e.target.value)}
+              className="w-full h-11 px-4 rounded-xl bg-[rgb(30,30,30)] border border-[rgb(55,55,55)] text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-400 transition-colors" />
+            <input type="password" required placeholder="Password" value={password} onChange={e => setPassword(e.target.value)}
+              className="w-full h-11 px-4 rounded-xl bg-[rgb(30,30,30)] border border-[rgb(55,55,55)] text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-400 transition-colors" />
+            <button type="submit" disabled={loading}
+              className="w-full h-11 rounded-xl bg-white hover:bg-neutral-200 text-black text-xs font-semibold tracking-wide transition-all cursor-pointer shadow-md disabled:opacity-50">
+              {loading ? 'Please wait...' : authMode === 'signin' ? 'Sign In' : 'Create Account'}
+            </button>
+          </form>
         </div>
 
         <div className="w-full text-center text-[10.5px] text-neutral-500 pt-2">
           By continuing, you agree to our{' '}
-          <span className="text-neutral-400 hover:text-white cursor-pointer underline">Terms of service</span> and{' '}
-          <span className="text-neutral-400 hover:text-white cursor-pointer underline">Privacy policy</span>.
+          <span className="text-neutral-400 hover:text-white cursor-pointer underline">Terms</span> and{' '}
+          <span className="text-neutral-400 hover:text-white cursor-pointer underline">Privacy Policy</span>.
         </div>
       </div>
 
       {/* Right hero visual */}
       <div className="hidden lg:flex flex-1 h-[calc(100vh-40px)] rounded-[28px] overflow-hidden relative shadow-2xl bg-[rgb(24,24,24)]">
-        <img src={slides[activeSlide].image} alt="Calvras Studio"
+        <img src={slides[activeSlide].image} alt="Calvras"
           className="w-full h-full object-cover object-center brightness-[0.88] contrast-[1.05]" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent pointer-events-none" />
         <div className="absolute bottom-8 left-8 right-8">

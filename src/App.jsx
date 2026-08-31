@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useUser, useClerk } from '@clerk/clerk-react';
 import Sidebar from './components/Sidebar';
 import MainChat from './components/MainChat';
 import ConnectToolsModal from './components/ConnectToolsModal';
@@ -120,7 +121,10 @@ export default function App() {
     return localStorage.getItem('coded_active_session') || null;
   });
 
-  // User profile — pulled from localStorage, null if logged out
+  // User profile — pulled from localStorage or Clerk
+  const { user: clerkUser, isSignedIn } = useUser();
+  const { signOut: clerkSignOut } = useClerk();
+
   const [user, setUser] = useState(() => {
     try {
       const saved = localStorage.getItem('coded_user');
@@ -129,6 +133,20 @@ export default function App() {
       return null;
     }
   });
+
+  // Sync Clerk user into local user state
+  useEffect(() => {
+    if (isSignedIn && clerkUser) {
+      const merged = {
+        name: clerkUser.fullName || clerkUser.firstName || clerkUser.emailAddresses?.[0]?.emailAddress?.split('@')[0] || 'User',
+        email: clerkUser.emailAddresses?.[0]?.emailAddress || '',
+        avatar: clerkUser.imageUrl || null,
+        plan: 'Free',
+      };
+      setUser(merged);
+      localStorage.setItem('coded_user', JSON.stringify(merged));
+    }
+  }, [isSignedIn, clerkUser]);
 
   // Modals
   const [isToolsOpen, setIsToolsOpen] = useState(false);
@@ -228,6 +246,7 @@ export default function App() {
   }, []);
 
   const handleSignOut = () => {
+    clerkSignOut();
     localStorage.removeItem('coded_user');
     localStorage.removeItem('coded_pending_user');
     localStorage.removeItem('malvos_active_messages');
