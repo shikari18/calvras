@@ -1,33 +1,26 @@
 {
-  "name": "Calvras — Autonomous AI Marketing & Growth OS",
+  "name": "Calvras",
   "short_name": "Calvras",
-  "description": "Autonomous AI Marketing & Growth OS",
+  "description": "Calvras — AI Marketing Growth OS",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#0f0f12",
+  "background_color": "#0f0f0e",
+  "theme_color": "#0f0f0e",
+  "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "/logo.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
-    },
-    {
-      "src": "/apple-touch-icon.png",
-      "sizes": "180x180",
-      "type": "image/png"
-    },
-    {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
     }
-  ]
+  ],
+  "categories": ["productivity", "business"],
+  "screenshots": []
 }

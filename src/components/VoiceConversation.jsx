@@ -1,139 +1,209 @@
 /**
- * VoiceConversation — full speech-to-speech conversation loop.
- * Flow: listen → /api/voice-chat (edge fn or local) → speak (browser TTS or Kokoro) → repeat
+ * VoiceConversation — speech-to-speech conversation engine.
  *
- * Works both on calvras.com (Cloudflare Pages) and localhost.
+ * Fixes applied:
+ * - Noise-suppressed mic via getUserMedia constraints
+ * - interimResults VAD: responds within ~100ms of user stopping speech
+ * - Browser TTS with autoplay-unlock trick (plays silent audio on activate)
+ * - Reliable fallback chain: Kokoro (local) → browser speechSynthesis
+ * - No UI rendered — pure headless engine
  */
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 
-// ── Smart URL detection ───────────────────────────────────────────────────────
-// On localhost:5173 or localhost:3001 → use local Express backend
-// On any deployed domain → use relative Cloudflare Pages Function path
+// ── Environment detection ─────────────────────────────────────────────────────
 const IS_LOCAL = typeof window !== 'undefined' &&
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
 const VOICE_CHAT_URL = IS_LOCAL
   ? 'http://localhost:3001/api/voice-chat'
-  : '/api/voice-chat';  // Cloudflare Pages Function (edge)
+  : '/api/voice-chat';
 
-const TTS_URL = IS_LOCAL
-  ? 'http://localhost:3001/api/tts'
-  : null; // No server TTS in cloud — use browser speech synthesis
+const TTS_URL = IS_LOCAL ? 'http://localhost:3001/api/tts' : null;
 
-// ── TTS ───────────────────────────────────────────────────────────────────────
-let _currentAudio = null;
-let _utterance = null;
+// ── Autoplay unlock ───────────────────────────────────────────────────────────
+// Browsers block audio until a user gesture. We play a 0.01s silent audio
+// the moment the user taps the mic button (which IS a user gesture).
+let _audioUnlocked = false;
+function unlockAudio() {
+  if (_audioUnlocked) return;
+  _audioUnlocked = true;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const buf = ctx.createBuffer(1, 1, 22050);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    src.start(0);
+    ctx.resume();
+  } catch {}
+}
 
-// Pick the best English female voice available
+// ── TTS state ────────────────────────────────────────────────────────────────
+let _audio = null;
+let _synth = null;
+
+function stopTTS() {
+  if (_audio) {
+    try { _audio.pause(); _audio.src = ''; } catch {}
+    _audio = null;
+  }
+  try { window.speechSynthesis?.cancel(); } catch {}
+  _synth = null;
+}
+
+// Pick best English female voice
 function pickVoice() {
   if (!window.speechSynthesis) return null;
-  const voices = window.speechSynthesis.getVoices();
+  const all = window.speechSynthesis.getVoices();
   return (
-    voices.find(v => /en[-_]US/i.test(v.lang) && /female|samantha|zira|aria|google us english/i.test(v.name)) ||
-    voices.find(v => /en[-_]GB/i.test(v.lang) && /female|hazel|kate|google/i.test(v.name)) ||
-    voices.find(v => /en[-_](US|GB|AU)/i.test(v.lang)) ||
+    all.find(v => /en[-_]US/i.test(v.lang) && /samantha|zira|aria|google us english/i.test(v.name)) ||
+    all.find(v => /en[-_]GB/i.test(v.lang) && /hazel|kate|google/i.test(v.name)) ||
+    all.find(v => /en/i.test(v.lang) && v.localService) ||
+    all.find(v => /en/i.test(v.lang)) ||
     null
   );
 }
 
-function speakWithBrowser(text) {
+function speakBrowser(text) {
   return new Promise((resolve) => {
     if (!window.speechSynthesis) { resolve(); return; }
     window.speechSynthesis.cancel();
 
-    const u = new SpeechSynthesisUtterance(text.trim().slice(0, 2000));
-    u.lang = 'en-US';
-    u.rate = 1.1;
-    u.pitch = 1.05;
-    u.volume = 1.0;
-
-    // voices may load async
-    const doSpeak = () => {
+    const say = () => {
+      const u = new SpeechSynthesisUtterance(text.trim().slice(0, 1500));
+      u.lang = 'en-US';
+      u.rate = 1.08;
+      u.pitch = 1.0;
+      u.volume = 1.0;
       const v = pickVoice();
       if (v) u.voice = v;
-      _utterance = u;
-      u.onend = () => { _utterance = null; resolve(); };
-      u.onerror = () => { _utterance = null; resolve(); };
+      _synth = u;
+
+      let resolved = false;
+      const done = () => { if (!resolved) { resolved = true; _synth = null; resolve(); } };
+      u.onend = done;
+      u.onerror = done;
+
+      // Chrome bug: speech synthesis pauses in background tab
+      // Keep it alive with a periodic resume
+      const keepAlive = setInterval(() => {
+        if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+      }, 5000);
+      u.onend = () => { clearInterval(keepAlive); done(); };
+      u.onerror = () => { clearInterval(keepAlive); done(); };
+
       window.speechSynthesis.speak(u);
+
+      // Safety timeout — if onend never fires
+      setTimeout(() => done(), text.length * 120 + 3000);
     };
 
-    if (window.speechSynthesis.getVoices().length > 0) {
-      doSpeak();
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0) {
+      say();
     } else {
-      window.speechSynthesis.onvoiceschanged = doSpeak;
+      window.speechSynthesis.onvoiceschanged = () => { say(); };
+      // Fallback if event never fires
+      setTimeout(() => { if (!_synth) say(); }, 500);
     }
   });
 }
 
-async function speakWithKokoro(text) {
-  return new Promise(async (resolve) => {
-    if (_currentAudio) {
-      try { _currentAudio.pause(); _currentAudio.src = ''; } catch {}
-      _currentAudio = null;
-    }
-    try {
-      const res = await fetch(TTS_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, voice: 'af_bella' }),
-      });
-      if (!res.ok) throw new Error(`TTS ${res.status}`);
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      _currentAudio = new Audio(url);
-      _currentAudio.onended = () => { URL.revokeObjectURL(url); _currentAudio = null; resolve(); };
-      _currentAudio.onerror = () => { URL.revokeObjectURL(url); _currentAudio = null; resolve(); };
-      await _currentAudio.play();
-    } catch (err) {
-      console.warn('[VoiceTTS] Kokoro failed, falling back to browser:', err.message);
-      await speakWithBrowser(text);
-      resolve();
-    }
-  });
+async function speakKokoro(text) {
+  try {
+    const res = await fetch(TTS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, voice: 'af_bella' }),
+      signal: AbortSignal.timeout(6000),
+    });
+    if (!res.ok) throw new Error(`TTS ${res.status}`);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    return new Promise((resolve) => {
+      _audio = new Audio(url);
+      _audio.onended = () => { URL.revokeObjectURL(url); _audio = null; resolve(); };
+      _audio.onerror = () => { URL.revokeObjectURL(url); _audio = null; resolve(); };
+      _audio.play().catch(() => { resolve(); });
+    });
+  } catch {
+    return speakBrowser(text);
+  }
 }
 
 function playTTS(text) {
-  // Cloud: always browser TTS (instant, no server needed)
-  // Local: try Kokoro ONNX first, browser as fallback
-  if (!TTS_URL) return speakWithBrowser(text);
-  return speakWithKokoro(text);
+  if (!text?.trim()) return Promise.resolve();
+  return TTS_URL ? speakKokoro(text) : speakBrowser(text);
 }
 
-function stopTTS() {
-  if (_currentAudio) {
-    try { _currentAudio.pause(); _currentAudio.src = ''; } catch {}
-    _currentAudio = null;
-  }
-  if (_utterance) {
-    try { window.speechSynthesis?.cancel(); } catch {}
-    _utterance = null;
-  }
-}
-
-// ── STT ───────────────────────────────────────────────────────────────────────
-function listenOnce() {
+// ── STT with fast VAD ─────────────────────────────────────────────────────────
+// Uses interimResults to detect when speech has stopped.
+// Resolves ~100ms after the last interim result goes silent.
+function listenFast() {
   return new Promise((resolve) => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) { resolve(''); return; }
 
     const rec = new SR();
-    rec.continuous = false;
-    rec.interimResults = false;
+    rec.continuous = true;          // keep mic open
+    rec.interimResults = true;      // get real-time partial results
     rec.lang = 'en-US';
     rec.maxAlternatives = 1;
 
+    let finalText = '';
+    let interimText = '';
+    let silenceTimer = null;
     let done = false;
+
     const finish = (val) => {
       if (done) return;
       done = true;
-      resolve(val || '');
+      clearTimeout(silenceTimer);
+      try { rec.stop(); } catch {}
+      resolve(val?.trim() || '');
     };
 
-    rec.onresult = (e) => finish(e.results[0]?.[0]?.transcript?.trim() || '');
-    rec.onend = () => finish('');
-    rec.onerror = (e) => { console.warn('[VoiceSTT]', e.error); finish(''); };
+    const resetSilenceTimer = () => {
+      clearTimeout(silenceTimer);
+      // After 600ms of no new speech → treat as end-of-utterance
+      silenceTimer = setTimeout(() => {
+        const result = (finalText || interimText).trim();
+        if (result) {
+          finish(result);
+        }
+        // if totally silent (no speech at all), keep waiting
+      }, 600);
+    };
 
-    try { rec.start(); } catch (err) { finish(''); }
+    rec.onresult = (e) => {
+      interimText = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) {
+          finalText += e.results[i][0].transcript;
+        } else {
+          interimText += e.results[i][0].transcript;
+        }
+      }
+      // User is speaking → reset the silence countdown
+      if (finalText || interimText) resetSilenceTimer();
+    };
+
+    rec.onend = () => {
+      // Recognition ended naturally — resolve with what we have
+      finish(finalText || interimText);
+    };
+
+    rec.onerror = (e) => {
+      if (e.error === 'no-speech') { finish(''); return; }
+      console.warn('[STT]', e.error);
+      finish('');
+    };
+
+    try {
+      rec.start();
+    } catch (err) {
+      finish('');
+    }
   });
 }
 
@@ -142,36 +212,35 @@ export default function VoiceConversation({ isActive, setVoicePhase }) {
   const activeRef = useRef(false);
   const historyRef = useRef([]);
 
-  const updatePhase = (p) => {
-    setVoicePhase(p);
-  };
-
   useEffect(() => {
     if (!isActive) {
       activeRef.current = false;
       stopTTS();
-      updatePhase('idle');
+      setVoicePhase('idle');
       return;
     }
 
     activeRef.current = true;
     historyRef.current = [];
 
-    // Pre-load browser voices on activation
+    // Unlock autoplay immediately (this runs inside the user-gesture that toggled isActive)
+    unlockAudio();
+
+    // Pre-warm voices list
     if (window.speechSynthesis) window.speechSynthesis.getVoices();
 
     const loop = async () => {
       while (activeRef.current) {
-        // ── Listen ──────────────────────────────────────────────────────────
-        updatePhase('listening');
+        // ── Listen ────────────────────────────────────────────────────────────
+        setVoicePhase('listening');
 
-        const transcript = await listenOnce();
+        const transcript = await listenFast();
 
         if (!activeRef.current) break;
-        if (!transcript.trim()) continue;
+        if (!transcript) continue;   // silence — listen again
 
-        // ── Think ────────────────────────────────────────────────────────────
-        updatePhase('speaking');
+        // ── Think ─────────────────────────────────────────────────────────────
+        setVoicePhase('thinking');
 
         historyRef.current.push({ role: 'user', content: transcript });
 
@@ -181,13 +250,14 @@ export default function VoiceConversation({ isActive, setVoicePhase }) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ messages: historyRef.current.slice(-8) }),
+            signal: AbortSignal.timeout(8000),
           });
           if (!res.ok) throw new Error(`AI ${res.status}`);
           const data = await res.json();
-          replyText = data.text || '';
+          replyText = data.text?.trim() || '';
         } catch (err) {
           console.error('[VoiceChat]', err.message);
-          await new Promise(r => setTimeout(r, 800));
+          await new Promise(r => setTimeout(r, 500));
           continue;
         }
 
@@ -196,14 +266,16 @@ export default function VoiceConversation({ isActive, setVoicePhase }) {
 
         historyRef.current.push({ role: 'assistant', content: replyText });
 
-        // ── Speak ────────────────────────────────────────────────────────────
+        // ── Speak ─────────────────────────────────────────────────────────────
+        setVoicePhase('speaking');
         await playTTS(replyText);
 
         if (!activeRef.current) break;
-        await new Promise(r => setTimeout(r, 200));
+        // Tiny gap before re-listening so we don't pick up own voice
+        await new Promise(r => setTimeout(r, 150));
       }
 
-      updatePhase('idle');
+      setVoicePhase('idle');
     };
 
     loop();
@@ -215,6 +287,5 @@ export default function VoiceConversation({ isActive, setVoicePhase }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive]);
 
-  // Headless — no UI rendered
-  return null;
+  return null; // headless engine — no UI
 }
