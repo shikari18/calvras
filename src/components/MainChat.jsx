@@ -2496,59 +2496,17 @@ CRITICAL:
         </div>
         
         {/* ── Scrollable chat area ── */}
-        <div ref={scrollRef} className="relative z-10 flex-1 overflow-y-auto px-4 sm:px-6 w-full scrollbar-thin scroll-smooth bg-[#111114]">
-
-          {/* ── Vibrant Background Mesh Gradient ── */}
-          {messages.length === 0 && (
-            <div className="absolute inset-0 pointer-events-none overflow-hidden select-none z-0">
-              <div className="absolute -top-[15%] left-1/2 -translate-x-1/2 w-[120%] h-[75%] bg-gradient-to-b from-[#2563eb]/35 via-[#9333ea]/35 to-[#db2777]/35 blur-[100px] rounded-full opacity-60" />
-              <div className="absolute top-[8%] left-[20%] w-[40%] h-[40%] bg-[#3b82f6]/30 blur-[90px] rounded-full" />
-              <div className="absolute top-[8%] right-[20%] w-[40%] h-[40%] bg-[#ec4899]/30 blur-[90px] rounded-full" />
-            </div>
-          )}
+        <div ref={scrollRef} className="relative z-10 flex-1 overflow-y-auto px-4 sm:px-6 w-full scrollbar-thin scroll-smooth bg-[#141414]">
 
           {/* ── Hero / empty state: prompt box centered ── */}
           {messages.length === 0 && (
-            <div className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-80px)] sm:min-h-[90vh] max-w-4xl mx-auto w-full text-center px-3 sm:px-4 py-8">
+            <div className="flex flex-col items-center justify-center min-h-[calc(100vh-60px)] sm:min-h-[90vh] max-w-4xl mx-auto w-full text-center px-3 sm:px-4">
               
-              {/* Top Connect Pill matching reference */}
-              <div className="mb-4 flex items-center justify-center animate-in fade-in duration-300">
-                <button
-                  type="button"
-                  onClick={() => window.dispatchEvent(new CustomEvent('calvras_open_tools'))}
-                  className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-black/45 hover:bg-black/60 border border-white/10 backdrop-blur-md text-xs text-neutral-200 transition-all cursor-pointer shadow-lg group hover:border-white/20"
-                >
-                  <div className="flex items-center -space-x-1">
-                    <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center text-[8px] font-bold text-red-500 shadow-sm">
-                      M
-                    </div>
-                    <div className="w-4 h-4 rounded-full bg-[#4A154B] flex items-center justify-center text-[7px] font-bold text-white shadow-sm">
-                      #
-                    </div>
-                    <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center text-[8px] font-bold text-white shadow-sm">
-                      F
-                    </div>
-                    <div className="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center text-[8px] font-bold text-white shadow-sm">
-                      G
-                    </div>
-                  </div>
-                  <span className="font-medium text-white/90">Connect all your tools</span>
-                  <ArrowRight size={12} className="text-neutral-400 group-hover:text-white transition-colors" />
-                </button>
-              </div>
-
-              {/* Main Hero Title matching reference */}
-              <div className="mb-6 text-center select-none">
-                <h1 className="text-[26px] sm:text-[34px] font-bold tracking-tight text-white drop-shadow-sm">
-                  Got an idea, {(() => {
-                    try {
-                      const u = localStorage.getItem('coded_user');
-                      return (u ? JSON.parse(u)?.name : 'SHIKARI')?.split(' ')[0]?.toUpperCase() || 'SHIKARI';
-                    } catch {
-                      return 'SHIKARI';
-                    }
-                  })()}?
-                </h1>
+              {/* Top Mascot / Logo Placeholder */}
+              <div className="mb-6 sm:mb-8 flex flex-col items-center select-none">
+                <div className="text-[26px] sm:text-[38px] font-black tracking-tight text-white/90">
+                  CALVRAS
+                </div>
               </div>
 
               {/* Prompt Box Area with outer task shell and nested input */}
@@ -2582,7 +2540,7 @@ CRITICAL:
                         onChange={handleInputChange}
                         onKeyDown={handleKeyDown}
                         onPaste={handlePaste}
-                        placeholder={importedFolderName ? `Ask Calvras about "${importedFolderName}"...` : "Ask Calvras to build a landing page for my..."}
+                        placeholder={importedFolderName ? `Ask Calvras about "${importedFolderName}"...` : "Ask Calvras, or task an agent... (Type, paste images, or drop files)"}
                         className="w-full bg-transparent resize-none outline-none text-[15.5px] text-white placeholder-neutral-400 leading-relaxed font-normal max-h-[160px]"
                       />
                       <input 
@@ -2611,8 +2569,8 @@ CRITICAL:
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    className={`relative w-full rounded-[26px] bg-[rgb(28,28,32)]/90 backdrop-blur-md border p-5 pt-4 pb-3.5 text-left transition-all ${
-                      isDraggingOver ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-[rgb(55,55,62)] shadow-[0_12px_40px_rgba(0,0,0,0.5)]'
+                    className={`relative w-full rounded-[26px] bg-[rgb(38,38,38)] border p-5 pt-4 pb-3.5 text-left transition-all ${
+                      isDraggingOver ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-[rgb(65,65,65)] shadow-[0_12px_40px_rgba(0,0,0,0.5)]'
                     }`}
                   >
                     <FileAttachments />
@@ -2633,7 +2591,7 @@ CRITICAL:
                       onChange={handleInputChange}
                       onKeyDown={handleKeyDown}
                       onPaste={handlePaste}
-                      placeholder={importedFolderName ? `Ask Calvras about "${importedFolderName}"...` : "Ask Calvras to build a landing page for my..."}
+                      placeholder={importedFolderName ? `Ask Calvras about "${importedFolderName}"...` : "Ask Calvras, or task an agent... (Type, paste images, or drop files)"}
                       className="w-full bg-transparent resize-none outline-none text-[15.5px] text-white placeholder-neutral-400 leading-relaxed font-normal max-h-[160px]"
                     />
                     <input 
@@ -2662,8 +2620,8 @@ CRITICAL:
                 )}
               </div>
 
-              {/* ── Template / Inspiration strip matching reference ── */}
-              <div className="mt-8 w-full max-w-[840px]">
+              {/* ── Template / Inspiration strip ── */}
+              <div className="mt-4 w-full max-w-[840px]">
                 <InspirationDrawer onSelectPrompt={(prompt) => {
                   setInput(prompt);
                   setTimeout(() => heroTextareaRef.current?.focus(), 50);
