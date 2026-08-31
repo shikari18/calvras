@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useUser, useClerk, AuthenticateWithRedirectCallback } from '@clerk/clerk-react';
 import Sidebar from './components/Sidebar';
 import MainChat from './components/MainChat';
 import ConnectToolsModal from './components/ConnectToolsModal';
@@ -21,7 +20,6 @@ function getInitialRoute() {
     const hash = window.location.hash.toLowerCase();
 
     // Explicit URL-based route detection
-    if (path.startsWith('/sso-callback') || hash.includes('sso-callback')) return 'sso-callback';
     if (path.startsWith('/pricing')) return 'pricing';
     if (path.startsWith('/auth') || path.startsWith('/login') || path.startsWith('/signup') ||
         hash.includes('login') || hash.includes('auth')) return 'auth';
@@ -122,10 +120,7 @@ export default function App() {
     return localStorage.getItem('coded_active_session') || null;
   });
 
-  // User profile — pulled from localStorage or Clerk
-  const { user: clerkUser, isSignedIn } = useUser();
-  const { signOut: clerkSignOut } = useClerk();
-
+  // User profile — persisted in localStorage
   const [user, setUser] = useState(() => {
     try {
       const saved = localStorage.getItem('coded_user');
@@ -134,29 +129,6 @@ export default function App() {
       return null;
     }
   });
-
-  // Sync Clerk user into local user state
-  useEffect(() => {
-    if (isSignedIn && clerkUser) {
-      const merged = {
-        name: clerkUser.fullName || clerkUser.firstName || clerkUser.emailAddresses?.[0]?.emailAddress?.split('@')[0] || 'User',
-        email: clerkUser.emailAddresses?.[0]?.emailAddress || '',
-        avatar: clerkUser.imageUrl || null,
-        plan: 'Free',
-      };
-      setUser(merged);
-      localStorage.setItem('coded_user', JSON.stringify(merged));
-      
-      // Auto-navigate to chat if coming from landing, auth, or sso-callback
-      setCurrentRoute('chat');
-      try {
-        localStorage.setItem('malvos_current_route', 'chat');
-        if (window.location.pathname.startsWith('/sso-callback') || window.location.pathname.startsWith('/auth') || window.location.pathname.startsWith('/landing')) {
-          window.history.replaceState(null, '', '/');
-        }
-      } catch {}
-    }
-  }, [isSignedIn, clerkUser]);
 
   // Modals
   const [isToolsOpen, setIsToolsOpen] = useState(false);
@@ -256,7 +228,6 @@ export default function App() {
   }, []);
 
   const handleSignOut = () => {
-    clerkSignOut();
     localStorage.removeItem('coded_user');
     localStorage.removeItem('coded_pending_user');
     localStorage.removeItem('malvos_active_messages');
@@ -271,19 +242,6 @@ export default function App() {
     setActiveSession(null);
     navigateTo('landing');
   };
-
-  // ─── -1. Clerk SSO OAuth Callback Handler ───
-  if (currentRoute === 'sso-callback' || window.location.pathname.startsWith('/sso-callback')) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen w-screen bg-[#0f0f0e] text-white select-none">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-9 h-9 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-          <p className="text-sm font-medium text-neutral-400">Completing sign in to Calvras...</p>
-        </div>
-        <AuthenticateWithRedirectCallback signInForceRedirectUrl="/" signUpForceRedirectUrl="/" />
-      </div>
-    );
-  }
 
   // ─── 0. Standalone Landing Page ───
   if (currentRoute === 'landing' || (!user && currentRoute !== 'auth' && currentRoute !== 'pricing')) {
@@ -305,10 +263,11 @@ export default function App() {
           setUser(updatedUser);
           setPendingUser(null);
           localStorage.removeItem('coded_pending_user');
+          localStorage.setItem('coded_user', JSON.stringify(updatedUser));
           navigateTo('chat');
         }}
         onSkip={() => {
-          const fallback = user || pendingUser || { name: 'Developer', email: 'user@calvras.ai', plan: 'Starter' };
+          const fallback = user || pendingUser || { name: 'Developer', email: 'user@calvras.ai', plan: 'Free' };
           setUser(fallback);
           setPendingUser(null);
           localStorage.removeItem('coded_pending_user');
@@ -324,9 +283,9 @@ export default function App() {
     return (
       <AuthPage
         onAuthSuccess={(userData) => {
-          setPendingUser(userData);
-          localStorage.setItem('coded_pending_user', JSON.stringify(userData));
-          navigateTo('pricing');
+          setUser(userData);
+          localStorage.setItem('coded_user', JSON.stringify(userData));
+          navigateTo('chat');
         }}
       />
     );
