@@ -645,30 +645,6 @@ export default function ChatMessage({ message, onRegenerate, onOpenDetails, onOp
     }
   }
 
-  // Only strip raw code lines when there are NO code fences in the message.
-  // If the AI wrapped something in ``` we must preserve it for renderFormattedContent to display it properly.
-  if (isAssistant) {
-    const hasCodeFences = /```/.test(cleanContent);
-    if (!hasCodeFences) {
-      // No fenced blocks — strip loose bare code lines (legacy behaviour for older responses)
-      const lines = cleanContent.split('\n').filter(line => {
-        const t = line.trim();
-        if (!t) return false;
-        if (/^(const|let|var|import|export|function|class|return|if|while|for|switch|case|\{|\}|\(|\)|\[|\]|\/\*|\*\/|\/\/)\b/.test(t)) return false;
-        if (/[;{}]$/.test(t) && (t.includes('=') || t.includes('('))) return false;
-        if (t.includes('=>') || t.includes('useCallback') || t.includes('useState') || t.includes('useEffect') || t.includes('setChats') || t.includes('setActiveId')) return false;
-        return true;
-      });
-      const finalFiltered = lines.join('\n').trim();
-      if (finalFiltered) {
-        cleanContent = finalFiltered;
-      } else if (rawContent && rawContent.trim()) {
-        cleanContent = rawContent.trim();
-      }
-    }
-    // If hasCodeFences: leave cleanContent as-is so fenced blocks render correctly
-  }
-
   const thoughtDuration = message.thoughtDuration || '4s';
 
   return (
