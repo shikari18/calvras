@@ -1150,6 +1150,131 @@ app.post('/api/run-cmd', async (req, res) => {
   }
 });
 
+// ─── POST /api/send-code — Send 6-digit verification code via Gmail ──────────
+// body: { email: string }
+// Returns: { ok: true } or { error: string }
+import nodemailer from 'nodemailer';
+
+const otpStore = new Map(); // email -> { code, expires }
+
+app.post('/api/send-code', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'email required' });
+
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  otpStore.set(email, { code, expires: Date.now() + 10 * 60 * 1000 }); // 10 min
+
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER || 'calvrasnoreply@gmail.com',
+        pass: process.env.GMAIL_APP_PASSWORD || 'fzneujgmuxpzhtwf',
+      },
+    });
+
+    await transporter.sendMail({
+      from: `"Calvras" <${process.env.GMAIL_USER || 'calvrasnoreply@gmail.com'}>`,
+      to: email,
+      subject: 'Your Calvras verification code',
+      html: `
+        <div style="font-family:sans-serif;max-width:400px;margin:0 auto;background:#0f0f0f;color:#fff;padding:32px;border-radius:16px;">
+          <h2 style="margin:0 0 8px;font-size:22px;">Verify your email</h2>
+          <p style="color:#888;margin:0 0 24px;font-size:14px;">Enter this code in Calvras to complete sign up.</p>
+          <div style="font-size:40px;font-weight:900;letter-spacing:12px;text-align:center;padding:20px;background:#1a1a1a;border-radius:12px;margin-bottom:24px;">${code}</div>
+          <p style="color:#555;font-size:12px;">This code expires in 10 minutes. If you didn't request this, ignore this email.</p>
+        </div>
+      `,
+    });
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[SendCode] Email error:', err.message);
+    res.status(500).json({ error: 'Failed to send email. Check server config.' });
+  }
+});
+
+// ─── POST /api/verify-code — Verify the 6-digit code ─────────────────────────
+app.post('/api/verify-code', (req, res) => {
+  const { email, code } = req.body;
+  if (!email || !code) return res.status(400).json({ error: 'email and code required' });
+
+  const entry = otpStore.get(email);
+  if (!entry) return res.status(400).json({ error: 'No code found for this email. Request a new one.' });
+  if (Date.now() > entry.expires) {
+    otpStore.delete(email);
+    return res.status(400).json({ error: 'Code expired. Request a new one.' });
+  }
+  if (entry.code !== String(code).trim()) {
+    return res.status(400).json({ error: 'Incorrect code. Try again.' });
+  }
+
+  otpStore.delete(email);
+  res.json({ ok: true });
+});
+
+// ─── POST /api/send-code — Send 6-digit verification code via Gmail ──────────
+// body: { email: string }
+// Returns: { ok: true } or { error: string }
+import nodemailer from 'nodemailer';
+
+const pendingCodes = new Map(); // email -> { code, expires }
+
+const mailer = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER || 'calvrasnoreply@gmail.com',
+    pass: (process.env.GMAIL_APP_PASSWORD || 'fzneujgmuxpzhtwf').replace(/\s/g, ''),
+  },
+});
+
+app.post('/api/send-code', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'email required' });
+
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const expires = Date.now() + 10 * 60 * 1000; // 10 minutes
+  pendingCodes.set(email.toLowerCase(), { code, expires });
+
+  try {
+    await mailer.sendMail({
+      from: `"Calvras" <calvrasnoreply@gmail.com>`,
+      to: email,
+      subject: `Your Calvras verification code: ${code}`,
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#0f0f0e;color:#ececed;padding:40px;border-radius:16px">
+          <h2 style="margin:0 0 8px;font-size:22px;font-weight:800;color:#fff">Verify your email</h2>
+          <p style="margin:0 0 32px;color:#888;font-size:14px">Enter this code in Calvras to continue.</p>
+          <div style="background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:28px;text-align:center;letter-spacing:0.3em;font-size:36px;font-weight:900;color:#fff;font-family:monospace">${code}</div>
+          <p style="margin:24px 0 0;color:#555;font-size:12px">This code expires in 10 minutes. If you didn't request this, ignore this email.</p>
+        </div>
+      `,
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[SendCode] Mail error:', err.message);
+    res.status(500).json({ error: 'Failed to send email. Please try again.' });
+  }
+});
+
+app.post('/api/verify-code', (req, res) => {
+  const { email, code } = req.body;
+  if (!email || !code) return res.status(400).json({ error: 'email and code required' });
+
+  const entry = pendingCodes.get(email.toLowerCase());
+  if (!entry) return res.status(400).json({ error: 'No code found for this email. Please request a new one.' });
+  if (Date.now() > entry.expires) {
+    pendingCodes.delete(email.toLowerCase());
+    return res.status(400).json({ error: 'Code expired. Please request a new one.' });
+  }
+  if (entry.code !== code.trim()) {
+    return res.status(400).json({ error: 'Incorrect code. Please try again.' });
+  }
+
+  pendingCodes.delete(email.toLowerCase());
+  res.json({ ok: true });
+});
+
 // ─── POST /api/voice-chat — Fast voice conversation endpoint ──────────────────
 // Uses concurrent model racing and ultra-concise spoken English for instant speech replies
 // body: { messages: [{role, content}] }
