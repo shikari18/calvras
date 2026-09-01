@@ -1,6 +1,5 @@
 /**
- * VoiceConversation — robust speech-to-speech engine.
- * Supports Kokoro ONNX TTS (localhost:3001) + Web Speech Synthesis fallback.
+ * VoiceConversation — Chrome-tested & hardened Speech-to-Speech Engine
  */
 import React, { useEffect, useRef } from 'react';
 
@@ -13,42 +12,43 @@ const VOICE_CHAT_URL = IS_LOCAL
 
 const KOKORO_TTS_URL = 'http://localhost:3001/api/tts';
 
-// Global audio element to prevent garbage collection interrupts
-let _audioInstance = null;
+let _activeAudio = null;
 
-// Prime and unlock audio context on initial user click
-function unlockAudioEngine() {
+// Global AudioContext unlocker
+function unlockAudio() {
   try {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (AudioContext) {
       const ctx = new AudioContext();
-      const buffer = ctx.createBuffer(1, 1, 22050);
-      const source = ctx.createBufferSource();
-      source.buffer = buffer;
-      source.connect(ctx.destination);
-      source.start(0);
-      ctx.resume();
+      if (ctx.state === 'suspended') {
+        ctx.resume();
+      }
+      const buf = ctx.createBuffer(1, 1, 22050);
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.connect(ctx.destination);
+      src.start(0);
     }
   } catch {}
 }
 
-function stopCurrentSpeech() {
-  if (_audioInstance) {
+function stopAllSpeech() {
+  if (_activeAudio) {
     try {
-      _audioInstance.pause();
-      _audioInstance.src = '';
+      _activeAudio.pause();
+      _activeAudio.src = '';
     } catch {}
-    _audioInstance = null;
+    _activeAudio = null;
   }
-  if (window.speechSynthesis) {
+  if (typeof window !== 'undefined' && window.speechSynthesis) {
     try {
       window.speechSynthesis.cancel();
     } catch {}
   }
 }
 
-// Browser Web Speech Synthesis fallback
-function speakWithWebSpeech(text) {
+// Chrome-hardened SpeechSynthesis
+function speakWithChromeSynthesis(text) {
   return new Promise((resolve) => {
     if (!window.speechSynthesis) {
       resolve();
@@ -57,211 +57,212 @@ function speakWithWebSpeech(text) {
 
     try {
       window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text.trim());
-      utterance.rate = 1.05;
-      utterance.pitch = 1.0;
-      utterance.lang = 'en-US';
+      window.speechSynthesis.resume();
 
-      const voices = window.speechSynthesis.getVoices();
-      const bestVoice =
-        voices.find(v => /en[-_]US/i.test(v.lang) && /female|samantha|zira|aria|google/i.test(v.name)) ||
-        voices.find(v => /en/i.test(v.lang) && v.localService) ||
-        voices.find(v => /en/i.test(v.lang));
-      if (bestVoice) utterance.voice = bestVoice;
-
-      let resolved = false;
-      const done = () => {
-        if (!resolved) {
-          resolved = true;
-          resolve();
-        }
-      };
-
-      utterance.onend = done;
-      utterance.onerror = done;
-
-      // Keepalive timer for browser background tab throttle
-      const keepAliveTimer = setInterval(() => {
-        if (window.speechSynthesis.paused) {
-          window.speechSynthesis.resume();
-        }
-      }, 3000);
-
-      utterance.onend = () => {
-        clearInterval(keepAliveTimer);
-        done();
-      };
-      utterance.onerror = () => {
-        clearInterval(keepAliveTimer);
-        done();
-      };
-
-      window.speechSynthesis.speak(utterance);
-      // Safety timeout in case browser never fires onend
       setTimeout(() => {
-        clearInterval(keepAliveTimer);
-        done();
-      }, Math.max(text.length * 100 + 2000, 4000));
+        const utterance = new SpeechSynthesisUtterance(text.trim());
+        utterance.rate = 1.05;
+        utterance.pitch = 1.0;
+        utterance.lang = 'en-US';
+
+        const voices = window.speechSynthesis.getVoices();
+        const bestVoice =
+          voices.find(v => /en[-_]US/i.test(v.lang) && /female|samantha|zira|aria|google us english|victoria/i.test(v.name)) ||
+          voices.find(v => /en/i.test(v.lang) && v.localService) ||
+          voices.find(v => /en/i.test(v.lang)) ||
+          voices[0];
+
+        if (bestVoice) utterance.voice = bestVoice;
+
+        let isDone = false;
+        let keepAlive = null;
+
+        const complete = () => {
+          if (!isDone) {
+            isDone = true;
+            if (keepAlive) clearInterval(keepAlive);
+            resolve();
+          }
+        };
+
+        utterance.onend = complete;
+        utterance.onerror = complete;
+
+        // Keepalive ticker to prevent Chrome from freezing long utterances
+        keepAlive = setInterval(() => {
+          if (window.speechSynthesis.speaking) {
+            window.speechSynthesis.pause();
+            window.speechSynthesis.resume();
+          }
+        }, 3000);
+
+        window.speechSynthesis.speak(utterance);
+
+        // Fallback timeout in case onend never fires
+        setTimeout(complete, Math.max(text.length * 120 + 2500, 4000));
+      }, 50);
     } catch {
       resolve();
     }
   });
 }
 
-// Kokoro Neural ONNX TTS with automatic fallback
-async function playSpokenText(text) {
+// Play TTS (Kokoro ONNX if local server running, else Chrome SpeechSynthesis)
+async function speakResponse(text) {
   if (!text || !text.trim()) return;
 
-  stopCurrentSpeech();
+  stopAllSpeech();
 
-  // Try Kokoro ONNX TTS first
-  try {
-    const res = await fetch(KOKORO_TTS_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: text.trim(), voice: 'af_bella' }),
-      signal: AbortSignal.timeout(4000),
-    });
-
-    if (res.ok && res.headers.get('content-type')?.includes('audio')) {
-      const blob = await res.blob();
-      const audioUrl = URL.createObjectURL(blob);
-      return new Promise((resolve) => {
-        _audioInstance = new Audio(audioUrl);
-        _audioInstance.onended = () => {
-          URL.revokeObjectURL(audioUrl);
-          _audioInstance = null;
-          resolve();
-        };
-        _audioInstance.onerror = () => {
-          URL.revokeObjectURL(audioUrl);
-          _audioInstance = null;
-          speakWithWebSpeech(text).then(resolve);
-        };
-        _audioInstance.play().catch(() => {
-          speakWithWebSpeech(text).then(resolve);
-        });
+  // 1. Try local Kokoro TTS endpoint first
+  if (IS_LOCAL) {
+    try {
+      const res = await fetch(KOKORO_TTS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: text.trim(), voice: 'af_bella' }),
+        signal: AbortSignal.timeout(3500),
       });
-    }
-  } catch {}
 
-  // Fallback to browser speech synthesis
-  return speakWithWebSpeech(text);
+      if (res.ok && res.headers.get('content-type')?.includes('audio')) {
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        return new Promise((resolve) => {
+          _activeAudio = new Audio(url);
+          _activeAudio.onended = () => {
+            URL.revokeObjectURL(url);
+            _activeAudio = null;
+            resolve();
+          };
+          _activeAudio.onerror = () => {
+            URL.revokeObjectURL(url);
+            _activeAudio = null;
+            speakWithChromeSynthesis(text).then(resolve);
+          };
+          _activeAudio.play().catch(() => {
+            speakWithChromeSynthesis(text).then(resolve);
+          });
+        });
+      }
+    } catch {}
+  }
+
+  // 2. Fallback to Chrome Speech Synthesis
+  return speakWithChromeSynthesis(text);
 }
 
-// Single utterance listener with fast silence detector
-function listenForUserUtterance() {
+// Single utterance listener with fast silence detector for Chrome
+function captureSpeech() {
   return new Promise((resolve) => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      console.warn('[Voice] SpeechRecognition API not supported');
       resolve('');
       return;
     }
 
-    const recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    recognition.lang = 'en-US';
-    recognition.maxAlternatives = 1;
+    const rec = new SpeechRecognition();
+    rec.continuous = false;
+    rec.interimResults = true;
+    rec.lang = 'en-US';
+    rec.maxAlternatives = 1;
 
     let transcript = '';
     let silenceTimer = null;
-    let completed = false;
+    let finished = false;
 
-    const finish = (finalResult) => {
-      if (completed) return;
-      completed = true;
+    const finalize = (text) => {
+      if (finished) return;
+      finished = true;
       clearTimeout(silenceTimer);
-      try {
-        recognition.stop();
-      } catch {}
-      resolve(finalResult ? finalResult.trim() : '');
+      try { rec.stop(); } catch {}
+      resolve(text ? text.trim() : '');
     };
 
-    recognition.onresult = (event) => {
-      let currentInterim = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const item = event.results[i];
-        if (item.isFinal) {
-          transcript += ' ' + item[0].transcript;
+    rec.onresult = (e) => {
+      let interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) {
+          transcript += ' ' + e.results[i][0].transcript;
         } else {
-          currentInterim += ' ' + item[0].transcript;
+          interim += ' ' + e.results[i][0].transcript;
         }
       }
 
-      const activeText = (transcript + ' ' + currentInterim).trim();
-      if (activeText) {
+      const spokenSoFar = (transcript + ' ' + interim).trim();
+      if (spokenSoFar) {
         clearTimeout(silenceTimer);
-        // After 700ms of silence after speaking, finalize immediately
+        // After 600ms of silence after speaking, finalize immediately
         silenceTimer = setTimeout(() => {
-          finish(activeText);
-        }, 700);
+          finalize(spokenSoFar);
+        }, 600);
       }
     };
 
-    recognition.onend = () => {
-      finish(transcript);
+    rec.onend = () => {
+      finalize(transcript);
     };
 
-    recognition.onerror = (e) => {
+    rec.onerror = (e) => {
       if (e.error === 'no-speech') {
-        finish('');
+        finalize('');
       } else {
-        console.warn('[Voice STT Error]', e.error);
-        finish('');
+        console.warn('[Chrome Voice Error]', e.error);
+        finalize('');
       }
     };
 
     try {
-      recognition.start();
+      rec.start();
     } catch {
-      finish('');
+      finalize('');
     }
   });
 }
 
-export default function VoiceConversation({ isActive, onStop, setVoicePhase }) {
-  const isRunningRef = useRef(false);
+export default function VoiceConversation({ isActive, setVoicePhase }) {
+  const activeLoopRef = useRef(false);
   const conversationHistory = useRef([]);
 
   useEffect(() => {
     if (!isActive) {
-      isRunningRef.current = false;
-      stopCurrentSpeech();
+      activeLoopRef.current = false;
+      stopAllSpeech();
       if (setVoicePhase) setVoicePhase('idle');
       return;
     }
 
-    isRunningRef.current = true;
+    activeLoopRef.current = true;
     conversationHistory.current = [];
-    unlockAudioEngine();
 
-    // Request mic access cleanly
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    // Unlock Chrome audio immediately on click
+    unlockAudio();
+    if (window.speechSynthesis) {
+      window.speechSynthesis.getVoices();
+    }
+
+    // Acquire mic permission
+    if (navigator.mediaDevices?.getUserMedia) {
       navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => {});
     }
 
-    const conversationLoop = async () => {
-      while (isRunningRef.current) {
-        // ── 1. Listen ──────────────────────────────────────────────
+    const runLoop = async () => {
+      while (activeLoopRef.current) {
+        // ── 1. Listening ────────────────────────────────
         if (setVoicePhase) setVoicePhase('listening');
 
-        const userSpeech = await listenForUserUtterance();
+        const userText = await captureSpeech();
 
-        if (!isRunningRef.current) break;
-        if (!userSpeech || !userSpeech.trim()) {
-          // Brief pause before polling for speech again
-          await new Promise(r => setTimeout(r, 200));
+        if (!activeLoopRef.current) break;
+        if (!userText || !userText.trim()) {
+          await new Promise(r => setTimeout(r, 150));
           continue;
         }
 
-        // ── 2. Think / Fast AI Response ────────────────────────────
+        // ── 2. Processing & Speaking ────────────────────
         if (setVoicePhase) setVoicePhase('speaking');
 
-        conversationHistory.current.push({ role: 'user', content: userSpeech });
+        conversationHistory.current.push({ role: 'user', content: userText });
 
-        let spokenReply = '';
+        let reply = '';
         try {
           const res = await fetch(VOICE_CHAT_URL, {
             method: 'POST',
@@ -272,33 +273,32 @@ export default function VoiceConversation({ isActive, onStop, setVoicePhase }) {
 
           if (res.ok) {
             const data = await res.json();
-            spokenReply = data.text || '';
+            reply = data.text || '';
           }
         } catch (err) {
-          console.warn('[Voice Chat API]', err.message);
+          console.warn('[Voice API Error]', err.message);
         }
 
-        if (!isRunningRef.current) break;
-        if (!spokenReply) continue;
+        if (!activeLoopRef.current) break;
+        if (!reply) continue;
 
-        conversationHistory.current.push({ role: 'assistant', content: spokenReply });
+        conversationHistory.current.push({ role: 'assistant', content: reply });
 
-        // ── 3. Speak Audio ─────────────────────────────────────────
-        await playSpokenText(spokenReply);
+        // ── 3. Play Spoken Audio ────────────────────────
+        await speakResponse(reply);
 
-        if (!isRunningRef.current) break;
-        // Brief pause to avoid capturing echo
-        await new Promise(r => setTimeout(r, 250));
+        if (!activeLoopRef.current) break;
+        await new Promise(r => setTimeout(r, 200));
       }
 
       if (setVoicePhase) setVoicePhase('idle');
     };
 
-    conversationLoop();
+    runLoop();
 
     return () => {
-      isRunningRef.current = false;
-      stopCurrentSpeech();
+      activeLoopRef.current = false;
+      stopAllSpeech();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive]);
