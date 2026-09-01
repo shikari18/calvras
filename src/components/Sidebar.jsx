@@ -69,9 +69,9 @@ export default function Sidebar({
           title={collapsed ? 'Expand sidebar' : 'New Chat'}
         >
           <img
-            src="/sidebar-logo.jpeg"
+            src="/favicon.png"
             alt="Calvras"
-            className="w-6 h-6 object-contain rounded"
+            className="w-6 h-6 rounded object-contain"
           />
           {!collapsed && (
             <span className="font-bold text-[13.5px] text-white tracking-tight">CALVRAS</span>
