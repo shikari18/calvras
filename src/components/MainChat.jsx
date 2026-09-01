@@ -33,7 +33,6 @@ import { generateFullArchitectureApp } from '../services/fullAppGenerator';
 import { BUILD_MODES } from '../data/mockData';
 import { generateAIResponse, streamAIResponse, MALVOS_SYSTEM_PROMPT } from '../services/aiService';
 import { speakText, stopSpeaking } from '../services/kokoroVoice';
-import InspirationDrawer from './InspirationDrawer';
 import VoiceConversation from './VoiceConversation';
 
 // ─── Extract Real Generated Files from AI Output (Zero Hardcoding) ───────────
@@ -2620,13 +2619,6 @@ CRITICAL:
                 )}
               </div>
 
-              {/* ── Template / Inspiration strip ── */}
-              <div className="mt-4 w-full max-w-[840px]">
-                <InspirationDrawer onSelectPrompt={(prompt) => {
-                  setInput(prompt);
-                  setTimeout(() => heroTextareaRef.current?.focus(), 50);
-                }} />
-              </div>
             </div>
           )}
 
