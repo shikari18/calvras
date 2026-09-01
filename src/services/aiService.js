@@ -266,9 +266,30 @@ One-liner questions get one-liner answers. No headers, no bullet lists, no secti
 /**
  * Helper to convert messages with attached images into OpenRouter / OpenAI Multimodal format
  */
+export function getPersonalizedSystemPrompt() {
+  try {
+    const profile = JSON.parse(localStorage.getItem('calvras_user_profile') || '{}');
+    if (!profile?.name) return MALVOS_SYSTEM_PROMPT;
+
+    const contextBlock = `USER CONTEXT — use this to personalize every response:
+- Name: ${profile.name}
+- Primary use case: ${profile.usecase || 'General'}
+- Role: ${profile.role || 'Builder'}
+- Creates: ${Array.isArray(profile.creates) ? profile.creates.join(', ') : profile.creates || 'Various projects'}
+
+Address them by name occasionally (not every message). Tailor code examples, suggestions, and recommendations to their role and use case. If they're a marketer, lean marketing examples. If a developer, lean technical.
+
+`;
+    return contextBlock + MALVOS_SYSTEM_PROMPT;
+  } catch {
+    return MALVOS_SYSTEM_PROMPT;
+  }
+}
+
 export function formatMultimodalMessages(messages = []) {
+  const systemPrompt = typeof localStorage !== 'undefined' ? getPersonalizedSystemPrompt() : MALVOS_SYSTEM_PROMPT;
   return [
-    { role: 'system', content: MALVOS_SYSTEM_PROMPT },
+    { role: 'system', content: systemPrompt },
     ...messages.map((m) => {
       const images = (m.files || []).filter(f => f && (f.dataUrl || f.preview || f.type?.startsWith('image/')));
 

@@ -13,38 +13,151 @@ function parseJwt(token) {
   } catch { return null; }
 }
 
-// ─── Name Onboarding ──────────────────────────────────────────────────────────
-function NameOnboarding({ onComplete, defaultName = '' }) {
+// ─── Name Step ────────────────────────────────────────────────────────────────
+function NameStep({ defaultName = '', onComplete }) {
   const [name, setName] = useState(defaultName);
   return (
     <div className="min-h-screen w-screen bg-[#0f0f0e] text-white flex items-center justify-center p-6 font-sans select-none">
       <div className="w-full max-w-[380px] text-center">
-        <div className="mb-6">
-          <img src="/sidebar-logo.jpeg" alt="Calvras" className="w-10 h-10 rounded-xl object-contain mx-auto mb-3" />
-          <div className="text-[28px] font-black tracking-tight mb-1">Welcome to Calvras</div>
-          <p className="text-sm text-neutral-400">What should we call you?</p>
-        </div>
-        <input
-          autoFocus
-          type="text"
-          value={name}
-          onChange={e => setName(e.target.value)}
+        <img src="/sidebar-logo.jpeg" alt="Calvras" className="w-10 h-10 rounded-xl object-contain mx-auto mb-4" />
+        <div className="text-[26px] font-black tracking-tight mb-1">Welcome to Calvras</div>
+        <p className="text-sm text-neutral-400 mb-7">What should we call you?</p>
+        <input autoFocus type="text" value={name} onChange={e => setName(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && name.trim()) onComplete(name.trim()); }}
           placeholder="Your name..."
-          className="w-full h-12 px-4 rounded-xl bg-[rgb(30,30,30)] border border-[rgb(55,55,55)] text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-400 transition-colors mb-4 text-center text-[16px]"
-        />
-        <button
-          type="button"
-          onClick={() => name.trim() && onComplete(name.trim())}
-          disabled={!name.trim()}
-          className="w-full h-12 rounded-xl bg-white text-black text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-neutral-200 cursor-pointer transition-all"
-        >
-          Let's go →
+          className="w-full h-12 px-4 rounded-xl bg-[rgb(30,30,30)] border border-[rgb(55,55,55)] text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-400 transition-colors mb-4 text-center text-[16px]" />
+        <button type="button" onClick={() => name.trim() && onComplete(name.trim())} disabled={!name.trim()}
+          className="w-full h-12 rounded-xl bg-white text-black text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-neutral-200 cursor-pointer transition-all">
+          Continue →
         </button>
       </div>
     </div>
   );
 }
+
+// ─── Full Onboarding Flow ─────────────────────────────────────────────────────
+const ONBOARDING_STEPS = [
+  {
+    id: 'usecase',
+    question: 'What do you plan to use Calvras for?',
+    sub: "Pick your main use case.",
+    multi: false,
+    options: ['Coding & Development', 'AI Marketing & Copy', 'Full-Stack Apps', 'Autonomous Agents', 'Other'],
+    image: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=900&q=90&auto=format&fit=crop',
+  },
+  {
+    id: 'role',
+    question: 'What kind of work do you do?',
+    sub: 'Pick the role that best describes you.',
+    multi: false,
+    options: ['Developer / Engineer', 'Growth Marketer', 'Founder / Entrepreneur', 'Agency / Freelancer', 'Designer / Creative', 'Other'],
+    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=900&q=90&auto=format&fit=crop',
+  },
+  {
+    id: 'creates',
+    question: 'What do you plan to create?',
+    sub: 'Select all that apply.',
+    multi: true,
+    options: ['Full-stack apps & websites', 'AI marketing campaigns', 'SEO & landing pages', 'Ad hooks & viral copy', 'Backend APIs', 'Email automation', 'SaaS MVPs', 'Other'],
+    image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=900&q=90&auto=format&fit=crop',
+  },
+];
+
+function OnboardingFlow({ pendingUser, onComplete }) {
+  const [stepIdx, setStepIdx] = useState(0);
+  const [answers, setAnswers] = useState({});
+
+  const step = ONBOARDING_STEPS[stepIdx];
+  const current = answers[step.id] || (step.multi ? [] : null);
+
+  const toggle = (opt) => {
+    if (step.multi) {
+      const arr = current || [];
+      setAnswers(prev => ({ ...prev, [step.id]: arr.includes(opt) ? arr.filter(x => x !== opt) : [...arr, opt] }));
+    } else {
+      setAnswers(prev => ({ ...prev, [step.id]: opt }));
+    }
+  };
+
+  const isActive = (opt) => step.multi ? (current || []).includes(opt) : current === opt;
+  const canContinue = step.multi ? (current || []).length > 0 : !!current;
+
+  const handleContinue = () => {
+    if (!canContinue) return;
+    if (stepIdx < ONBOARDING_STEPS.length - 1) {
+      setStepIdx(i => i + 1);
+    } else {
+      const profile = { ...pendingUser, ...answers, plan: 'Free' };
+      localStorage.setItem('calvras_user_profile', JSON.stringify(profile));
+      onComplete(profile);
+    }
+  };
+
+  return (
+    <div className="h-screen w-screen bg-[#0f0f0e] text-white flex font-sans overflow-hidden">
+      {/* Left */}
+      <div className="flex-1 flex flex-col px-10 py-8 min-w-0">
+        <div className="flex items-center gap-2 mb-0">
+          <img src="/sidebar-logo.jpeg" alt="Calvras" className="w-5 h-5 rounded object-contain" />
+          <span className="text-sm font-bold text-white">Calvras</span>
+        </div>
+
+        <div className="flex-1 flex flex-col justify-center max-w-[440px] py-8">
+          <h1 className="text-[24px] font-bold text-white tracking-tight leading-snug mb-2">{step.question}</h1>
+          <p className="text-[13px] text-neutral-500 mb-7">{step.sub}</p>
+          <div className="flex flex-wrap gap-2">
+            {step.options.map(opt => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => toggle(opt)}
+                className="px-3.5 py-2 rounded-full text-[12.5px] font-medium transition-all cursor-pointer border select-none"
+                style={{
+                  background: isActive(opt) ? 'white' : 'rgba(255,255,255,0.06)',
+                  color: isActive(opt) ? '#111' : '#c4c4c4',
+                  borderColor: isActive(opt) ? 'white' : 'rgba(255,255,255,0.12)',
+                }}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between flex-shrink-0 pb-2 pt-4 border-t border-white/5">
+          <div className="flex items-center gap-1.5">
+            {ONBOARDING_STEPS.map((_, i) => (
+              <div key={i} className="h-1.5 rounded-full transition-all"
+                style={{ width: i === stepIdx ? '24px' : '8px', background: i <= stepIdx ? 'white' : 'rgba(255,255,255,0.2)' }} />
+            ))}
+          </div>
+          <div className="flex items-center gap-3">
+            {stepIdx > 0 && (
+              <button type="button" onClick={() => setStepIdx(i => i - 1)}
+                className="px-5 py-2.5 rounded-full text-[13px] font-medium text-neutral-400 hover:text-white transition-colors cursor-pointer">
+                Back
+              </button>
+            )}
+            <button type="button" onClick={handleContinue} disabled={!canContinue}
+              className="px-6 py-2.5 rounded-full text-[13px] font-semibold transition-all"
+              style={{ background: canContinue ? 'white' : 'rgba(255,255,255,0.1)', color: canContinue ? '#111' : '#555', cursor: canContinue ? 'pointer' : 'not-allowed' }}>
+              {stepIdx === ONBOARDING_STEPS.length - 1 ? 'Get Started' : 'Continue'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Right image */}
+      <div className="w-[45%] flex-shrink-0 p-4 hidden lg:block">
+        <div className="relative w-full h-full rounded-[24px] overflow-hidden">
+          <img src={step.image} alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 // ─── 6-Digit OTP Screen ───────────────────────────────────────────────────────
 function VerifyScreen({ email, onVerified, onBack }) {
@@ -129,7 +242,7 @@ function VerifyScreen({ email, onVerified, onBack }) {
 
 // ─── Main Auth Page ───────────────────────────────────────────────────────────
 export default function AuthPage({ onAuthSuccess }) {
-  const [step, setStep] = useState('auth'); // 'auth' | 'verify' | 'name'
+  const [step, setStep] = useState('auth'); // 'auth' | 'verify' | 'name' | 'onboarding'
   const [authMode, setAuthMode] = useState('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -161,7 +274,14 @@ export default function AuthPage({ onAuthSuccess }) {
         avatar: payload.picture || null,
         plan: 'Free',
       };
-      if (onAuthSuccess) onAuthSuccess(userData);
+      // Check if returning user (already has profile)
+      const existing = localStorage.getItem('calvras_user_profile');
+      if (existing) {
+        if (onAuthSuccess) onAuthSuccess(userData);
+      } else {
+        setPendingUser(userData);
+        setStep('onboarding');
+      }
     } catch {
       setError('Google sign-in failed. Please try again.');
     }
@@ -225,25 +345,31 @@ export default function AuthPage({ onAuthSuccess }) {
 
   // ── After OTP verified ────────────────────────────────────────────────────
   const handleOTPVerified = () => {
-    // Save user to local store
     const storedUsers = JSON.parse(localStorage.getItem('calvras_users') || '{}');
     storedUsers[pendingUser.email] = { password: pendingUser.password, name: pendingUser.name };
     localStorage.setItem('calvras_users', JSON.stringify(storedUsers));
     setStep('name');
   };
 
-  // ── After name ────────────────────────────────────────────────────────────
+  // ── After name → go to onboarding ────────────────────────────────────────
   const handleNameComplete = (chosenName) => {
     const storedUsers = JSON.parse(localStorage.getItem('calvras_users') || '{}');
     if (pendingUser?.email) {
       storedUsers[pendingUser.email].name = chosenName;
       localStorage.setItem('calvras_users', JSON.stringify(storedUsers));
     }
-    if (onAuthSuccess) onAuthSuccess({ ...pendingUser, name: chosenName, plan: 'Free' });
+    setPendingUser(prev => ({ ...prev, name: chosenName }));
+    setStep('onboarding');
+  };
+
+  // ── After onboarding complete ─────────────────────────────────────────────
+  const handleOnboardingComplete = (profile) => {
+    if (onAuthSuccess) onAuthSuccess(profile);
   };
 
   if (step === 'verify') return <VerifyScreen email={pendingUser?.email} onVerified={handleOTPVerified} onBack={() => setStep('auth')} />;
-  if (step === 'name') return <NameOnboarding defaultName={pendingUser?.name || ''} onComplete={handleNameComplete} />;
+  if (step === 'name') return <NameStep defaultName={pendingUser?.name || ''} onComplete={handleNameComplete} />;
+  if (step === 'onboarding') return <OnboardingFlow pendingUser={pendingUser} onComplete={handleOnboardingComplete} />;
 
   return (
     <div className="min-h-screen w-screen bg-[#0f0f0e] text-[#ececed] select-none flex items-center justify-between p-4 md:p-5 font-sans overflow-hidden">

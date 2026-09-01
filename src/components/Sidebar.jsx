@@ -58,7 +58,7 @@ export default function Sidebar({
   return (
     <aside 
       className={`relative flex flex-col h-full bg-[#0f0f0e] text-[#b4b4b8] transition-all duration-200 z-30 select-none overflow-hidden ${
-        collapsed ? 'w-14' : 'w-[230px]'
+        collapsed ? 'w-14' : 'w-[200px]'
       }`}
     >
       {/* Top Header */}
@@ -249,8 +249,11 @@ export default function Sidebar({
         </div>
       )}
 
-      {/* Footer Profile & Menu Popover */}
-      <div ref={userMenuRef} className="relative p-2.5 border-t border-[rgb(34,34,34)] bg-[#0f0f0e]">
+      {/* Spacer when collapsed so footer stays at bottom */}
+      {collapsed && <div className="flex-1" />}
+
+      {/* Footer Profile — always pinned at bottom, visible in both collapsed and expanded */}
+      <div ref={userMenuRef} className="relative mt-auto p-2.5 border-t border-[rgb(34,34,34)] bg-[#0f0f0e] flex-shrink-0">
         {/* User Action Popover Menu */}
         {userMenuOpen && (
           <div className="absolute bottom-[58px] left-1.5 right-1.5 w-[220px] rounded-2xl bg-[#16161a]/98 backdrop-blur-2xl border border-[#33333d] shadow-[0_16px_50px_rgba(0,0,0,0.85)] p-1.5 space-y-1 z-50 animate-in fade-in zoom-in-95 slide-in-from-bottom-2 duration-150">
