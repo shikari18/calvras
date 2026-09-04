@@ -2039,16 +2039,17 @@ CRITICAL:
     // 1. Pasted image only (no text) → ask what they want, never auto-build
     const isPastedImageOnly = hasImageAttachment && trimmedQuery.length === 0;
 
-    // 2. Preview Diagnostics / Repair Intent (e.g. "i cant see the preview", "preview is blank", "not previewing well")
+    // 2. Preview Diagnostics, Self-Healing, and User Bug/Failure Complaints
     const isPreviewFix = 
-      (/\b(?:preview|screen|canvas|iframe|view|ui)\b/i.test(trimmedQuery) &&
-       /\b(?:can'?t\s+see|cannot\s+see|not\s+showing|not\s+working|broken|blank|white|black|empty|fix|issue|problem|not\s+previewing|nothing|invisible|where|repair)\b/i.test(trimmedQuery)) ||
-      /\b(?:fix\s+the\s+preview|cant\s+see\s+the\s+preview|can't\s+see\s+preview|preview\s+not\s+working|preview\s+is\s+blank|preview\s+is\s+white)\b/i.test(trimmedQuery);
+      /\b(?:this is what im seeing|still the same|same thing|not working|not fixing|isnt fixing|isn't fixing|just repeating|repeating|repeats|whats wrong|what is wrong|why is it|not previewing|cant see|can't see|cannot see|not showing|fix the preview|fix it|broken|blank|white screen|black screen|nothing is showing|invisible|stuck)\b/i.test(trimmedQuery) ||
+      (/\b(?:preview|screen|canvas|iframe|view|ui|app|code)\b/i.test(trimmedQuery) &&
+       /\b(?:can'?t\s+see|cannot\s+see|not\s+showing|not\s+working|broken|blank|white|black|empty|fix|issue|problem|not\s+previewing|nothing|invisible|where|repair|repeat|repeating)\b/i.test(trimmedQuery)) ||
+      (hasExistingWorkspace && hasImageAttachment && !/\b(?:new project|start over|build something else|brand new)\b/i.test(trimmedQuery));
 
-    // 3. Explicit build/clone/duplicate words or UI duplication with image
+    // 3. Explicit build/clone/duplicate words or UI duplication with image (ONLY when not troubleshooting)
     const hasBuildKeyword = !isPreviewFix && (
       /\b(?:duplicate|duplicating|duplicated|clone|cloning|cloned|replicate|replicating|recreate|recreating|rebuild|rebuilding|build|building|develop|implement|code|create|make|design|generate|turn\s+this\s+into|convert\s+this\s+into|copy)\b/i.test(trimmedQuery) ||
-      (hasImageAttachment && /\b(?:ui|app|website|site|page|screen|design|dashboard|component|interface|this|like\s+this|like\s+the\s+image|same|image|images|numbers|card|cards|fix|add)\b/i.test(trimmedQuery)) ||
+      (!hasExistingWorkspace && hasImageAttachment && /\b(?:ui|app|website|site|page|screen|design|dashboard|component|interface|this|like\s+this|like\s+the\s+image|same|image|images|numbers|card|cards|fix|add)\b/i.test(trimmedQuery)) ||
       (/\b(?:app|website|site|landing\s*page|dashboard|component|ui|interface|prototype|screen|tool)\b/i.test(trimmedQuery) &&
        /\b(?:build|make|create|code|clone|duplicate|design|give|show|do|implement)\b/i.test(trimmedQuery))
     );
@@ -2075,7 +2076,7 @@ CRITICAL:
     );
 
     // 7. Explicit build — triggered by hasBuildKeyword or image with build request
-    const isExplicitBuild = !isPreviewFix && (hasBuildKeyword || (hasImageAttachment && !isConversationalQuestion && !isPastedImageOnly)) && !isWorkspaceEdit && !isPromptContext;
+    const isExplicitBuild = !isPreviewFix && (hasBuildKeyword || (hasImageAttachment && !hasExistingWorkspace && !isConversationalQuestion && !isPastedImageOnly)) && !isWorkspaceEdit && !isPromptContext;
 
     const isCodePrompt = isWorkspaceEdit || isExplicitBuild;
 
@@ -2107,7 +2108,6 @@ CRITICAL:
 
     try {
       if (isExplicitBuild) {
-        setWorkspaceFiles({});
         setActiveFileName('src/App.tsx');
         setIsSplitScreen(true);
         setActiveWorkspaceTab('preview');
@@ -2165,7 +2165,23 @@ CRITICAL:
           ...history.slice(0, -1),
           {
             role: 'user',
-            content: `The user reports that the live preview is blank or not showing: "${query}".\n\nActive Project Files:\n${filesContext || 'No files currently in workspace.'}\n\nCRITICAL FIX INSTRUCTIONS FOR CALVRAS:\n1. Fix and rebuild the code for src/App.tsx so that it compiles, mounts, and renders cleanly with zero errors in the preview sandbox.\n2. Ensure:\n   - "export default function App()" is clearly defined.\n   - All imports from 'react' and 'lucide-react' are standard and valid.\n   - Real high-resolution Unsplash image URLs are used for all cards and avatars (never number placeholders or empty boxes).\n   - 100% mobile-responsive Tailwind CSS layout is used (grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4).\n3. IMMEDIATELY output the complete, working, self-contained code in:\n\`\`\`tsx file=src/App.tsx\n// Complete fixed code\n\`\`\`\n4. Conclude with 1-2 friendly sentences explaining that the preview has been repaired and refreshed.`,
+            content: `The user reports an issue or blank screen with their active application preview: "${query}".
+
+Active Project Files:
+${filesContext || 'Previous workspace files are being repaired.'}
+
+CRITICAL FIX & REPAIR INSTRUCTIONS FOR CALVRAS:
+1. Honest Diagnosis: In 1-2 direct sentences, tell the user directly what went wrong with the preview (e.g. entrypoint mounting, missing component export, invalid JSX syntax, or unhandled generic) and that you are now fixing it. DO NOT repeat canned build promises or marketing slogans like "I've built a pixel-perfect clone...".
+2. Output Complete Code: Output the complete, working, 100% self-contained runnable React 18 TypeScript code in:
+\`\`\`tsx file=src/App.tsx
+// Complete repaired code
+\`\`\`
+3. Mandatory Rendering Requirements:
+   - "export default function App()" is clearly defined.
+   - All imports from 'react' and 'lucide-react' are standard and valid.
+   - Real high-resolution Unsplash image URLs are used for all cards and avatars (never number placeholders or empty boxes).
+   - 100% mobile-responsive Tailwind CSS layout (grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4).
+   - Dark theme styling with bg-[#0d0d12] and text-white.`,
             files: currentAttachedFiles
           }
         ];
@@ -2332,31 +2348,10 @@ CRITICAL:
               setActiveWorkspaceTab('preview');
               setPreviewReloadTrigger(prev => prev + 1);
 
-              // ── Autonomous Visual Verification Dock Loop (Passes 1 to 4) ──
-              setRunningTasks([
-                { id: 'v1', name: 'subagent [Vision]: capturing rendered preview screenshot...', canStop: false }
-              ]);
-              await new Promise(r => setTimeout(r, 600));
-
-              setRunningTasks([
-                { id: 'v2', name: 'subagent [Vision]: inspecting visual layout, colors, typography (pass 1/4)...', canStop: false }
-              ]);
-              await new Promise(r => setTimeout(r, 550));
-
-              setRunningTasks([
-                { id: 'v3', name: 'subagent [Coder]: self-refining styling and alignment details (pass 2/4)...', canStop: false }
-              ]);
-              await new Promise(r => setTimeout(r, 500));
-
-              setRunningTasks([
-                { id: 'v4', name: 'subagent [Vision]: verified pixel-accuracy with 0 discrepancies (pass 4/4).', canStop: false }
-              ]);
-              await new Promise(r => setTimeout(r, 600));
-
               setRunningTasks([{ id: 'server', name: 'subagent [DevServer]: Ready at http://calvras.preview:5173', canStop: false }]);
               setTimeout(() => {
                 setRunningTasks([]);
-              }, 2500);
+              }, 1500);
 
               const logLines = [
                 ...fileNames.map(fn => ({ type: 'success', text: `✓ Updated ${fn.replace('Calvras/', '')}` })),
@@ -2438,14 +2433,16 @@ CRITICAL:
               }
 
               if (isPreviewFix) {
-                chatContent = `I've diagnosed the live preview, resolved the rendering entrypoint, and refreshed the live sandbox. The complete application with high-resolution visual artwork and mobile-responsive layout is now actively rendering in the preview on the right.`;
+                chatContent = (firstProse && firstProse.length > 20 && !firstProse.includes('pixel-perfect Dribbble'))
+                  ? firstProse
+                  : `I've diagnosed the live preview, resolved the rendering entrypoint, and refreshed the live sandbox. The complete application with high-resolution visual artwork and mobile-responsive layout is now actively rendering in the preview on the right.`;
               } else if (isWorkspaceEdit) {
                 chatContent = firstProse && firstProse.length > 15
                   ? firstProse
                   : `I've updated the application with your requested changes, visual artwork, and mobile responsiveness. You can test it in the live preview on the right.`;
               } else {
                 chatContent = firstProse && firstProse.length > 20
-                  ? `${firstProse} The application is fully mobile-responsive with high-resolution visual artwork and interactive components ready in the live preview.`
+                  ? firstProse
                   : generateNaturalDoneSummary(query, fileNames, false);
               }
             }

@@ -227,6 +227,8 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
 <body>
   <div id="root"></div>
 
+  <script type="application/json" id="__calvras_vfs_data">${JSON.stringify(vfs || {}).replace(/<\/script/gi, '<\\/script')}</script>
+
   <script>
     // Universal VFS & Module Registry
     window.__vfs = {};
@@ -254,9 +256,13 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
     }
 
     try {
-      const inlineVfs = ${JSON.stringify(vfs)};
-      populateVfs(inlineVfs);
-    } catch (e) {}
+      const vfsElem = document.getElementById('__calvras_vfs_data');
+      if (vfsElem && vfsElem.textContent) {
+        populateVfs(JSON.parse(vfsElem.textContent));
+      }
+    } catch (e) {
+      console.warn('Inline VFS parse error:', e);
+    }
 
     window.addEventListener('message', (e) => {
       if (e.data && e.data.type === 'CALVRAS_INIT_VFS') {
@@ -492,9 +498,16 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
 
     function customRequire(callerPath, moduleName) {
       if (moduleName === 'react') return window.React;
-      if (moduleName === 'react-dom' || moduleName === 'react-dom/client') return window.ReactDOM;
-      if (moduleName === 'react/jsx-runtime') return { jsx: React.createElement, jsxs: React.createElement, Fragment: React.Fragment };
-      if (moduleName === 'lucide-react') return LucideProxy;
+      if (moduleName === 'react/jsx-runtime' || moduleName === 'react/jsx-dev-runtime' || moduleName.startsWith('react/jsx-')) {
+        const createJsx = (type, props, key) => {
+          const { children, ...rest } = props || {};
+          if (key !== undefined) rest.key = key;
+          if (children === undefined) return React.createElement(type, rest);
+          if (Array.isArray(children)) return React.createElement(type, rest, ...children);
+          return React.createElement(type, rest, children);
+        };
+        return { jsx: createJsx, jsxs: createJsx, jsxDEV: createJsx, Fragment: React.Fragment };
+      }
       if (moduleName === 'framer-motion') return { motion: motionProxy, AnimatePresence: ({ children }) => children };
       if (moduleName === 'clsx' || moduleName === 'tailwind-merge') return (...args) => args.flat().filter(Boolean).join(' ');
 
@@ -773,6 +786,15 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
           let code = window.__vfs[vfsKey] || '';
           // Sanitize import.meta for Babel CommonJS compatibility
           code = code.replaceAll('import.meta.env', '(window.env || {})').replaceAll('import.meta', '({ env: {} })');
+          // Pre-sanitize TypeScript generics that cause JSX parser ambiguity (e.g. useState<Record<...>> or <Type[]>)
+          code = code
+            .replace(/useState\\s*<[^>]+>\\s*\\(/g, 'useState(')
+            .replace(/useRef\\s*<[^>]+>\\s*\\(/g, 'useRef(')
+            .replace(/useMemo\\s*<[^>]+>\\s*\\(/g, 'useMemo(')
+            .replace(/useCallback\\s*<[^>]+>\\s*\\(/g, 'useCallback(')
+            .replace(/as\\s+(?:HTML[A-Za-z]+Element|string|number|boolean|any|unknown)/g, '')
+            .replace(/as\\s+const/g, '');
+
           const babelPresets = ['typescript', 'react'];
           const babelPlugins = ['transform-modules-commonjs'];
           let transformed;
@@ -784,13 +806,7 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
             }).code;
           } catch (firstErr) {
             try {
-              transformed = Babel.transform(code, {
-                filename: vfsKey,
-                presets: ['typescript'],
-                plugins: babelPlugins
-              }).code;
-            } catch (secondErr) {
-              // Automatic code repair for unclosed strings/tags
+              // Automatic code repair for unclosed strings/tags or missing export default
               let repaired = code || '';
               if ((repaired.split("'").length - 1) % 2 !== 0) repaired += "'";
               if ((repaired.split('"').length - 1) % 2 !== 0) repaired += '"';
@@ -801,6 +817,12 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
               transformed = Babel.transform(repaired, {
                 filename: vfsKey,
                 presets: babelPresets,
+                plugins: babelPlugins
+              }).code;
+            } catch (secondErr) {
+              transformed = Babel.transform(code, {
+                filename: vfsKey,
+                presets: ['react'],
                 plugins: babelPlugins
               }).code;
             }
@@ -893,13 +915,13 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
       }
       render() {
         if (this.state.hasError) {
-          return React.createElement('div', { className: 'min-h-screen bg-neutral-50 text-neutral-800 flex flex-col items-center justify-center p-6 text-center select-none font-sans relative' },
-            React.createElement('div', { className: 'max-w-md w-full bg-white border border-neutral-200 rounded-2xl p-6 shadow-xl text-left space-y-4' },
-              React.createElement('div', { className: 'flex items-center gap-2 text-rose-600 font-semibold text-sm' },
+          return React.createElement('div', { className: 'min-h-screen bg-[#0d0d12] text-neutral-200 flex flex-col items-center justify-center p-6 text-center select-none font-sans relative' },
+            React.createElement('div', { className: 'max-w-md w-full bg-[#18181f] border border-neutral-800 rounded-2xl p-6 shadow-2xl text-left space-y-4' },
+              React.createElement('div', { className: 'flex items-center gap-2 text-rose-400 font-semibold text-sm' },
                 React.createElement('span', { className: 'w-2 h-2 rounded-full bg-rose-500 animate-pulse' }),
                 'Preview Runtime Error'
               ),
-              React.createElement('p', { className: 'text-xs text-neutral-600 font-mono bg-neutral-100 p-3 rounded-lg overflow-x-auto leading-relaxed whitespace-pre-wrap max-h-40' },
+              React.createElement('p', { className: 'text-xs text-neutral-300 font-mono bg-black/40 border border-neutral-800/80 p-3 rounded-xl overflow-x-auto leading-relaxed whitespace-pre-wrap max-h-40' },
                 String(this.state.error?.message || this.state.error || 'Unknown runtime error')
               ),
               React.createElement('button', {
@@ -911,7 +933,7 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
                     }, '*');
                   } catch {}
                 },
-                className: 'w-full py-2.5 bg-neutral-900 text-white rounded-xl text-xs font-semibold hover:bg-neutral-800 transition-colors flex items-center justify-center gap-2 shadow-md cursor-pointer'
+                className: 'w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-2 shadow-md cursor-pointer'
               }, 'Fix with Calvras')
             )
           );
@@ -1096,7 +1118,7 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
             container.innerHTML = window.__vfs[htmlKey];
             try { window.parent.postMessage({ type: 'CALVRAS_PREVIEW_STATUS', hasError: false }, '*'); } catch {}
           } else {
-            container.innerHTML = '<div class="min-h-screen bg-[#0d0d11] text-neutral-300 flex flex-col items-center justify-center p-6 text-center select-none font-sans"><h1 class="text-4xl font-extrabold text-white tracking-tight mb-2">Rendering Preview</h1><p class="text-xs text-neutral-400 font-medium">Mounting workspace components...</p></div>';
+            container.innerHTML = '<div class="min-h-screen bg-[#0d0d12] text-neutral-300 flex flex-col items-center justify-center p-6 text-center select-none font-sans"><div class="max-w-md w-full bg-[#18181f] border border-neutral-800 rounded-2xl p-6 shadow-2xl text-left space-y-3"><div class="flex items-center gap-2 text-blue-400 font-semibold text-sm"><span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>Mounting Application</div><p class="text-xs text-neutral-400 leading-relaxed">Mounting application components from workspace files... Click below if preview does not appear automatically.</p><button onclick="window.location.reload()" class="w-full py-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl text-xs font-semibold transition cursor-pointer">Reload Sandbox</button></div></div>';
             try { window.parent.postMessage({ type: 'CALVRAS_PREVIEW_STATUS', hasError: true }, '*'); } catch {}
           }
         }

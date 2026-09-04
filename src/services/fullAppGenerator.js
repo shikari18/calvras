@@ -177,27 +177,27 @@ export default function App() {
   });
 
   return (
-    <div className="min-h-screen bg-white text-neutral-900 font-sans antialiased selection:bg-rose-500 selection:text-white">
+    <div className="min-h-screen bg-[#0d0d12] text-white font-sans antialiased selection:bg-rose-500 selection:text-white">
       {/* Top Navigation Bar */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-neutral-200/80 px-4 md:px-8 py-3.5 flex items-center justify-between">
+      <header className="sticky top-0 z-40 bg-[#0d0d12]/95 backdrop-blur-md border-b border-neutral-800/80 px-4 md:px-8 py-3.5 flex items-center justify-between">
         <div className="flex items-center gap-6">
           {/* Dribbble Logo */}
           <div className="flex items-center gap-1 cursor-pointer">
-            <span className="text-2xl font-serif italic font-extrabold tracking-tight text-neutral-900">
+            <span className="text-2xl font-serif italic font-extrabold tracking-tight text-white">
               Dribbble
             </span>
           </div>
 
           {/* Desktop Search Bar */}
-          <div className="hidden lg:flex items-center bg-neutral-100 hover:bg-neutral-200/70 transition-colors rounded-full px-4 py-2 w-80 text-xs text-neutral-700">
+          <div className="hidden lg:flex items-center bg-neutral-900 border border-neutral-800 hover:border-neutral-700 transition-colors rounded-full px-4 py-2 w-80 text-xs text-neutral-200">
             <input 
               type="text" 
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="What are you looking for?"
-              className="bg-transparent border-none outline-none flex-1 placeholder-neutral-500 text-xs"
+              placeholder="Search dark background..."
+              className="bg-transparent border-none outline-none flex-1 placeholder-neutral-500 text-xs text-white"
             />
-            <div className="flex items-center gap-2 pl-2 border-l border-neutral-300 text-neutral-600">
+            <div className="flex items-center gap-2 pl-2 border-l border-neutral-700 text-neutral-400">
               <span className="font-medium text-[11px]">Shots</span>
               <ChevronDown size={12} />
               <button className="w-6 h-6 rounded-full bg-rose-500 text-white flex items-center justify-center hover:bg-rose-600 transition-colors">
@@ -207,17 +207,17 @@ export default function App() {
           </div>
 
           {/* Nav Links */}
-          <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-neutral-700">
-            <a href="#explore" className="hover:text-black transition-colors flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-neutral-400">
+            <a href="#explore" className="hover:text-white transition-colors flex items-center gap-1">
               Explore <ChevronDown size={11} />
             </a>
-            <a href="#hire" className="hover:text-black transition-colors flex items-center gap-1">
+            <a href="#hire" className="hover:text-white transition-colors flex items-center gap-1">
               Hire Talent <ChevronDown size={11} />
             </a>
-            <a href="#jobs" className="hover:text-black transition-colors flex items-center gap-1">
+            <a href="#jobs" className="hover:text-white transition-colors flex items-center gap-1">
               Get Hired <ChevronDown size={11} />
             </a>
-            <a href="#community" className="hover:text-black transition-colors flex items-center gap-1">
+            <a href="#community" className="hover:text-white transition-colors flex items-center gap-1">
               Community <ChevronDown size={11} />
             </a>
           </nav>
@@ -225,28 +225,28 @@ export default function App() {
 
         {/* Right Header Actions */}
         <div className="flex items-center gap-3">
-          <button className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-neutral-200 hover:border-neutral-300 text-xs font-semibold text-neutral-800 transition-colors">
+          <button className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-neutral-700 hover:border-neutral-600 text-xs font-semibold text-neutral-200 transition-colors">
             Start Project Brief
           </button>
-          <button className="p-2 text-neutral-600 hover:text-neutral-900 transition-colors hidden sm:block">
+          <button className="p-2 text-neutral-400 hover:text-white transition-colors hidden sm:block">
             <MessageSquare size={16} />
           </button>
-          <button className="p-2 text-neutral-600 hover:text-neutral-900 transition-colors hidden sm:block">
+          <button className="p-2 text-neutral-400 hover:text-white transition-colors hidden sm:block">
             <Bell size={16} />
           </button>
           <div className="relative cursor-pointer">
             <img 
               src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" 
               alt="User profile" 
-              className="w-8 h-8 rounded-full object-cover ring-1 ring-neutral-200"
+              className="w-8 h-8 rounded-full object-cover ring-1 ring-neutral-700"
             />
-            <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white" />
+            <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-[#0d0d12]" />
           </div>
 
           {/* Mobile Menu Toggle */}
           <button 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 text-neutral-700 hover:text-black md:hidden"
+            className="p-2 text-neutral-400 hover:text-white md:hidden"
           >
             {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -255,18 +255,18 @@ export default function App() {
 
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-neutral-200 bg-white p-4 space-y-3 animate-in slide-in-from-top-2">
-          <div className="flex items-center bg-neutral-100 rounded-full px-4 py-2 text-xs">
+        <div className="md:hidden border-b border-neutral-800 bg-[#121217] p-4 space-y-3 animate-in slide-in-from-top-2">
+          <div className="flex items-center bg-neutral-900 border border-neutral-800 rounded-full px-4 py-2 text-xs">
             <Search size={14} className="text-neutral-400 mr-2" />
             <input 
               type="text" 
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Search shots..."
-              className="bg-transparent border-none outline-none flex-1 text-xs"
+              className="bg-transparent border-none outline-none flex-1 text-xs text-white"
             />
           </div>
-          <div className="flex flex-col space-y-2 text-sm font-semibold text-neutral-700 pt-2">
+          <div className="flex flex-col space-y-2 text-sm font-semibold text-neutral-300 pt-2">
             <a href="#explore">Explore</a>
             <a href="#hire">Hire Talent</a>
             <a href="#jobs">Get Hired</a>
@@ -278,13 +278,11 @@ export default function App() {
       {/* Main Inspiration Hero */}
       <main className="max-w-7xl mx-auto px-4 md:px-8 py-10 md:py-14">
         <div className="text-center max-w-2xl mx-auto space-y-3 mb-10">
-          <h1 className="text-3xl md:text-5xl font-extrabold text-neutral-900 tracking-tight">
+          <h1 className="text-3xl md:text-5xl font-extrabold text-white tracking-tight">
             Dark Background
           </h1>
-          <p className="text-xs md:text-sm text-neutral-500 font-normal leading-relaxed">
-            487 inspirational designs, illustrations, and graphic elements from the world's best designers.
-            <br />
-            Want more inspiration? Browse our <a href="#search" className="underline hover:text-rose-500 font-medium">search results...</a>
+          <p className="text-xs md:text-sm text-neutral-400 font-normal leading-relaxed">
+            487 inspirational dark mode designs, user interfaces, and mobile screens from the world's best designers.
           </p>
         </div>
 
@@ -294,11 +292,11 @@ export default function App() {
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={\`whitespace-nowrap px-4 py-2 rounded-full text-xs font-semibold transition-all cursor-pointer \${
+              className={` + '`' + `whitespace-nowrap px-4 py-2 rounded-full text-xs font-semibold transition-all cursor-pointer \${
                 activeCategory === cat
-                  ? 'bg-neutral-900 text-white shadow-sm'
-                  : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200/80 hover:text-neutral-900'
-              }\`}
+                  ? 'bg-rose-500 text-white shadow-sm'
+                  : 'bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-700'
+              }` + '`' + `}
             >
               {cat}
             </button>
@@ -317,27 +315,27 @@ export default function App() {
                 className="group flex flex-col space-y-3 cursor-pointer"
               >
                 {/* Card Visual Image Container */}
-                <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-neutral-900 shadow-sm group-hover:shadow-xl transition-all duration-300">
+                <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-neutral-900 border border-neutral-800/80 shadow-sm group-hover:shadow-xl group-hover:border-neutral-700 transition-all duration-300">
                   <img 
                     src={card.image} 
                     alt={card.title} 
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
                   />
 
                   {/* Hover Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-4 pointer-events-none">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-4 pointer-events-none">
                     <div className="flex justify-end pointer-events-auto">
                       <button 
                         onClick={(e) => { e.stopPropagation(); toggleSave(card.id); }}
-                        className="p-2 rounded-full bg-white/90 hover:bg-white text-neutral-900 shadow-md transition-transform active:scale-95"
+                        className="p-2 rounded-full bg-neutral-800/90 hover:bg-neutral-700 text-white shadow-md transition-transform active:scale-95"
                       >
-                        <Bookmark size={14} className={isSaved ? 'fill-neutral-900' : ''} />
+                        <Bookmark size={14} className={isSaved ? 'fill-white' : ''} />
                       </button>
                     </div>
 
                     <div className="text-white space-y-1">
                       <h3 className="text-sm font-bold line-clamp-1">{card.title}</h3>
-                      <p className="text-[11px] text-neutral-300">{card.category}</p>
+                      <p className="text-[11px] text-neutral-400">{card.category}</p>
                     </div>
                   </div>
                 </div>
@@ -348,24 +346,24 @@ export default function App() {
                     <img 
                       src={card.avatar} 
                       alt={card.author} 
-                      className="w-6 h-6 rounded-full object-cover ring-1 ring-neutral-200"
+                      className="w-6 h-6 rounded-full object-cover ring-1 ring-neutral-800"
                     />
-                    <span className="font-bold text-neutral-800 truncate text-[12px]">{card.author}</span>
-                    <span className={\`text-[9px] font-extrabold px-1.5 py-0.5 rounded tracking-wider uppercase \${
-                      card.badge === 'PRO' ? 'bg-neutral-800 text-white' : 'bg-neutral-200 text-neutral-700'
-                    }\`}>
+                    <span className="font-bold text-neutral-200 truncate text-[12px]">{card.author}</span>
+                    <span className={` + '`' + `text-[9px] font-extrabold px-1.5 py-0.5 rounded tracking-wider uppercase \${
+                      card.badge === 'PRO' ? 'bg-neutral-800 text-neutral-300 border border-neutral-700' : 'bg-neutral-800/60 text-neutral-400'
+                    }` + '`' + `}>
                       {card.badge}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-3 text-neutral-500 font-medium text-[11px]">
+                  <div className="flex items-center gap-3 text-neutral-400 font-medium text-[11px]">
                     <button 
                       onClick={() => toggleLike(card.id)}
                       className="flex items-center gap-1 hover:text-rose-500 transition-colors"
                     >
                       <Heart 
                         size={13} 
-                        className={\`transition-colors \${isLiked ? 'fill-rose-500 text-rose-500' : ''}\`} 
+                        className={` + '`' + `transition-colors \${isLiked ? 'fill-rose-500 text-rose-500' : ''}` + '`' + `} 
                       />
                       <span>{card.likes + (isLiked ? 1 : 0)}</span>
                     </button>
@@ -382,8 +380,8 @@ export default function App() {
 
         {filteredCards.length === 0 && (
           <div className="py-20 text-center space-y-2">
-            <p className="text-base font-semibold text-neutral-800">No design shots found matching "{searchQuery}"</p>
-            <p className="text-xs text-neutral-500">Try searching for different keywords or clear the category filter.</p>
+            <p className="text-base font-semibold text-white">No design shots found matching "{searchQuery}"</p>
+            <p className="text-xs text-neutral-400">Try searching for different keywords or clear the category filter.</p>
           </div>
         )}
       </main>

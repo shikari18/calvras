@@ -599,8 +599,36 @@ app.post('/api/v1/chat/completions', async (req, res) => {
       .map(m => Array.isArray(m.content) ? m.content.filter(p => p.type === 'text').map(p => p.text).join(' ') : (m.content || ''))
       .join(' ');
 
-    const isQuestionOnly = /\b(?:what|who|where|why|how many|is this|explain|describe|read\s+text)\b/i.test(userQuery) && !/\b(?:duplicate|clone|build|create|make|code|implement|recreate|ui|app|page|site|modify|edit|update|add|change)\b/i.test(userQuery);
-    if (!isQuestionOnly) {
+    const isTroubleshootingOrFeedback = 
+      /\b(?:this is what im seeing|still the same|not working|blank|empty|broken|not showing|cant see|cannot see|error|issue|problem|repeating|whats wrong|what is wrong|fix it|why is it|stuck)\b/i.test(userQuery);
+
+    if (isTroubleshootingOrFeedback) {
+      const DEBUGGER_VISION_PROMPT = `You are Calvras autonomous debugger and software engineer.
+The user is providing a screenshot of their preview, application error, or broken screen.
+CRITICAL INSTRUCTIONS:
+1. DO NOT clone or duplicate the blank screen, error card, or IDE interface.
+2. First, explain directly to the user in 1-2 concise, clear sentences what was wrong or why the preview was blank/failing, and what you are fixing.
+3. IMMEDIATELY output the complete, corrected React 18 TypeScript application in:
+\`\`\`tsx file=src/App.tsx
+// Complete repaired code
+\`\`\`
+4. MANDATORY CODE REQUIREMENTS:
+   - "export default function App()" clearly defined.
+   - Real, high-resolution Unsplash image URLs for cards and avatars (never numbers, blank boxes, or empty rectangles).
+   - 100% mobile-responsive layout (grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4) with Tailwind CSS.
+   - Lucide icons from 'lucide-react'.`;
+
+      let hasSys = false;
+      for (let i = 0; i < messages.length; i++) {
+        if (messages[i].role === 'system') {
+          messages[i].content = DEBUGGER_VISION_PROMPT;
+          hasSys = true;
+        }
+      }
+      if (!hasSys) {
+        messages.unshift({ role: 'system', content: DEBUGGER_VISION_PROMPT });
+      }
+    } else if (!isQuestionOnly) {
       const VISION_CODER_PROMPT = `You are Calvras Vision Coder, an autonomous elite React 18 TypeScript engineer.
 When given an image or screenshot of a website or application to clone, duplicate, build, or modify:
 1. State in 1 concise sentence what application you are building or updating for the user.
@@ -633,14 +661,13 @@ When given an image or screenshot of a website or application to clone, duplicat
     }
 
     const MULTIMODAL_MODELS = [
-      'google/gemini-2.0-flash-001',
-      'google/gemini-2.5-pro',
-      'anthropic/claude-3.5-sonnet',
-      'anthropic/claude-3.7-sonnet',
-      'openai/gpt-4o',
       'minimax/minimax-m3:free',
       'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
-      'openrouter/free'
+      'openrouter/free',
+      'google/gemini-2.5-pro',
+      'openai/gpt-4o',
+      'anthropic/claude-3.5-sonnet',
+      'anthropic/claude-3.7-sonnet'
     ];
 
     for (const vModel of MULTIMODAL_MODELS) {
