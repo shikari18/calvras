@@ -95,7 +95,7 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
     .join('\n\n');
 
   return `<!DOCTYPE html>
-<html lang="en" class="light">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -114,38 +114,38 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
             display: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
           },
           colors: {
-            border: 'var(--border, #f1f5f9)',
-            input: 'var(--input, #f1f5f9)',
+            border: 'var(--border, #27272a)',
+            input: 'var(--input, #27272a)',
             ring: 'var(--ring, #ec4f88)',
-            background: 'var(--background, #ffffff)',
-            foreground: 'var(--foreground, #1e1b4b)',
+            background: 'var(--background, #0d0d12)',
+            foreground: 'var(--foreground, #f4f4f5)',
             primary: {
               DEFAULT: 'var(--primary, #ec4f88)',
               foreground: 'var(--primary-foreground, #ffffff)',
             },
             secondary: {
-              DEFAULT: 'var(--secondary, #f8fafc)',
-              foreground: 'var(--secondary-foreground, #1e1b4b)',
+              DEFAULT: 'var(--secondary, #18181f)',
+              foreground: 'var(--secondary-foreground, #f4f4f5)',
             },
             destructive: {
               DEFAULT: 'var(--destructive, #ef4444)',
               foreground: 'var(--destructive-foreground, #ffffff)',
             },
             muted: {
-              DEFAULT: 'var(--muted, #f8fafc)',
-              foreground: 'var(--muted-foreground, #64748b)',
+              DEFAULT: 'var(--muted, #18181f)',
+              foreground: 'var(--muted-foreground, #a1a1aa)',
             },
             accent: {
-              DEFAULT: 'var(--accent, #f3e8ff)',
-              foreground: 'var(--accent-foreground, #581c87)',
+              DEFAULT: 'var(--accent, #27272a)',
+              foreground: 'var(--accent-foreground, #f4f4f5)',
             },
             popover: {
-              DEFAULT: 'var(--popover, #ffffff)',
-              foreground: 'var(--popover-foreground, #1e1b4b)',
+              DEFAULT: 'var(--popover, #18181f)',
+              foreground: 'var(--popover-foreground, #f4f4f5)',
             },
             card: {
-              DEFAULT: 'var(--card, #ffffff)',
-              foreground: 'var(--card-foreground, #1e1b4b)',
+              DEFAULT: 'var(--card, #18181f)',
+              foreground: 'var(--card-foreground, #f4f4f5)',
             },
             'pink-soft': 'var(--pink-soft, #fde8ef)',
             'pink-softer': 'var(--pink-softer, #fef4f8)',
@@ -176,33 +176,25 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
   <style>
     :root {
       --radius: 1rem;
-      --background: #ffffff;
-      --foreground: #1e1b4b;
-      --card: #ffffff;
-      --card-foreground: #1e1b4b;
-      --popover: #ffffff;
-      --popover-foreground: #1e1b4b;
+      --background: #0d0d12;
+      --foreground: #f4f4f5;
+      --card: #18181f;
+      --card-foreground: #f4f4f5;
+      --popover: #18181f;
+      --popover-foreground: #f4f4f5;
       --primary: #ec4f88;
       --primary-foreground: #ffffff;
-      --secondary: #fdf2f8;
-      --secondary-foreground: #831843;
-      --muted: #f8fafc;
-      --muted-foreground: #64748b;
-      --accent: #f3e8ff;
-      --accent-foreground: #581c87;
+      --secondary: #18181f;
+      --secondary-foreground: #f4f4f5;
+      --muted: #18181f;
+      --muted-foreground: #a1a1aa;
+      --accent: #27272a;
+      --accent-foreground: #f4f4f5;
       --destructive: #ef4444;
       --destructive-foreground: #ffffff;
-      --border: #f1f5f9;
-      --input: #f1f5f9;
+      --border: #27272a;
+      --input: #27272a;
       --ring: #ec4f88;
-      --pink-soft: #fde8ef;
-      --pink-softer: #fef4f8;
-      --lavender: #c084fc;
-      --lavender-soft: #f3e8ff;
-      --cream: #fffbeb;
-      --sage: #86efac;
-      --baby-blue: #bae6fd;
-      --purple-soft: #f3e8ff;
     }
     .bg-primary { background-color: #ec4f88 !important; color: #ffffff !important; }
     .text-primary { color: #ec4f88 !important; }
@@ -224,7 +216,7 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
     ${repoCss}
     ${projectCss}
     
-    body { background-color: var(--background, #0d0d11); color: var(--foreground, #ededed); margin: 0; padding: 0; font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; min-height: 100vh; overflow-x: hidden; }
+    body { background-color: var(--background, #0d0d12); color: var(--foreground, #f4f4f5); margin: 0; padding: 0; font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; min-height: 100vh; overflow-x: hidden; }
     #root { min-height: 100vh; display: flex; flex-direction: column; width: 100%; }
     * { box-sizing: border-box; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -240,27 +232,37 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
     window.__vfs = {};
     window.__moduleCache = {};
 
+    function populateVfs(rawVfs) {
+      if (!rawVfs) return;
+      for (const [k, v] of Object.entries(rawVfs)) {
+        window.__vfs[k] = v;
+        const cleanKey = k.startsWith('Calvras/') ? k.slice(8) : k;
+        window.__vfs[cleanKey] = v;
+        if (k.includes('/')) {
+          const repoStripped = k.substring(k.indexOf('/') + 1);
+          window.__vfs[repoStripped] = v;
+          for (const sub of ['frontend/', 'client/', 'web/', 'app/', 'ui/']) {
+            if (repoStripped.startsWith(sub)) {
+              window.__vfs[repoStripped.slice(sub.length)] = v;
+            }
+            if (k.startsWith(sub)) {
+              window.__vfs[k.slice(sub.length)] = v;
+            }
+          }
+        }
+      }
+    }
+
+    try {
+      const inlineVfs = ${JSON.stringify(vfs)};
+      populateVfs(inlineVfs);
+    } catch (e) {}
+
     window.addEventListener('message', (e) => {
       if (e.data && e.data.type === 'CALVRAS_INIT_VFS') {
         const rawVfs = e.data.vfs || {};
         window.__vfs = {};
-        for (const [k, v] of Object.entries(rawVfs)) {
-          window.__vfs[k] = v;
-          const cleanKey = k.startsWith('Calvras/') ? k.slice(8) : k;
-          window.__vfs[cleanKey] = v;
-          if (k.includes('/')) {
-            const repoStripped = k.substring(k.indexOf('/') + 1);
-            window.__vfs[repoStripped] = v;
-            for (const sub of ['frontend/', 'client/', 'web/', 'app/', 'ui/']) {
-              if (repoStripped.startsWith(sub)) {
-                window.__vfs[repoStripped.slice(sub.length)] = v;
-              }
-              if (k.startsWith(sub)) {
-                window.__vfs[k.slice(sub.length)] = v;
-              }
-            }
-          }
-        }
+        populateVfs(rawVfs);
         window.__moduleCache = {};
         mountApp();
       }
@@ -964,11 +966,16 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
       };
     } catch (e) {}
 
-    const origSetAttribute = Element.prototype.setAttribute;
-    Element.prototype.setAttribute = function(name, value) {
-      if (this.tagName === 'IMG' && name === 'src') {
-        value = resolveImgSrc(value);
-      }
+    try {
+      const origSetAttribute = Element.prototype.setAttribute;
+      Element.prototype.setAttribute = function(name, value) {
+        if (this.tagName === 'IMG' && name === 'src') {
+          value = resolveImgSrc(value);
+        }
+        return origSetAttribute.call(this, name, value);
+      };
+    } catch (e) {}
+
     // 1. Intercept all link clicks inside the sandbox preview so it never opens Calvras website inside the preview
     document.addEventListener('click', function(e) {
       const link = e.target && e.target.closest ? e.target.closest('a') : null;
@@ -1028,7 +1035,7 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
 
         const allKeys = Object.keys(window.__vfs || {});
         if (allKeys.length === 0) {
-          container.innerHTML = '<div class="min-h-screen bg-white text-neutral-800 flex flex-col items-center justify-center p-6 text-center select-none font-sans"><div class="w-7 h-7 border-2 border-neutral-300 border-t-neutral-800 rounded-full animate-spin mb-3"></div><p class="text-xs text-neutral-400 font-medium tracking-wide uppercase">Preparing preview workspace...</p></div>';
+          container.innerHTML = '<div class="min-h-screen bg-[#0d0d12] text-neutral-300 flex flex-col items-center justify-center p-6 text-center select-none font-sans"><div class="w-7 h-7 border-2 border-neutral-700 border-t-blue-500 rounded-full animate-spin mb-3"></div><p class="text-xs text-neutral-400 font-medium tracking-wide uppercase">Preparing preview workspace...</p></div>';
           return;
         }
 
@@ -2005,7 +2012,7 @@ export default function ProjectWorkspacePane({
               <div className="flex items-center justify-between px-3.5 py-1.5 bg-[rgb(26,26,26)] border-b border-[rgb(40,40,40)] text-xs text-neutral-400 font-mono select-none flex-shrink-0">
                 <div className="flex items-center gap-2 flex-1 max-w-md bg-[rgb(16,16,16)] border border-[rgb(45,45,45)] rounded-lg px-2.5 py-1 text-[11px] text-neutral-300">
                   <Lock size={10} className="text-emerald-400 flex-shrink-0" />
-                  <span className="text-neutral-300 truncate">https://malvos.app/preview</span>
+                  <span className="text-neutral-300 truncate">https://calvras.app/preview</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-neutral-400">
                   <button 
@@ -2027,7 +2034,7 @@ export default function ProjectWorkspacePane({
                       onLoad={sendVfsToIframe}
                       srcDoc={Object.keys(files).length > 0 ? generateLivePreviewSrcdoc(files) : undefined}
                       src={(!Object.keys(files).length && previewPort) ? `http://localhost:${previewPort}` : undefined}
-                      className="w-full h-full border-0 bg-white shadow-xl"
+                      className="w-full h-full border-0 bg-[#0d0d12] shadow-xl"
                       title="App Desktop Preview"
                       sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups"
                     />
@@ -2041,7 +2048,7 @@ export default function ProjectWorkspacePane({
                         onLoad={sendVfsToIframe}
                         srcDoc={Object.keys(files).length > 0 ? generateLivePreviewSrcdoc(files) : undefined}
                         src={(!Object.keys(files).length && previewPort) ? `http://localhost:${previewPort}` : undefined}
-                        className="flex-1 w-full h-full border-0 bg-white"
+                        className="flex-1 w-full h-full border-0 bg-[#0d0d12]"
                         title="App Tablet Preview"
                         sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups"
                       />
@@ -2064,7 +2071,7 @@ export default function ProjectWorkspacePane({
                         onLoad={sendVfsToIframe}
                         srcDoc={Object.keys(files).length > 0 ? generateLivePreviewSrcdoc(files) : undefined}
                         src={(!Object.keys(files).length && previewPort) ? `http://localhost:${previewPort}` : undefined}
-                        className="flex-1 w-full h-full border-0 bg-white rounded-[44px]"
+                        className="flex-1 w-full h-full border-0 bg-[#0d0d12] rounded-[44px]"
                         title="iPhone 16 Pro Preview"
                         sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups"
                       />

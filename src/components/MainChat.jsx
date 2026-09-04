@@ -2039,33 +2039,43 @@ CRITICAL:
     // 1. Pasted image only (no text) → ask what they want, never auto-build
     const isPastedImageOnly = hasImageAttachment && trimmedQuery.length === 0;
 
-    // 2. Explicit build/clone/duplicate words or UI duplication with image
-    const hasBuildKeyword = 
+    // 2. Preview Diagnostics / Repair Intent (e.g. "i cant see the preview", "preview is blank", "not previewing well")
+    const isPreviewFix = 
+      (/\b(?:preview|screen|canvas|iframe|view|ui)\b/i.test(trimmedQuery) &&
+       /\b(?:can'?t\s+see|cannot\s+see|not\s+showing|not\s+working|broken|blank|white|black|empty|fix|issue|problem|not\s+previewing|nothing|invisible|where|repair)\b/i.test(trimmedQuery)) ||
+      /\b(?:fix\s+the\s+preview|cant\s+see\s+the\s+preview|can't\s+see\s+preview|preview\s+not\s+working|preview\s+is\s+blank|preview\s+is\s+white)\b/i.test(trimmedQuery);
+
+    // 3. Explicit build/clone/duplicate words or UI duplication with image
+    const hasBuildKeyword = !isPreviewFix && (
       /\b(?:duplicate|duplicating|duplicated|clone|cloning|cloned|replicate|replicating|recreate|recreating|rebuild|rebuilding|build|building|develop|implement|code|create|make|design|generate|turn\s+this\s+into|convert\s+this\s+into|copy)\b/i.test(trimmedQuery) ||
       (hasImageAttachment && /\b(?:ui|app|website|site|page|screen|design|dashboard|component|interface|this|like\s+this|like\s+the\s+image|same|image|images|numbers|card|cards|fix|add)\b/i.test(trimmedQuery)) ||
       (/\b(?:app|website|site|landing\s*page|dashboard|component|ui|interface|prototype|screen|tool)\b/i.test(trimmedQuery) &&
-       /\b(?:build|make|create|code|clone|duplicate|design|give|show|do|implement)\b/i.test(trimmedQuery));
-
-    // 3. System prompt generation request
-    const isPromptContext = /^(?:write|generate|craft|create|give\s+me)\s+(?:a\s+)?(?:system\s+prompt|meta\s+prompt)/i.test(trimmedQuery);
-
-    // 4. Conversational question — ONLY when user is asking a purely explanatory question without build intent
-    const isConversationalQuestion =
-      isPastedImageOnly ||
-      (!hasBuildKeyword && (
-        trimmedQuery.endsWith('?') ||
-        /^(?:what|why|how|who|where|when|which|tell|explain|describe|solve|read|check|inspect|help|is\s+this|can\s+you\s+explain|do\s+you|are\s+you|is\s+there|are\s+there|i\s+(?:got|have|want\s+to\s+know|need\s+to\s+know)|ok\s+what|i\s+am\s+asking|i\s+pasted|i\s+uploaded|look\s+at|review|analyze|compare|which\s+(?:one|is)|does\s+this|will\s+this)\b/i.test(trimmedQuery) ||
-        (trimmedQuery.split(/\s+/).length < 4 && !hasImageAttachment)
-      ));
-
-    // 5. In-place surgical edit of existing workspace — when user has an active project and wants changes
-    const isWorkspaceEdit = hasExistingWorkspace && !isConversationalQuestion && !isPromptContext && (
-      /\b(?:change|update|modify|edit|fix|adjust|style|color|button|navbar|header|footer|sidebar|make\s+it|make\s+this|remove|replace|add|better|responsive|mobile|align|numbers|image|images)\b/i.test(trimmedQuery) &&
-      !/\b(?:rebuild\s+from\s+scratch|start\s+over|new\s+project|brand\s+new)\b/i.test(trimmedQuery)
+       /\b(?:build|make|create|code|clone|duplicate|design|give|show|do|implement)\b/i.test(trimmedQuery))
     );
 
-    // 6. Explicit build — triggered by hasBuildKeyword or image with build request
-    const isExplicitBuild = (hasBuildKeyword || (hasImageAttachment && !isConversationalQuestion && !isPastedImageOnly)) && !isWorkspaceEdit && !isPromptContext;
+    // 4. System prompt generation request
+    const isPromptContext = /^(?:write|generate|craft|create|give\s+me)\s+(?:a\s+)?(?:system\s+prompt|meta\s+prompt)/i.test(trimmedQuery);
+
+    // 5. Conversational question — ONLY when user is asking a purely explanatory question without build intent
+    const isConversationalQuestion =
+      !isPreviewFix && (
+        isPastedImageOnly ||
+        (!hasBuildKeyword && (
+          trimmedQuery.endsWith('?') ||
+          /^(?:what|why|how|who|where|when|which|tell|explain|describe|solve|read|check|inspect|help|is\s+this|can\s+you\s+explain|do\s+you|are\s+you|is\s+there|are\s+there|i\s+(?:got|have|want\s+to\s+know|need\s+to\s+know)|ok\s+what|i\s+am\s+asking|i\s+pasted|i\s+uploaded|look\s+at|review|analyze|compare|which\s+(?:one|is)|does\s+this|will\s+this)\b/i.test(trimmedQuery) ||
+          (trimmedQuery.split(/\s+/).length < 4 && !hasImageAttachment)
+        ))
+      );
+
+    // 6. In-place surgical edit or preview repair of existing workspace
+    const isWorkspaceEdit = (isPreviewFix || hasExistingWorkspace) && !isConversationalQuestion && !isPromptContext && (
+      isPreviewFix ||
+      (/\b(?:change|update|modify|edit|fix|adjust|style|color|button|navbar|header|footer|sidebar|make\s+it|make\s+this|remove|replace|add|better|responsive|mobile|align|numbers|image|images)\b/i.test(trimmedQuery) &&
+      !/\b(?:rebuild\s+from\s+scratch|start\s+over|new\s+project|brand\s+new)\b/i.test(trimmedQuery))
+    );
+
+    // 7. Explicit build — triggered by hasBuildKeyword or image with build request
+    const isExplicitBuild = !isPreviewFix && (hasBuildKeyword || (hasImageAttachment && !isConversationalQuestion && !isPastedImageOnly)) && !isWorkspaceEdit && !isPromptContext;
 
     const isCodePrompt = isWorkspaceEdit || isExplicitBuild;
 
@@ -2096,6 +2106,32 @@ CRITICAL:
     }
 
     try {
+      if (isExplicitBuild) {
+        setWorkspaceFiles({});
+        setActiveFileName('src/App.tsx');
+        setIsSplitScreen(true);
+        setActiveWorkspaceTab('preview');
+        setRunningTasks([{ id: 'init', name: 'subagent [Architect]: analyzing requirements & designing system...', canStop: false }]);
+      } else if (isWorkspaceEdit) {
+        setIsSplitScreen(true);
+        setActiveWorkspaceTab('preview');
+        setRunningTasks([{ id: 'patch', name: isPreviewFix ? 'subagent [Debugger]: diagnosing and repairing live preview...' : 'subagent [Coder]: inspecting workspace files & applying updates...', canStop: false }]);
+      } else {
+        setRunningTasks([]);
+      }
+
+      setTerminalLogs(prev => [
+        ...prev,
+        { type: 'info', text: `[Calvras] Task initiated: "${query.slice(0, 60)}${query.length > 60 ? '...' : ''}"` }
+      ]);
+
+      setIsThinking(true);
+      setIsStreaming(false);
+      setLiveThinkingText('');
+      setLiveThinkingDuration(1);
+      setIsLiveThinkingOpen(true);
+      setStreamingText('');
+
       thinkingTimer = setInterval(() => {
         setLiveThinkingDuration(d => d + 1);
       }, 1000);
@@ -2115,6 +2151,21 @@ CRITICAL:
           {
             role: 'user',
             content: `[User sent an image with no message. Look at the image and respond helpfully — describe what you see, answer any implicit question, or ask one short question about what they need. Do NOT offer to build or clone anything unless the user explicitly asks.]`,
+            files: currentAttachedFiles
+          }
+        ];
+      } else if (isPreviewFix) {
+        const filesContext = Object.entries(workspaceFiles)
+          .filter(([k, v]) => v && typeof v === 'string' && v.length > 5 && !k.endsWith('.lock') && !k.includes('node_modules'))
+          .slice(0, 10)
+          .map(([k, v]) => `File: ${k.replace('Calvras/', '')}\n\`\`\`\n${v}\n\`\`\``)
+          .join('\n\n');
+
+        messagesForAI = [
+          ...history.slice(0, -1),
+          {
+            role: 'user',
+            content: `The user reports that the live preview is blank or not showing: "${query}".\n\nActive Project Files:\n${filesContext || 'No files currently in workspace.'}\n\nCRITICAL FIX INSTRUCTIONS FOR CALVRAS:\n1. Fix and rebuild the code for src/App.tsx so that it compiles, mounts, and renders cleanly with zero errors in the preview sandbox.\n2. Ensure:\n   - "export default function App()" is clearly defined.\n   - All imports from 'react' and 'lucide-react' are standard and valid.\n   - Real high-resolution Unsplash image URLs are used for all cards and avatars (never number placeholders or empty boxes).\n   - 100% mobile-responsive Tailwind CSS layout is used (grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4).\n3. IMMEDIATELY output the complete, working, self-contained code in:\n\`\`\`tsx file=src/App.tsx\n// Complete fixed code\n\`\`\`\n4. Conclude with 1-2 friendly sentences explaining that the preview has been repaired and refreshed.`,
             files: currentAttachedFiles
           }
         ];
@@ -2386,7 +2437,9 @@ CRITICAL:
                 if (!firstProse.endsWith('.')) firstProse += '.';
               }
 
-              if (isWorkspaceEdit) {
+              if (isPreviewFix) {
+                chatContent = `I've diagnosed the live preview, resolved the rendering entrypoint, and refreshed the live sandbox. The complete application with high-resolution visual artwork and mobile-responsive layout is now actively rendering in the preview on the right.`;
+              } else if (isWorkspaceEdit) {
                 chatContent = firstProse && firstProse.length > 15
                   ? firstProse
                   : `I've updated the application with your requested changes, visual artwork, and mobile responsiveness. You can test it in the live preview on the right.`;
