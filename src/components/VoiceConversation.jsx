@@ -62,13 +62,14 @@ function speakWithChromeSynthesis(text) {
 
       setTimeout(() => {
         const utterance = new SpeechSynthesisUtterance(text.trim());
-        utterance.rate = 1.05;
+        utterance.rate = 1.02;
         utterance.pitch = 1.0;
+        utterance.volume = 1.0;
         utterance.lang = 'en-US';
 
-        const voices = window.speechSynthesis.getVoices();
+        const voices = window.speechSynthesis.getVoices() || [];
         const bestVoice =
-          voices.find(v => /en[-_]US/i.test(v.lang) && /female|samantha|zira|aria|google us english|victoria/i.test(v.name)) ||
+          voices.find(v => /en[-_]US/i.test(v.lang) && /female|samantha|zira|aria|google us english|natural/i.test(v.name)) ||
           voices.find(v => /en/i.test(v.lang) && v.localService) ||
           voices.find(v => /en/i.test(v.lang)) ||
           voices[0];
@@ -76,12 +77,9 @@ function speakWithChromeSynthesis(text) {
         if (bestVoice) utterance.voice = bestVoice;
 
         let isDone = false;
-        let keepAlive = null;
-
         const complete = () => {
           if (!isDone) {
             isDone = true;
-            if (keepAlive) clearInterval(keepAlive);
             resolve();
           }
         };
@@ -89,19 +87,11 @@ function speakWithChromeSynthesis(text) {
         utterance.onend = complete;
         utterance.onerror = complete;
 
-        // Keepalive ticker to prevent Chrome from freezing long utterances
-        keepAlive = setInterval(() => {
-          if (window.speechSynthesis.speaking) {
-            window.speechSynthesis.pause();
-            window.speechSynthesis.resume();
-          }
-        }, 3000);
-
         window.speechSynthesis.speak(utterance);
 
         // Fallback timeout in case onend never fires
-        setTimeout(complete, Math.max(text.length * 120 + 2500, 4000));
-      }, 50);
+        setTimeout(complete, Math.max(text.length * 110 + 2000, 3500));
+      }, 60);
     } catch {
       resolve();
     }
@@ -151,8 +141,8 @@ async function speakResponse(text) {
   return speakWithChromeSynthesis(text);
 }
 
-// Single utterance listener with fast silence detector for Chrome
-function captureSpeech() {
+// Single utterance listener with live transcript and natural silence detector
+function captureSpeech(onInterim) {
   return new Promise((resolve) => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -189,12 +179,14 @@ function captureSpeech() {
       }
 
       const spokenSoFar = (transcript + ' ' + interim).trim();
+      if (onInterim) onInterim(spokenSoFar);
+
       if (spokenSoFar) {
         clearTimeout(silenceTimer);
-        // After 600ms of silence after speaking, finalize immediately
+        // 1100ms natural conversational pause before finalizing
         silenceTimer = setTimeout(() => {
           finalize(spokenSoFar);
-        }, 600);
+        }, 1100);
       }
     };
 
@@ -203,12 +195,7 @@ function captureSpeech() {
     };
 
     rec.onerror = (e) => {
-      if (e.error === 'no-speech') {
-        finalize('');
-      } else {
-        console.warn('[Chrome Voice Error]', e.error);
-        finalize('');
-      }
+      finalize('');
     };
 
     try {
@@ -219,22 +206,24 @@ function captureSpeech() {
   });
 }
 
-export default function VoiceConversation({ isActive, setVoicePhase }) {
+export default function VoiceConversation({ isActive, onStop, voicePhase = 'idle', setVoicePhase }) {
   const activeLoopRef = useRef(false);
   const conversationHistory = useRef([]);
+  const [liveSpoken, setLiveSpoken] = React.useState('');
 
   useEffect(() => {
     if (!isActive) {
       activeLoopRef.current = false;
       stopAllSpeech();
       if (setVoicePhase) setVoicePhase('idle');
+      setLiveSpoken('');
       return;
     }
 
     activeLoopRef.current = true;
     conversationHistory.current = [];
 
-    // Unlock Chrome audio immediately on click
+    // Unlock Chrome audio immediately on user click
     unlockAudio();
     if (window.speechSynthesis) {
       window.speechSynthesis.getVoices();
@@ -249,17 +238,22 @@ export default function VoiceConversation({ isActive, setVoicePhase }) {
       while (activeLoopRef.current) {
         // ── 1. Listening ────────────────────────────────
         if (setVoicePhase) setVoicePhase('listening');
+        setLiveSpoken('');
 
-        const userText = await captureSpeech();
+        const userText = await captureSpeech((interim) => {
+          if (activeLoopRef.current) setLiveSpoken(interim);
+        });
 
         if (!activeLoopRef.current) break;
         if (!userText || !userText.trim()) {
-          await new Promise(r => setTimeout(r, 150));
+          // Delay between recognition passes to allow Chrome recognizer to reset cleanly
+          await new Promise(r => setTimeout(r, 400));
           continue;
         }
 
         // ── 2. Processing & Speaking ────────────────────
         if (setVoicePhase) setVoicePhase('speaking');
+        setLiveSpoken(userText);
 
         conversationHistory.current.push({ role: 'user', content: userText });
 
@@ -279,14 +273,14 @@ export default function VoiceConversation({ isActive, setVoicePhase }) {
           }
         } catch {}
 
-        // Fallback to client AI engine with sub-second response
+        // Fast client AI fallback for immediate sub-second spoken replies
         if (!reply) {
           try {
             reply = await generateAIResponse({
               messages: [
                 {
                   role: 'system',
-                  content: 'You are Calvras Voice. Reply in EXACTLY 1 short, natural sentence (under 12 words). Never use markdown, bullet points, or code. Speak directly.'
+                  content: 'You are Calvras Voice. Reply in EXACTLY 1 short natural sentence (under 12 words). Never use markdown, asterisks, bullet points, or code. Speak directly to the user.'
                 },
                 ...conversationHistory.current.slice(-4)
               ],
@@ -294,7 +288,7 @@ export default function VoiceConversation({ isActive, setVoicePhase }) {
             });
             reply = reply.replace(/```[\s\S]*?```/g, '').replace(/[*_~#>[\]]/g, '').trim();
           } catch (aiErr) {
-            reply = "I'm with you. What would you like to build?";
+            reply = "I'm listening. What would you like to build?";
           }
         }
 
@@ -307,10 +301,11 @@ export default function VoiceConversation({ isActive, setVoicePhase }) {
         await speakResponse(reply);
 
         if (!activeLoopRef.current) break;
-        await new Promise(r => setTimeout(r, 200));
+        await new Promise(r => setTimeout(r, 250));
       }
 
       if (setVoicePhase) setVoicePhase('idle');
+      setLiveSpoken('');
     };
 
     runLoop();
@@ -322,5 +317,32 @@ export default function VoiceConversation({ isActive, setVoicePhase }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive]);
 
-  return null;
+  if (!isActive) return null;
+
+  return (
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-2.5 rounded-full bg-[#18181f]/95 backdrop-blur-xl border border-white/15 shadow-[0_12px_40px_rgba(0,0,0,0.8)] select-none animate-in fade-in slide-in-from-top-3 duration-200">
+      <div className="flex items-center gap-2">
+        <span className={`w-2.5 h-2.5 rounded-full ${voicePhase === 'speaking' ? 'bg-orange-400 animate-pulse' : 'bg-blue-400 animate-ping'}`} />
+        <span className="text-xs font-semibold text-white tracking-wide">
+          {voicePhase === 'speaking' ? 'Calvras speaking…' : 'Listening… speak now'}
+        </span>
+      </div>
+
+      {liveSpoken && (
+        <span className="text-xs text-neutral-300 max-w-[200px] truncate italic border-l border-white/10 pl-2">
+          "{liveSpoken}"
+        </span>
+      )}
+
+      <button
+        type="button"
+        onClick={() => onStop && onStop()}
+        className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-500/20 hover:bg-red-500/30 text-red-300 text-[11px] font-medium transition-colors border border-red-500/30 cursor-pointer ml-1"
+        title="Stop voice mode"
+      >
+        <div className="w-2 h-2 rounded-sm bg-red-400" />
+        <span>End</span>
+      </button>
+    </div>
+  );
 }

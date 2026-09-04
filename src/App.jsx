@@ -14,6 +14,7 @@ import AuthPage from './components/AuthPage';
 import PricingOnboarding from './components/PricingOnboarding';
 import LandingPage from './components/LandingPage';
 import ProjectsPage from './components/ProjectsPage';
+import DeveloperPage from './components/DeveloperPage';
 
 function getInitialRoute() {
   try {
@@ -359,7 +360,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#0f0f0e] text-[#ececed] p-2 pl-0.5 gap-2 animate-in fade-in duration-200 sm:p-2 p-0" style={{ overflow: 'hidden' }}>
+    <div className="flex h-screen w-screen overflow-hidden bg-[#0f0f0e] text-[#ececed]">
       {/* Mobile sidebar overlay backdrop */}
       {!sidebarCollapsed && (
         <div
@@ -385,7 +386,7 @@ export default function App() {
           onOpenComputer={() => setIsCodeStudioOpen(true)}
           onOpenArtifacts={() => setIsCodeStudioOpen(true)}
           onOpenCustomize={() => navigateTo('pricing')}
-          onOpenDeveloper={() => setIsDeveloperOpen(true)}
+          onOpenDeveloper={() => setActiveNav('developer')}
           onOpenAccount={() => navigateTo('pricing')}
           onOpenCustomerService={() => setIsFeedbackOpen(true)}
           onSignOut={handleSignOut}
@@ -397,42 +398,42 @@ export default function App() {
         />
       </div>
 
-      {/* Main Chat / Projects Inset Frame */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
-        <div className="relative flex flex-col flex-1 h-full overflow-hidden sm:rounded-[20px] rounded-none border sm:border-[#52525a] border-transparent bg-[#141414] shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
-          {activeNav === 'projects' ? (
-            <ProjectsPage
-              sessions={sessions}
-              onSelectProject={(p) => {
-                if (p.sessionId) {
-                  handleSelectSession(p.sessionId);
-                } else if (p.prompt) {
-                  handleNewChat();
-                  setMessages([{
-                    id: `msg-${Date.now()}`,
-                    role: 'user',
-                    content: p.prompt,
-                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                  }]);
-                }
-                setActiveNav('home');
-              }}
-              onCreateProject={() => {
+      {/* Main Chat / Projects / Developer Frame */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0 bg-[#141414]">
+        {activeNav === 'projects' ? (
+          <ProjectsPage
+            sessions={sessions}
+            onSelectProject={(p) => {
+              if (p.sessionId) {
+                handleSelectSession(p.sessionId);
+              } else if (p.prompt) {
                 handleNewChat();
-                setActiveNav('home');
-              }}
-            />
-          ) : (
-            <MainChat
-              messages={messages}
-              setMessages={setMessages}
-              sidebarCollapsed={sidebarCollapsed}
-              setSidebarCollapsed={setSidebarCollapsed}
-              onBrowseAll={() => setIsCodeStudioOpen(true)}
-              onUserMessage={handleUserMessage}
-            />
-          )}
-        </div>
+                setMessages([{
+                  id: `msg-${Date.now()}`,
+                  role: 'user',
+                  content: p.prompt,
+                  time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                }]);
+              }
+              setActiveNav('home');
+            }}
+            onCreateProject={() => {
+              handleNewChat();
+              setActiveNav('home');
+            }}
+          />
+        ) : activeNav === 'developer' ? (
+          <DeveloperPage />
+        ) : (
+          <MainChat
+            messages={messages}
+            setMessages={setMessages}
+            sidebarCollapsed={sidebarCollapsed}
+            setSidebarCollapsed={setSidebarCollapsed}
+            onBrowseAll={() => setIsCodeStudioOpen(true)}
+            onUserMessage={handleUserMessage}
+          />
+        )}
       </div>
 
       {/* Modals & Studios */}

@@ -8,7 +8,8 @@ import {
   ChevronRight, 
   CheckCircle2, 
   Sparkles,
-  ShieldCheck
+  ShieldCheck,
+  Code2
 } from 'lucide-react';
 
 export default function Sidebar({ 
@@ -123,6 +124,23 @@ export default function Sidebar({
             <FolderGit2 size={16} className={activeNav === 'projects' ? 'text-blue-400' : 'text-neutral-400'} />
           </div>
           {!collapsed && <span>Projects</span>}
+        </button>
+
+        {/* Developer Page Button */}
+        <button 
+          type="button"
+          onClick={() => setActiveNav('developer')}
+          className={`flex items-center gap-2.5 w-full px-2.5 py-2 rounded-xl text-[13.5px] font-medium transition-colors cursor-pointer ${
+            activeNav === 'developer'
+              ? 'bg-[#0084ff]/15 text-blue-400 border border-blue-500/30'
+              : 'text-neutral-300 hover:text-white hover:bg-white/[0.06] border border-transparent'
+          } ${collapsed ? 'justify-center' : ''}`}
+          title="Developer"
+        >
+          <div className="w-5 h-5 flex items-center justify-center">
+            <Code2 size={16} className={activeNav === 'developer' ? 'text-blue-400' : 'text-neutral-400'} />
+          </div>
+          {!collapsed && <span>Developer</span>}
         </button>
       </div>
 

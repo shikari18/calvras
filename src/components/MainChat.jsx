@@ -819,32 +819,45 @@ function InputToolbar({
   isWorking,
   onStop
 }) {
+  const [showConnectorsNotice, setShowConnectorsNotice] = useState(false);
   const hasContent = input.trim() || attachedFiles.length > 0;
 
   return (
     <div className="flex items-center justify-between pt-1 mt-1">
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1.5">
         <PlusActionMenu
           onAttachFiles={onAttach}
           onImportProject={onImportProject}
           isHero={isHero}
         />
 
-        {/* Connectors button right at the side of plus with custom SVG */}
-        <button
-          type="button"
-          onClick={() => window.dispatchEvent(new CustomEvent('calvras_open_tools'))}
-          className="flex items-center justify-center p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer"
-          title="Connectors"
-        >
-          <svg width={isHero ? 17 : 15} height={isHero ? 17 : 15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="7" height="7" rx="1.5" />
-            <rect x="14" y="3" width="7" height="7" rx="1.5" />
-            <rect x="14" y="14" width="7" height="7" rx="1.5" />
-            <rect x="3" y="14" width="7" height="7" rx="1.5" />
-            <path d="M10 6.5h4M6.5 10v4M17.5 10v4M10 17.5h4" />
-          </svg>
-        </button>
+        {/* Connectors button with SVG and text */}
+        <div className="relative inline-block">
+          <button
+            type="button"
+            onClick={() => {
+              setShowConnectorsNotice(true);
+              setTimeout(() => setShowConnectorsNotice(false), 3500);
+            }}
+            className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-neutral-400 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer group"
+            title="Connectors"
+          >
+            <svg width={isHero ? 16 : 14} height={isHero ? 16 : 14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="1.5" />
+              <rect x="14" y="3" width="7" height="7" rx="1.5" />
+              <rect x="14" y="14" width="7" height="7" rx="1.5" />
+              <rect x="3" y="14" width="7" height="7" rx="1.5" />
+              <path d="M10 6.5h4M6.5 10v4M17.5 10v4M10 17.5h4" />
+            </svg>
+            <span className="text-[12.5px] font-medium text-neutral-400 group-hover:text-white">Connectors</span>
+          </button>
+
+          {showConnectorsNotice && (
+            <div className="absolute bottom-full left-0 mb-2 whitespace-nowrap px-3 py-1.5 rounded-xl bg-[#1e1e24] text-neutral-200 text-xs shadow-xl border border-white/10 animate-in fade-in zoom-in-95 duration-150 z-50 flex items-center gap-1.5">
+              <span>No connectors for now, coming soon</span>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center gap-1.5">
@@ -865,29 +878,7 @@ function InputToolbar({
           {isSttActive ? <MicOff size={16} /> : <Mic size={16} />}
         </button>
 
-        {/* Voice conversation mode button (speech-to-speech) */}
-        {!isWorking && !hasContent && (
-          <button
-            type="button"
-            onClick={() => setIsRecording(v => !v)}
-            className={`flex items-center justify-center w-8 h-8 rounded-full transition-all shadow-md cursor-pointer ${
-              isRecording
-                ? 'bg-white text-black hover:bg-neutral-200 ring-2 ring-white/40'
-                : 'bg-white/[0.08] hover:bg-white/[0.15] text-neutral-300 hover:text-white'
-            }`}
-            title={isRecording ? 'Stop voice mode' : 'Start voice conversation (speech to speech)'}
-          >
-            {isRecording ? (
-              <Square size={13} fill="currentColor" />
-            ) : (
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M2 10v4M6 6v12M10 3v18M14 8v8M18 5v14M22 10v4" />
-              </svg>
-            )}
-          </button>
-        )}
-
-        {/* Right action button — Stop, Send, or Voice mode */}
+        {/* Right action button — Stop, Send, or Single Voice Mode Button */}
         {isWorking ? (
           <button
             type="button"
@@ -914,22 +905,28 @@ function InputToolbar({
         ) : (
           <button
             type="button"
-            onClick={() => { if (!isSttActive) setIsRecording(true); }}
+            onClick={() => { if (!isSttActive) setIsRecording(v => !v); }}
             disabled={isSttActive}
-            className={`flex items-center justify-center w-8 h-8 rounded-full transition-all shadow-md ${
+            className={`flex items-center justify-center w-8 h-8 rounded-full transition-all shadow-md cursor-pointer ${
               isSttActive
                 ? 'bg-neutral-700 text-neutral-500 cursor-not-allowed opacity-30'
-                : 'bg-white hover:bg-neutral-100 text-black cursor-pointer'
+                : isRecording
+                ? 'bg-red-500 text-white hover:bg-red-600 ring-2 ring-red-400/50 animate-pulse'
+                : 'bg-white hover:bg-neutral-100 text-black'
             }`}
-            title={isSttActive ? 'Unavailable while dictating' : 'Voice mode (speech to speech)'}
+            title={isSttActive ? 'Unavailable while dictating' : isRecording ? 'Stop voice mode' : 'Voice mode (speech to speech)'}
           >
-            <svg width="17" height="14" viewBox="0 0 17 14" fill="none">
-              <rect x="0"  y="5"  width="2.5" height="4"  rx="1.25" fill="currentColor" />
-              <rect x="4"  y="3"  width="2.5" height="8"  rx="1.25" fill="currentColor" />
-              <rect x="7.75" y="0.5" width="2.5" height="13" rx="1.25" fill="currentColor" />
-              <rect x="11.5" y="3"  width="2.5" height="8"  rx="1.25" fill="currentColor" />
-              <rect x="15.5" y="5"  width="2.5" height="4"  rx="1.25" fill="currentColor" />
-            </svg>
+            {isRecording ? (
+              <Square size={12} fill="currentColor" />
+            ) : (
+              <svg width="17" height="14" viewBox="0 0 17 14" fill="none">
+                <rect x="0"  y="5"  width="2.5" height="4"  rx="1.25" fill="currentColor" />
+                <rect x="4"  y="3"  width="2.5" height="8"  rx="1.25" fill="currentColor" />
+                <rect x="7.75" y="0.5" width="2.5" height="13" rx="1.25" fill="currentColor" />
+                <rect x="11.5" y="3"  width="2.5" height="8"  rx="1.25" fill="currentColor" />
+                <rect x="15.5" y="5"  width="2.5" height="4"  rx="1.25" fill="currentColor" />
+              </svg>
+            )}
           </button>
         )}
       </div>
@@ -2215,7 +2212,7 @@ CRITICAL:
           ...history.slice(0, -1),
           {
             role: 'user',
-            content: `${query}\n\nCRITICAL INSTRUCTIONS FOR CALVRAS:\n1. Build the complete production-grade application in React 18 TypeScript with Lucide icons and Tailwind CSS.\n2. If 1 to 4 images are attached: inspect every single image (Image 1, Image 2, Image 3, Image 4). If they represent multiple pages/screens (e.g. Landing, Pricing, Dashboard, Settings), build a complete multi-page app with interactive navigation/tabs linking each page.\n3. Output full self-contained files with code headers (e.g. \`\`\`tsx file=src/App.tsx).`,
+            content: `${query}\n\nCRITICAL INSTRUCTIONS FOR CALVRAS:\n1. Build and duplicate the complete production-grade application in React 18 TypeScript with Lucide icons and Tailwind CSS.\n2. Output the full code in \`\`\`tsx file=src/App.tsx immediately. DO NOT just say you will clone or build it — you MUST output the actual full code blocks in this response!\n3. If 1 to 4 images are attached: duplicate the design with 10/10 pixel-perfect accuracy (exact layout, navbar, cards, colors, typography, and functional interactions).\n4. Every file must be self-contained and complete with export default.`,
             files: currentAttachedFiles
           }
         ];
@@ -2279,11 +2276,34 @@ CRITICAL:
 
             let extractedFiles = (isPromptContext || isConversationalQuestion || isPastedImageOnly) ? {} : extractFilesFromAIResponse(rawStream, query);
 
-            // If explicit build but no files extracted, try once more on rawStream directly
+            // If explicit build but no files extracted, try second pass on rawStream directly
             if (isExplicitBuild && Object.keys(extractedFiles).length === 0 && rawStream.length > 100) {
               const secondPass = extractFilesFromAIResponse(rawStream, 'build app');
               if (Object.keys(secondPass).length > 0) {
                 Object.assign(extractedFiles, secondPass);
+              }
+            }
+
+            // ── Autonomous Self-Healing Code Generation ──
+            // If the model gave a conversational promise without code, IMMEDIATELY generate the complete code
+            if (isExplicitBuild && Object.keys(extractedFiles).length === 0) {
+              setStreamingText('Generating full application code for preview…');
+              try {
+                const codeGenMessages = [
+                  ...messagesForAI,
+                  { role: 'assistant', content: finalContent },
+                  { 
+                    role: 'user', 
+                    content: `Generate the complete, runnable production-ready React 18 TypeScript code for src/App.tsx to duplicate this UI with 10/10 pixel-perfect design, colors, cards, and icons now. Wrap in:\n\`\`\`tsx file=src/App.tsx\n// Complete code\n\`\`\`` 
+                  }
+                ];
+                const generatedRaw = await generateAIResponse({ messages: codeGenMessages, mode: 'build' });
+                const codeFiles = extractFilesFromAIResponse(generatedRaw, 'build');
+                if (Object.keys(codeFiles).length > 0) {
+                  Object.assign(extractedFiles, codeFiles);
+                }
+              } catch (err) {
+                console.warn('[Self-Healing Code Generation]', err);
               }
             }
 
