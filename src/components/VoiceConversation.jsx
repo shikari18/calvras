@@ -2,6 +2,7 @@
  * VoiceConversation — Chrome-tested & hardened Speech-to-Speech Engine
  */
 import React, { useEffect, useRef } from 'react';
+import { generateAIResponse } from '../services/aiService';
 
 const IS_LOCAL = typeof window !== 'undefined' &&
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
@@ -264,19 +265,37 @@ export default function VoiceConversation({ isActive, setVoicePhase }) {
 
         let reply = '';
         try {
-          const res = await fetch(VOICE_CHAT_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ messages: conversationHistory.current.slice(-6) }),
-            signal: AbortSignal.timeout(6000),
-          });
-
-          if (res.ok) {
-            const data = await res.json();
-            reply = data.text || '';
+          if (IS_LOCAL) {
+            const res = await fetch(VOICE_CHAT_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ messages: conversationHistory.current.slice(-6) }),
+              signal: AbortSignal.timeout(4000),
+            });
+            if (res.ok) {
+              const data = await res.json();
+              reply = data.text || '';
+            }
           }
-        } catch (err) {
-          console.warn('[Voice API Error]', err.message);
+        } catch {}
+
+        // Fallback to client AI engine with sub-second response
+        if (!reply) {
+          try {
+            reply = await generateAIResponse({
+              messages: [
+                {
+                  role: 'system',
+                  content: 'You are Calvras Voice. Reply in EXACTLY 1 short, natural sentence (under 12 words). Never use markdown, bullet points, or code. Speak directly.'
+                },
+                ...conversationHistory.current.slice(-4)
+              ],
+              mode: 'voice'
+            });
+            reply = reply.replace(/```[\s\S]*?```/g, '').replace(/[*_~#>[\]]/g, '').trim();
+          } catch (aiErr) {
+            reply = "I'm with you. What would you like to build?";
+          }
         }
 
         if (!activeLoopRef.current) break;

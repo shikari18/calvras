@@ -7,7 +7,6 @@ export default function PlusActionMenu({
   isHero = false,
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [showConnectors, setShowConnectors] = useState(false);
   const menuRef = useRef(null);
   const folderInputRef = useRef(null);
 
@@ -34,11 +33,6 @@ export default function PlusActionMenu({
     const files = Array.from(e.target.files || []);
     if (files.length > 0 && onImportProject) onImportProject(files);
     e.target.value = '';
-  };
-
-  const handleConnectClick = () => {
-    close();
-    setShowConnectors(true);
   };
 
   return (
