@@ -969,8 +969,56 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
       if (this.tagName === 'IMG' && name === 'src') {
         value = resolveImgSrc(value);
       }
-      return origSetAttribute.call(this, name, value);
-    };
+    // 1. Intercept all link clicks inside the sandbox preview so it never opens Calvras website inside the preview
+    document.addEventListener('click', function(e) {
+      const link = e.target && e.target.closest ? e.target.closest('a') : null;
+      if (!link) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const href = link.getAttribute('href');
+      if (!href || href === '#' || href.startsWith('javascript:')) return;
+      
+      // If it's a full external URL, open safely in new window/tab
+      if (href.startsWith('http://') || href.startsWith('https://')) {
+        try { window.open(href, '_blank', 'noopener,noreferrer'); } catch {}
+        return;
+      }
+      
+      // If it's an internal route link, dispatch route change event for router/tabs
+      try {
+        window.__activeRoutePath = href;
+        window.dispatchEvent(new CustomEvent('calvras_route_change', { detail: { path: href } }));
+      } catch {}
+    }, true);
+
+    // 2. Prevent form submission navigations from reloading the iframe
+    document.addEventListener('submit', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }, true);
+
+    // 3. Auto-fallback for broken images so cards never show broken image icons
+    const CURATED_CARD_FALLBACKS = [
+      'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80'
+    ];
+
+    window.addEventListener('error', function(e) {
+      if (e.target && e.target.tagName === 'IMG') {
+        const currentSrc = e.target.getAttribute('src') || '';
+        const hash = Math.abs(currentSrc.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a; }, 0));
+        const chosen = CURATED_CARD_FALLBACKS[hash % CURATED_CARD_FALLBACKS.length];
+        if (e.target.src !== chosen) {
+          e.target.src = chosen;
+        }
+      }
+    }, true);
 
     // Mount the Application
     function mountApp() {

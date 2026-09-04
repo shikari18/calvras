@@ -1,18 +1,404 @@
 export function generateFullArchitectureApp(topic = 'Modern Application') {
   const queryStr = String(topic || '').toLowerCase();
 
-  // 1. Perplexity / AI Search & Research Engine UI
+  // 1. Dribbble / Design Inspiration Gallery / Dark Background / Image Card Grid
+  if (/dribbble|gallery|inspiration|dark background|portfolio|card|shots|designers|numbers|image/i.test(queryStr)) {
+    return generateDribbbleGalleryApp();
+  }
+
+  // 2. Perplexity / AI Search & Research Engine UI
   if (/perplexity|search|what do you want to know|ask|query|research|engine|browser|finder/i.test(queryStr)) {
     return generatePerplexityApp();
   }
 
-  // 2. Analytics & Management Dashboard UI
+  // 3. Analytics & Management Dashboard UI
   if (/dashboard|analytics|admin|crm|metrics|stat|finance|crypto|sales/i.test(queryStr)) {
     return generateDashboardApp();
   }
 
-  // 3. Default High-End Application Studio UI (Audio / Catalog)
+  // 4. Default High-End Application Studio UI (Audio / Catalog)
   return generateDefaultStudioApp();
+}
+
+function generateDribbbleGalleryApp() {
+  return {
+    'Calvras/src/App.tsx': `import React, { useState } from 'react';
+import { 
+  Search, 
+  Heart, 
+  Eye, 
+  Bookmark, 
+  Share2, 
+  MessageSquare, 
+  Bell, 
+  ChevronDown, 
+  Filter, 
+  Sparkles, 
+  Menu, 
+  X,
+  ArrowUpRight
+} from 'lucide-react';
+
+interface CardItem {
+  id: number;
+  title: string;
+  author: string;
+  badge: 'PRO' | 'Ad' | 'Team';
+  likes: number;
+  views: string;
+  category: string;
+  image: string;
+  avatar: string;
+}
+
+export default function App() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState('All');
+  const [likedCards, setLikedCards] = useState<Record<number, boolean>>({});
+  const [savedCards, setSavedCards] = useState<Record<number, boolean>>({});
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const categories = [
+    'All', 
+    'Animation', 
+    'Branding', 
+    'Illustration', 
+    'Mobile', 
+    'Print', 
+    'Product Design', 
+    'Typography', 
+    'Web Design'
+  ];
+
+  const initialCards: CardItem[] = [
+    {
+      id: 1,
+      title: 'Baseball Dynamic Illustrated Action',
+      author: 'Orbix Studio LLC',
+      badge: 'PRO',
+      likes: 138,
+      views: '10.2k',
+      category: 'Illustration',
+      image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=800&auto=format&fit=crop&q=80',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'
+    },
+    {
+      id: 2,
+      title: '{ Code Smarter } Dark Multi-Device Mockup',
+      author: 'Nizam',
+      badge: 'PRO',
+      likes: 186,
+      views: '10.2k',
+      category: 'Mobile',
+      image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&auto=format&fit=crop&q=80',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80'
+    },
+    {
+      id: 3,
+      title: 'The professional canvas with built-in agents',
+      author: 'Framer',
+      badge: 'Ad',
+      likes: 420,
+      views: '15.1k',
+      category: 'Web Design',
+      image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80',
+      avatar: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=100&auto=format&fit=crop&q=80'
+    },
+    {
+      id: 4,
+      title: 'Iridescent 3D Cosmic Glow Sphere',
+      author: 'Tridimensi',
+      badge: 'PRO',
+      likes: 50,
+      views: '9.0k',
+      category: 'Product Design',
+      image: 'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=800&auto=format&fit=crop&q=80',
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80'
+    },
+    {
+      id: 5,
+      title: 'NRC Running Companion Mobile Experience',
+      author: 'Nike Digital',
+      badge: 'PRO',
+      likes: 240,
+      views: '12.4k',
+      category: 'Mobile',
+      image: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&auto=format&fit=crop&q=80',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80'
+    },
+    {
+      id: 6,
+      title: 'Global Currency & Financial Flow Architecture',
+      author: 'Apex Wealth',
+      badge: 'PRO',
+      likes: 95,
+      views: '8.1k',
+      category: 'Branding',
+      image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&auto=format&fit=crop&q=80',
+      avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=100&auto=format&fit=crop&q=80'
+    },
+    {
+      id: 7,
+      title: 'Design intelligent systems that move, adapt, and scale',
+      author: 'Aura UI',
+      badge: 'PRO',
+      likes: 310,
+      views: '14.5k',
+      category: 'Web Design',
+      image: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&auto=format&fit=crop&q=80',
+      avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&auto=format&fit=crop&q=80'
+    },
+    {
+      id: 8,
+      title: 'Artisanal Ice Cream & Seaside Lighthouse Scene',
+      author: 'VectorCraft',
+      badge: 'PRO',
+      likes: 162,
+      views: '7.9k',
+      category: 'Illustration',
+      image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&auto=format&fit=crop&q=80',
+      avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&auto=format&fit=crop&q=80'
+    }
+  ];
+
+  const toggleLike = (id: number) => {
+    setLikedCards(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const toggleSave = (id: number) => {
+    setSavedCards(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const filteredCards = initialCards.filter(c => {
+    const matchesSearch = c.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          c.author.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = activeCategory === 'All' || c.category === activeCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  return (
+    <div className="min-h-screen bg-white text-neutral-900 font-sans antialiased selection:bg-rose-500 selection:text-white">
+      {/* Top Navigation Bar */}
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-neutral-200/80 px-4 md:px-8 py-3.5 flex items-center justify-between">
+        <div className="flex items-center gap-6">
+          {/* Dribbble Logo */}
+          <div className="flex items-center gap-1 cursor-pointer">
+            <span className="text-2xl font-serif italic font-extrabold tracking-tight text-neutral-900">
+              Dribbble
+            </span>
+          </div>
+
+          {/* Desktop Search Bar */}
+          <div className="hidden lg:flex items-center bg-neutral-100 hover:bg-neutral-200/70 transition-colors rounded-full px-4 py-2 w-80 text-xs text-neutral-700">
+            <input 
+              type="text" 
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="What are you looking for?"
+              className="bg-transparent border-none outline-none flex-1 placeholder-neutral-500 text-xs"
+            />
+            <div className="flex items-center gap-2 pl-2 border-l border-neutral-300 text-neutral-600">
+              <span className="font-medium text-[11px]">Shots</span>
+              <ChevronDown size={12} />
+              <button className="w-6 h-6 rounded-full bg-rose-500 text-white flex items-center justify-center hover:bg-rose-600 transition-colors">
+                <Search size={11} strokeWidth={2.5} />
+              </button>
+            </div>
+          </div>
+
+          {/* Nav Links */}
+          <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-neutral-700">
+            <a href="#explore" className="hover:text-black transition-colors flex items-center gap-1">
+              Explore <ChevronDown size={11} />
+            </a>
+            <a href="#hire" className="hover:text-black transition-colors flex items-center gap-1">
+              Hire Talent <ChevronDown size={11} />
+            </a>
+            <a href="#jobs" className="hover:text-black transition-colors flex items-center gap-1">
+              Get Hired <ChevronDown size={11} />
+            </a>
+            <a href="#community" className="hover:text-black transition-colors flex items-center gap-1">
+              Community <ChevronDown size={11} />
+            </a>
+          </nav>
+        </div>
+
+        {/* Right Header Actions */}
+        <div className="flex items-center gap-3">
+          <button className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-neutral-200 hover:border-neutral-300 text-xs font-semibold text-neutral-800 transition-colors">
+            Start Project Brief
+          </button>
+          <button className="p-2 text-neutral-600 hover:text-neutral-900 transition-colors hidden sm:block">
+            <MessageSquare size={16} />
+          </button>
+          <button className="p-2 text-neutral-600 hover:text-neutral-900 transition-colors hidden sm:block">
+            <Bell size={16} />
+          </button>
+          <div className="relative cursor-pointer">
+            <img 
+              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" 
+              alt="User profile" 
+              className="w-8 h-8 rounded-full object-cover ring-1 ring-neutral-200"
+            />
+            <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white" />
+          </div>
+
+          {/* Mobile Menu Toggle */}
+          <button 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-2 text-neutral-700 hover:text-black md:hidden"
+          >
+            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
+      </header>
+
+      {/* Mobile Menu Drawer */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-b border-neutral-200 bg-white p-4 space-y-3 animate-in slide-in-from-top-2">
+          <div className="flex items-center bg-neutral-100 rounded-full px-4 py-2 text-xs">
+            <Search size={14} className="text-neutral-400 mr-2" />
+            <input 
+              type="text" 
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Search shots..."
+              className="bg-transparent border-none outline-none flex-1 text-xs"
+            />
+          </div>
+          <div className="flex flex-col space-y-2 text-sm font-semibold text-neutral-700 pt-2">
+            <a href="#explore">Explore</a>
+            <a href="#hire">Hire Talent</a>
+            <a href="#jobs">Get Hired</a>
+            <a href="#community">Community</a>
+          </div>
+        </div>
+      )}
+
+      {/* Main Inspiration Hero */}
+      <main className="max-w-7xl mx-auto px-4 md:px-8 py-10 md:py-14">
+        <div className="text-center max-w-2xl mx-auto space-y-3 mb-10">
+          <h1 className="text-3xl md:text-5xl font-extrabold text-neutral-900 tracking-tight">
+            Dark Background
+          </h1>
+          <p className="text-xs md:text-sm text-neutral-500 font-normal leading-relaxed">
+            487 inspirational designs, illustrations, and graphic elements from the world's best designers.
+            <br />
+            Want more inspiration? Browse our <a href="#search" className="underline hover:text-rose-500 font-medium">search results...</a>
+          </p>
+        </div>
+
+        {/* Categories / Filter Pills */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-8 no-scrollbar scroll-smooth">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={\`whitespace-nowrap px-4 py-2 rounded-full text-xs font-semibold transition-all cursor-pointer \${
+                activeCategory === cat
+                  ? 'bg-neutral-900 text-white shadow-sm'
+                  : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200/80 hover:text-neutral-900'
+              }\`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* Responsive Design Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {filteredCards.map((card) => {
+            const isLiked = likedCards[card.id];
+            const isSaved = savedCards[card.id];
+
+            return (
+              <div 
+                key={card.id}
+                className="group flex flex-col space-y-3 cursor-pointer"
+              >
+                {/* Card Visual Image Container */}
+                <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-neutral-900 shadow-sm group-hover:shadow-xl transition-all duration-300">
+                  <img 
+                    src={card.image} 
+                    alt={card.title} 
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+
+                  {/* Hover Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-4 pointer-events-none">
+                    <div className="flex justify-end pointer-events-auto">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); toggleSave(card.id); }}
+                        className="p-2 rounded-full bg-white/90 hover:bg-white text-neutral-900 shadow-md transition-transform active:scale-95"
+                      >
+                        <Bookmark size={14} className={isSaved ? 'fill-neutral-900' : ''} />
+                      </button>
+                    </div>
+
+                    <div className="text-white space-y-1">
+                      <h3 className="text-sm font-bold line-clamp-1">{card.title}</h3>
+                      <p className="text-[11px] text-neutral-300">{card.category}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Author & Metrics Row */}
+                <div className="flex items-center justify-between text-xs px-1">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <img 
+                      src={card.avatar} 
+                      alt={card.author} 
+                      className="w-6 h-6 rounded-full object-cover ring-1 ring-neutral-200"
+                    />
+                    <span className="font-bold text-neutral-800 truncate text-[12px]">{card.author}</span>
+                    <span className={\`text-[9px] font-extrabold px-1.5 py-0.5 rounded tracking-wider uppercase \${
+                      card.badge === 'PRO' ? 'bg-neutral-800 text-white' : 'bg-neutral-200 text-neutral-700'
+                    }\`}>
+                      {card.badge}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3 text-neutral-500 font-medium text-[11px]">
+                    <button 
+                      onClick={() => toggleLike(card.id)}
+                      className="flex items-center gap-1 hover:text-rose-500 transition-colors"
+                    >
+                      <Heart 
+                        size={13} 
+                        className={\`transition-colors \${isLiked ? 'fill-rose-500 text-rose-500' : ''}\`} 
+                      />
+                      <span>{card.likes + (isLiked ? 1 : 0)}</span>
+                    </button>
+                    <div className="flex items-center gap-1">
+                      <Eye size={13} />
+                      <span>{card.views}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {filteredCards.length === 0 && (
+          <div className="py-20 text-center space-y-2">
+            <p className="text-base font-semibold text-neutral-800">No design shots found matching "{searchQuery}"</p>
+            <p className="text-xs text-neutral-500">Try searching for different keywords or clear the category filter.</p>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}`,
+    'Calvras/src/lib/db.ts': `export const sampleDribbbleShots = [
+  { id: 1, title: 'Baseball Illustration', author: 'Orbix Studio LLC', likes: 138 },
+  { id: 2, title: 'Code Smarter Mockup', author: 'Nizam', likes: 186 }
+];`,
+    'Calvras/server/api.js': `import express from 'express';
+const router = express.Router();
+router.get('/api/shots', (req, res) => res.json({ status: 'ok', count: 8 }));
+export default router;`
+  };
 }
 
 function generatePerplexityApp() {

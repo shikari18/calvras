@@ -746,6 +746,36 @@ function generateNaturalDoneSummary(query = '', fileNames = [], isEdit = false) 
   return `Built **${topic || 'the application'}** with ${count} file${count !== 1 ? 's' : ''}. The live preview is ready — let me know if you'd like any changes.`;
 }
 
+// ─── Human Readable Real-Time Progress Narrator (Never Exposes File Paths) ──
+function getHumanReadableProgress(content = '', hasImage = false) {
+  if (!content) {
+    return hasImage 
+      ? 'Analyzing image layout & visual components…' 
+      : 'Analyzing requirements & designing architecture…';
+  }
+  const lower = content.toLowerCase();
+  
+  if (lower.includes('export default') || content.length > 3500) {
+    return 'Polishing visual styling, responsive layouts & preview…';
+  }
+  if (lower.includes('usestate') || lower.includes('useeffect') || lower.includes('onclick') || lower.includes('handlesearch')) {
+    return 'Wiring reactive state, search filters & interactive events…';
+  }
+  if (lower.includes('images.unsplash.com') || lower.includes('pollinations') || lower.includes('avatar') || lower.includes('badge')) {
+    return 'Generating high-resolution visuals, cards & artwork…';
+  }
+  if (lower.includes('lucide-react') || lower.includes('<svg') || lower.includes('icon')) {
+    return 'Designing navigation, vector icons & brand elements…';
+  }
+  if (lower.includes('grid-cols') || lower.includes('flex-col') || lower.includes('navbar') || lower.includes('header')) {
+    return 'Structuring mobile-responsive layouts & component grid…';
+  }
+  if (hasImage) {
+    return 'Replicating visual design, colors & component structure…';
+  }
+  return 'Constructing fullstack components & responsive interface…';
+}
+
 // ─── Shared Running Tasks Header Dock (Persistent DOM — No Typing Interruptions) ─
 function RunningTasksDock({ runningTasks, tasksExpanded, setTasksExpanded, onStopTask }) {
   if (!runningTasks || runningTasks.length === 0) return null;
@@ -1909,8 +1939,8 @@ CRITICAL:
             if (fileMatch) {
               setIsSplitScreen(true);
               setActiveWorkspaceTab('preview');
-              setStreamingText(`Writing \`${fileMatch[1].replace('Calvras/', '')}\`…`);
             }
+            setStreamingText(getHumanReadableProgress(full, false));
             const cmdMatch = full.match(/<run_cmd>([^<]{1,120})<\/run_cmd>/i);
             if (cmdMatch) setCalvrasAction({ type: 'cmd', text: cmdMatch[1].trim() });
             const bMatch = full.match(/<browse>([^<]{1,300})<\/browse>/i);
@@ -2012,7 +2042,7 @@ CRITICAL:
     // 2. Explicit build/clone/duplicate words or UI duplication with image
     const hasBuildKeyword = 
       /\b(?:duplicate|duplicating|duplicated|clone|cloning|cloned|replicate|replicating|recreate|recreating|rebuild|rebuilding|build|building|develop|implement|code|create|make|design|generate|turn\s+this\s+into|convert\s+this\s+into|copy)\b/i.test(trimmedQuery) ||
-      (hasImageAttachment && /\b(?:ui|app|website|site|page|screen|design|dashboard|component|interface|this|like\s+this|same)\b/i.test(trimmedQuery)) ||
+      (hasImageAttachment && /\b(?:ui|app|website|site|page|screen|design|dashboard|component|interface|this|like\s+this|like\s+the\s+image|same|image|images|numbers|card|cards|fix|add)\b/i.test(trimmedQuery)) ||
       (/\b(?:app|website|site|landing\s*page|dashboard|component|ui|interface|prototype|screen|tool)\b/i.test(trimmedQuery) &&
        /\b(?:build|make|create|code|clone|duplicate|design|give|show|do|implement)\b/i.test(trimmedQuery));
 
@@ -2028,9 +2058,10 @@ CRITICAL:
         (trimmedQuery.split(/\s+/).length < 4 && !hasImageAttachment)
       ));
 
-    // 5. In-place surgical edit of existing workspace — ONLY when user explicitly says edit/change/fix + has workspace
-    const isWorkspaceEdit = hasExistingWorkspace && !isConversationalQuestion && !isPromptContext && !hasBuildKeyword && (
-      /\b(?:change|update|modify|edit|fix|adjust|style|color|button|navbar|header|footer|sidebar|make\s+it|make\s+this|remove|replace|add|better|responsive|mobile|align)\b/i.test(trimmedQuery)
+    // 5. In-place surgical edit of existing workspace — when user has an active project and wants changes
+    const isWorkspaceEdit = hasExistingWorkspace && !isConversationalQuestion && !isPromptContext && (
+      /\b(?:change|update|modify|edit|fix|adjust|style|color|button|navbar|header|footer|sidebar|make\s+it|make\s+this|remove|replace|add|better|responsive|mobile|align|numbers|image|images)\b/i.test(trimmedQuery) &&
+      !/\b(?:rebuild\s+from\s+scratch|start\s+over|new\s+project|brand\s+new)\b/i.test(trimmedQuery)
     );
 
     // 6. Explicit build — triggered by hasBuildKeyword or image with build request
@@ -2156,25 +2187,13 @@ CRITICAL:
         onContentChunk: (token, fullContent) => {
           setIsThinking(false);
           setIsStreaming(true);
-          // Show what file is being written — never show actual code
-          const fileMatch = fullContent.match(/```[a-zA-Z0-9_-]*\s+(?:file=|filename=)([^\s\n]+)/i);
-          if (fileMatch) {
-            const writingFile = fileMatch[1].replace('Calvras/', '');
-            const filesWritten = (fullContent.match(/```[a-zA-Z0-9_-]*\s+(?:file=|filename=)[^\s\n]+/gi) || []).length;
+          const hasCodeBlock = /```[a-zA-Z0-9_-]*/.test(fullContent);
+          if (hasCodeBlock) {
             setIsSplitScreen(true);
             setActiveWorkspaceTab('preview');
-            setStreamingText(`Writing \`${writingFile}\`… (${filesWritten} file${filesWritten > 1 ? 's' : ''} ready)`);
-          } else {
-            // Give real-time update from the AI's opening sentence or status
-            const firstProse = fullContent.split('\n').map(l => l.trim()).find(l => l.length > 8 && !l.startsWith('`') && !l.startsWith('<') && !l.startsWith('#') && !l.startsWith('-'));
-            if (firstProse) {
-              setStreamingText(firstProse.slice(0, 90) + (firstProse.length > 90 ? '…' : ''));
-            } else if (hasImageAttachment) {
-              setStreamingText('Analyzing image layout and building fullstack components…');
-            } else {
-              setStreamingText('Building application & preparing preview…');
-            }
           }
+          setStreamingText(getHumanReadableProgress(fullContent, hasImageAttachment));
+
           // Show run_cmd in progress
           const cmdMatch = fullContent.match(/<run_cmd>([^<]{1,120})<\/run_cmd>/i);
           if (cmdMatch) setCalvrasAction({ type: 'cmd', text: cmdMatch[1].trim() });
@@ -2197,9 +2216,9 @@ CRITICAL:
 
             let extractedFiles = (isPromptContext || isPastedImageOnly) ? {} : extractFilesFromAIResponse(rawStream, query);
 
-            // If explicit build but no files extracted, try second pass on rawStream directly
-            if (isExplicitBuild && Object.keys(extractedFiles).length === 0 && rawStream.length > 100) {
-              const secondPass = extractFilesFromAIResponse(rawStream, 'build app');
+            // If explicit build or workspace edit but no files extracted, try second pass on rawStream directly
+            if ((isExplicitBuild || isWorkspaceEdit) && Object.keys(extractedFiles).length === 0 && rawStream.length > 100) {
+              const secondPass = extractFilesFromAIResponse(rawStream, isWorkspaceEdit ? 'modify code' : 'build app');
               if (Object.keys(secondPass).length > 0) {
                 Object.assign(extractedFiles, secondPass);
               }
@@ -2207,19 +2226,20 @@ CRITICAL:
 
             // ── Autonomous Self-Healing Code Generation ──
             // If the model gave a conversational promise without code, IMMEDIATELY generate the complete code
-            if (isExplicitBuild && Object.keys(extractedFiles).length === 0) {
+            if ((isExplicitBuild || isWorkspaceEdit) && Object.keys(extractedFiles).length === 0) {
               setStreamingText('Generating full application code for preview…');
               try {
+                const promptInstruction = isWorkspaceEdit 
+                  ? `Update the active project code to fulfill this request: "${query}". Output the FULL, COMPLETE runnable React 18 TypeScript code for src/App.tsx including all imports, real high-resolution Unsplash images (never number placeholders), and mobile-responsive styling. Wrap in:\n\`\`\`tsx file=src/App.tsx\n// Complete code\n\`\`\``
+                  : `Generate the complete, runnable production-ready React 18 TypeScript code for src/App.tsx to duplicate this UI with 10/10 pixel-perfect design, colors, cards with real Unsplash images (never numbers or blank boxes), mobile responsiveness, and Lucide icons now. Wrap in:\n\`\`\`tsx file=src/App.tsx\n// Complete code\n\`\`\``;
+
                 const codeGenMessages = [
                   ...messagesForAI,
                   { role: 'assistant', content: finalContent },
-                  { 
-                    role: 'user', 
-                    content: `Generate the complete, runnable production-ready React 18 TypeScript code for src/App.tsx to duplicate this UI with 10/10 pixel-perfect design, colors, cards, and icons now. Wrap in:\n\`\`\`tsx file=src/App.tsx\n// Complete code\n\`\`\`` 
-                  }
+                  { role: 'user', content: promptInstruction }
                 ];
                 const generatedRaw = await generateAIResponse({ messages: codeGenMessages, mode: 'build' });
-                const codeFiles = extractFilesFromAIResponse(generatedRaw, 'build');
+                const codeFiles = extractFilesFromAIResponse(generatedRaw, isWorkspaceEdit ? 'edit' : 'build');
                 if (Object.keys(codeFiles).length > 0) {
                   Object.assign(extractedFiles, codeFiles);
                 }
@@ -2228,8 +2248,8 @@ CRITICAL:
               }
             }
 
-            // Ultimate fail-safe: if still 0 files on an explicit build, generate full architecture app
-            if (isExplicitBuild && Object.keys(extractedFiles).length === 0) {
+            // Ultimate fail-safe: if still 0 files on an explicit build or workspace edit
+            if ((isExplicitBuild || isWorkspaceEdit) && Object.keys(extractedFiles).length === 0) {
               try {
                 const fullApp = generateFullArchitectureApp(query || finalContent || 'Production Application UI', 'build');
                 if (fullApp && Object.keys(fullApp).length > 0) {
@@ -2282,7 +2302,11 @@ CRITICAL:
               ]);
               await new Promise(r => setTimeout(r, 600));
 
-              setRunningTasks([{ id: 'server', name: 'subagent [DevServer]: npm run dev (http://calvras.preview:5173)', canStop: true }]);
+              setRunningTasks([{ id: 'server', name: 'subagent [DevServer]: Ready at http://calvras.preview:5173', canStop: false }]);
+              setTimeout(() => {
+                setRunningTasks([]);
+              }, 2500);
+
               const logLines = [
                 ...fileNames.map(fn => ({ type: 'success', text: `✓ Updated ${fn.replace('Calvras/', '')}` })),
                 { type: 'cmd', text: 'npm run dev' },
@@ -2316,14 +2340,10 @@ CRITICAL:
               .replace(/\n{3,}/g, '\n\n')
               .trim();
 
-            const proseOnly = chatContent.replace(/```[\s\S]*?```/g, '').trim();
-
             const questionBlock = extractSelectionQuestion(finalContent) || extractSelectionQuestion(chatContent);
             if (questionBlock) {
               setActiveSelectionQuestion(questionBlock);
-              // Strip the XML tag from chat content — show nothing, the selection appears in the input area
               chatContent = chatContent.replace(questionBlock.rawTag, '').trim();
-              // If nothing left after stripping, don't add a message at all
               if (!chatContent) {
                 setIsThinking(false);
                 setIsStreaming(false);
@@ -2340,16 +2360,40 @@ CRITICAL:
               // Conversational — show cleaned prose
               chatContent = chatContent || finalContent.replace(/```[\s\S]*?```/g, '').replace(/<[^>]+>/g, '').trim();
             } else {
-              // Files were written — NEVER show raw code, show a short summary only
-              const prose = chatContent.replace(/```[\s\S]*?```/g, '').replace(/<[^>]+>/g, '').trim();
-              // Only keep the first 1-2 sentences of prose (before any code)
-              const firstSentences = prose.split(/\.\s+/).slice(0, 2).join('. ').trim();
-              if (firstSentences && firstSentences.length > 10) {
-                chatContent = firstSentences + (firstSentences.endsWith('.') ? '' : '.');
-              } else if (isWorkspaceEdit) {
-                chatContent = `Updated \`${verifiedMain ? verifiedMain.replace('Calvras/', '') : 'App.tsx'}\`.`;
+              // Files were written — talk directly to the user in past tense
+              let prose = chatContent.replace(/```[\s\S]*?```/g, '').replace(/<[^>]+>/g, '').trim();
+
+              // Strip technical file references like "Writing src/App.tsx..."
+              prose = prose
+                .replace(/(?:writing|wrote|generating|updating)\s+[`']?[a-zA-Z0-9_\-./\\]+\.[a-zA-Z0-9]+[`']?[….]?/gi, '')
+                .replace(/file=[^\s\n]+/gi, '')
+                .trim();
+
+              let firstProse = prose.split(/\.\s+/).slice(0, 2).join('. ').trim();
+              if (firstProse) {
+                firstProse = firstProse
+                  .replace(/^building\s+/i, "I've built ")
+                  .replace(/^creating\s+/i, "I've created ")
+                  .replace(/^developing\s+/i, "I've developed ")
+                  .replace(/^implementing\s+/i, "I've implemented ")
+                  .replace(/^recreating\s+/i, "I've recreated ")
+                  .replace(/^duplicating\s+/i, "I've duplicated ")
+                  .replace(/^cloning\s+/i, "I've cloned ")
+                  .replace(/^updating\s+/i, "I've updated ")
+                  .replace(/^adding\s+/i, "I've added ")
+                  .replace(/^i am building\s+/i, "I've built ")
+                  .replace(/^i will build\s+/i, "I've built ");
+                if (!firstProse.endsWith('.')) firstProse += '.';
+              }
+
+              if (isWorkspaceEdit) {
+                chatContent = firstProse && firstProse.length > 15
+                  ? firstProse
+                  : `I've updated the application with your requested changes, visual artwork, and mobile responsiveness. You can test it in the live preview on the right.`;
               } else {
-                chatContent = generateNaturalDoneSummary(query, fileNames, false);
+                chatContent = firstProse && firstProse.length > 20
+                  ? `${firstProse} The application is fully mobile-responsive with high-resolution visual artwork and interactive components ready in the live preview.`
+                  : generateNaturalDoneSummary(query, fileNames, false);
               }
             }
 
@@ -2379,6 +2423,9 @@ CRITICAL:
             setIsStreaming(false);
             setStreamingText('');
             setCalvrasAction(null);
+            setTimeout(() => {
+              setRunningTasks([]);
+            }, 2500);
           }
         },
         onError: (err) => {

@@ -599,17 +599,26 @@ app.post('/api/v1/chat/completions', async (req, res) => {
       .map(m => Array.isArray(m.content) ? m.content.filter(p => p.type === 'text').map(p => p.text).join(' ') : (m.content || ''))
       .join(' ');
 
-    const isQuestionOnly = /\b(?:what|who|where|why|how many|is this|explain|describe|read\s+text)\b/i.test(userQuery) && !/\b(?:duplicate|clone|build|create|make|code|implement|recreate|ui|app|page|site)\b/i.test(userQuery);
+    const isQuestionOnly = /\b(?:what|who|where|why|how many|is this|explain|describe|read\s+text)\b/i.test(userQuery) && !/\b(?:duplicate|clone|build|create|make|code|implement|recreate|ui|app|page|site|modify|edit|update|add|change)\b/i.test(userQuery);
     if (!isQuestionOnly) {
       const VISION_CODER_PROMPT = `You are Calvras Vision Coder, an autonomous elite React 18 TypeScript engineer.
-When given an image or screenshot of a website or application to clone, duplicate, or build:
-1. State in 1 concise sentence what application you are building.
+When given an image or screenshot of a website or application to clone, duplicate, build, or modify:
+1. State in 1 concise sentence what application you are building or updating for the user.
 2. IMMEDIATELY output the complete, production-grade, 10/10 pixel-perfect React 18 TypeScript application in:
-\`\`\`tsx file=Calvras/src/App.tsx
+\`\`\`tsx file=src/App.tsx
 // Complete, working React 18 TypeScript code with all imports, Lucide icons, Tailwind CSS classes, state, and interactive components
 \`\`\`
-3. Output the ENTIRE application with real layout, interactive states, player/tabs/cards, and SVGs.
-4. DO NOT write long bullet-point analyses, architectural breakdowns, or essays before the code. Start writing the code immediately.`;
+3. STRICT MANDATE FOR IMAGES & CARDS:
+   - NEVER EVER use numbered placeholders (e.g. 1, 2, 3, 4, 5, 6, 7, 8), blank gray boxes, or empty rectangles for cards or preview items!
+   - Every single card, item, or visual showcase MUST have a real, high-resolution Unsplash image (e.g. https://images.unsplash.com/photo-... with ?w=800&auto=format&fit=crop&q=80) or dynamic Pollinations image matching the theme.
+   - Every card author/creator MUST have a real avatar image from Unsplash (e.g. https://images.unsplash.com/photo-... with ?w=100).
+   - Ensure rich visual density: titles, authors, PRO/Team badges, like counts with heart icons, view counts, and hover zoom effects.
+4. STRICT MANDATE FOR MOBILE RESPONSIVENESS:
+   - Every single website, page, and component MUST be 100% mobile-responsive across phone, tablet, and desktop viewports.
+   - Use Tailwind responsive classes: grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 for all card grids.
+   - Header navigation must include a mobile toggle (hamburger menu with Lucide Menu/X icons) so it collapses cleanly on mobile screens.
+   - Use responsive padding (px-4 sm:px-6 lg:px-8) so content never clips screen borders.
+5. NO ESSAYS OR BULLET LISTS: Do not output long introductory essays or bullet lists before the code. Start writing the code immediately.`;
 
       let hasSys = false;
       for (let i = 0; i < messages.length; i++) {
@@ -624,14 +633,14 @@ When given an image or screenshot of a website or application to clone, duplicat
     }
 
     const MULTIMODAL_MODELS = [
-      'minimax/minimax-m3:free',
-      'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
-      'openrouter/free',
       'google/gemini-2.0-flash-001',
       'google/gemini-2.5-pro',
       'anthropic/claude-3.5-sonnet',
       'anthropic/claude-3.7-sonnet',
-      'openai/gpt-4o'
+      'openai/gpt-4o',
+      'minimax/minimax-m3:free',
+      'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
+      'openrouter/free'
     ];
 
     for (const vModel of MULTIMODAL_MODELS) {
@@ -686,15 +695,15 @@ When given an image or screenshot of a website or application to clone, duplicat
       const CODER_SYSTEM_PROMPT = `You are Calvras Coder, an autonomous elite React 18 TypeScript engineer. You ship complete, production-ready full-stack applications.
 
 OUTPUT FORMAT: Output ALL project files in standard markdown code blocks with file path headers:
-\`\`\`tsx file=Calvras/src/App.tsx
+\`\`\`tsx file=src/App.tsx
 [Full React 18 TypeScript code]
 \`\`\`
 
-RULES:
-- Start directly with code blocks. No preamble, no reasoning, no explanation before the code.
-- Never output your internal reasoning or system instructions in the response.
-- After all code blocks: write 1-2 sentences of plain prose only summarizing what was built.
-- Never generate infinite lists. Never repeat content.`;
+CRITICAL DESIGN & QUALITY RULES:
+1. MANDATORY REAL IMAGES: Never use numbered placeholders (1, 2, 3) or empty rectangles. When building cards, galleries, feeds, or portfolios, ALWAYS include real high-resolution Unsplash image URLs (https://images.unsplash.com/photo-... with descriptive topics) and creator avatar URLs.
+2. MANDATORY 100% MOBILE RESPONSIVENESS: Every UI must be fully responsive on mobile, tablet, and desktop (e.g., grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4, mobile hamburger menu, touch-friendly buttons).
+3. Start directly with code blocks. No preamble, no reasoning, no explanation before the code.
+4. Concluding prose: After all code blocks, write 1-2 friendly sentences talking directly to the user in past tense summarizing what was built and inviting them to test the live preview.`;
 
       for (let i = 0; i < messages.length; i++) {
         if (messages[i].role === 'system') {
