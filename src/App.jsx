@@ -84,10 +84,32 @@ export default function App() {
     };
   }, []);
 
+  // User profile — persisted in localStorage
+  const [user, setUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('coded_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const getAccountKey = (key) => {
+    const email = (user?.email || 'guest').toLowerCase().trim().replace(/[^a-z0-9_]/g, '_');
+    return `calvras_${key}_${email}`;
+  };
+
   const [messages, setMessages] = useState(() => {
     try {
-      const activeId = localStorage.getItem('coded_active_session');
-      const savedSessions = localStorage.getItem('coded_sessions');
+      const currentUser = (() => {
+        try {
+          const s = localStorage.getItem('coded_user');
+          return s ? JSON.parse(s) : null;
+        } catch { return null; }
+      })();
+      const email = (currentUser?.email || 'guest').toLowerCase().trim().replace(/[^a-z0-9_]/g, '_');
+      const activeId = localStorage.getItem(`calvras_active_session_${email}`) || localStorage.getItem('coded_active_session');
+      const savedSessions = localStorage.getItem(`calvras_sessions_${email}`) || localStorage.getItem('coded_sessions');
       if (savedSessions) {
         const parsed = JSON.parse(savedSessions);
         if (activeId) {
@@ -100,7 +122,7 @@ export default function App() {
           return parsed[0].messages;
         }
       }
-      const savedDirect = localStorage.getItem('malvos_active_messages');
+      const savedDirect = localStorage.getItem(`calvras_active_messages_${email}`) || localStorage.getItem('malvos_active_messages');
       return savedDirect ? JSON.parse(savedDirect) : [];
     } catch {
       return [];
@@ -110,25 +132,56 @@ export default function App() {
   // Sessions
   const [sessions, setSessions] = useState(() => {
     try {
-      const saved = localStorage.getItem('coded_sessions');
+      const currentUser = (() => {
+        try {
+          const s = localStorage.getItem('coded_user');
+          return s ? JSON.parse(s) : null;
+        } catch { return null; }
+      })();
+      const email = (currentUser?.email || 'guest').toLowerCase().trim().replace(/[^a-z0-9_]/g, '_');
+      const saved = localStorage.getItem(`calvras_sessions_${email}`) || localStorage.getItem('coded_sessions');
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
     }
   });
+
   const [activeSession, setActiveSession] = useState(() => {
-    return localStorage.getItem('coded_active_session') || null;
+    const currentUser = (() => {
+      try {
+        const s = localStorage.getItem('coded_user');
+        return s ? JSON.parse(s) : null;
+      } catch { return null; }
+    })();
+    const email = (currentUser?.email || 'guest').toLowerCase().trim().replace(/[^a-z0-9_]/g, '_');
+    return localStorage.getItem(`calvras_active_session_${email}`) || localStorage.getItem('coded_active_session') || null;
   });
 
-  // User profile — persisted in localStorage
-  const [user, setUser] = useState(() => {
+  // Reload history whenever active account changes
+  useEffect(() => {
+    if (!user) return;
     try {
-      const saved = localStorage.getItem('coded_user');
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
-  });
+      const email = (user.email || 'guest').toLowerCase().trim().replace(/[^a-z0-9_]/g, '_');
+      const savedSessions = localStorage.getItem(`calvras_sessions_${email}`);
+      const savedActiveId = localStorage.getItem(`calvras_active_session_${email}`);
+      const savedDirect = localStorage.getItem(`calvras_active_messages_${email}`);
+
+      if (savedSessions) {
+        const parsed = JSON.parse(savedSessions);
+        setSessions(parsed);
+        if (savedActiveId) {
+          const act = parsed.find(s => s.id === savedActiveId);
+          setMessages(act?.messages || []);
+          setActiveSession(savedActiveId);
+        } else if (parsed.length > 0 && parsed[0].messages) {
+          setMessages(parsed[0].messages);
+          setActiveSession(parsed[0].id);
+        }
+      } else if (savedDirect) {
+        setMessages(JSON.parse(savedDirect));
+      }
+    } catch {}
+  }, [user?.email]);
 
   // Modals
   const [isToolsOpen, setIsToolsOpen] = useState(false);
@@ -142,26 +195,28 @@ export default function App() {
 
   useEffect(() => {
     try {
+      const sKey = getAccountKey('sessions');
+      const mKey = getAccountKey('active_messages');
+      const aKey = getAccountKey('active_session');
+
+      localStorage.setItem(sKey, JSON.stringify(sessions));
       localStorage.setItem('coded_sessions', JSON.stringify(sessions));
+      localStorage.setItem(mKey, JSON.stringify(messages));
       localStorage.setItem('malvos_active_messages', JSON.stringify(messages));
       if (activeSession) {
+        localStorage.setItem(aKey, activeSession);
         localStorage.setItem('coded_active_session', activeSession);
       } else {
+        localStorage.removeItem(aKey);
         localStorage.removeItem('coded_active_session');
       }
     } catch {}
-  }, [sessions, messages, activeSession]);
+  }, [sessions, messages, activeSession, user]);
 
   useEffect(() => {
     if (activeSession && messages.length > 0) {
       setSessions(prev => prev.map(s => s.id === activeSession ? { ...s, messages } : s));
     }
-    // Also persist messages directly so they survive page refresh even before session flush
-    try {
-      if (messages.length > 0) {
-        localStorage.setItem('malvos_active_messages', JSON.stringify(messages));
-      }
-    } catch {}
   }, [messages, activeSession]);
 
   useEffect(() => {

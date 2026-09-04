@@ -2466,6 +2466,14 @@ CRITICAL:
         style={{ width: isSplitScreen ? `${100 - workspaceWidthPercent}%` : '100%' }}
         className={`relative flex flex-col h-full overflow-hidden transition-[width] duration-75 min-w-[320px]`}
       >
+        {/* Global Voice Conversation Engine */}
+        <VoiceConversation
+          isActive={isRecording}
+          onStop={() => setIsRecording(false)}
+          voicePhase={voicePhase}
+          setVoicePhase={setVoicePhase}
+        />
+
         {/* Top-Right Zoom / Toggle Button for Workspace (matching screenshot) */}
         <div className="absolute top-3.5 right-4 z-40 flex items-center gap-2">
           <button
@@ -2687,13 +2695,6 @@ CRITICAL:
         {messages.length > 0 && (
           <div className="sticky bottom-0 left-0 right-0 p-2 sm:p-3.5 bg-gradient-to-t from-[#141414] via-[#141414]/95 to-transparent z-30">
             <div className="max-w-[660px] mx-auto relative">
-              {/* Voice conversation overlay */}
-              <VoiceConversation
-                isActive={isRecording}
-                onStop={() => setIsRecording(false)}
-                voicePhase={voicePhase}
-                setVoicePhase={setVoicePhase}
-              />
               {activeSelectionQuestion ? (
                 <SelectionBlock
                   question={activeSelectionQuestion.question}
