@@ -594,17 +594,49 @@ app.post('/api/v1/chat/completions', async (req, res) => {
 
   // ─── MULTIMODAL VISION & CODING PIPELINE ────────────────────────────
   if (hasImages) {
+    const userQuery = messages
+      .filter(m => m.role === 'user')
+      .map(m => Array.isArray(m.content) ? m.content.filter(p => p.type === 'text').map(p => p.text).join(' ') : (m.content || ''))
+      .join(' ');
+
+    const isExplicitBuild = /\b(?:dupli[ca]?te|clone|recreate|rebuild|build|create|make|code|implement)\b/i.test(userQuery);
+    if (isExplicitBuild) {
+      const VISION_CODER_PROMPT = `You are Calvras Vision Coder, an autonomous elite React 18 TypeScript engineer.
+When given an image or screenshot of a website or application to clone or duplicate:
+1. State in 1 concise line what application you are building.
+2. IMMEDIATELY output the complete, production-grade, 10/10 pixel-perfect React 18 TypeScript application in:
+\`\`\`tsx file=Calvras/src/App.tsx
+// Full complete React 18 TypeScript code with all imports, Lucide icons, Tailwind CSS classes, state, and interactive components
+\`\`\`
+3. Output the ENTIRE application with real layout, interactive states, player/tabs/cards, and SVGs.
+4. DO NOT write long bullet-point analyses, architectural breakdowns, or essays before the code. Start writing the code immediately.`;
+
+      let hasSys = false;
+      for (let i = 0; i < messages.length; i++) {
+        if (messages[i].role === 'system') {
+          messages[i].content = VISION_CODER_PROMPT;
+          hasSys = true;
+        }
+      }
+      if (!hasSys) {
+        messages.unshift({ role: 'system', content: VISION_CODER_PROMPT });
+      }
+    }
+
     const MULTIMODAL_MODELS = [
-      'anthropic/claude-3.7-sonnet',
-      'anthropic/claude-3.5-sonnet',
-      'google/gemini-2.5-pro',
+      'minimax/minimax-m3:free',
+      'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
+      'openrouter/free',
       'google/gemini-2.0-flash-001',
-      'openai/gpt-4o',
-      'google/gemini-2.0-flash-exp:free'
+      'google/gemini-2.5-pro',
+      'anthropic/claude-3.5-sonnet',
+      'anthropic/claude-3.7-sonnet',
+      'openai/gpt-4o'
     ];
 
     for (const vModel of MULTIMODAL_MODELS) {
       try {
+        console.log(`[Multimodal Engine] Trying ${vModel}...`);
         const vRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -620,9 +652,10 @@ app.post('/api/v1/chat/completions', async (req, res) => {
             max_tokens: 16384,
             stream
           }),
-          signal: AbortSignal.timeout(120000)
+          signal: AbortSignal.timeout(60000)
         });
 
+        console.log(`[Multimodal Engine] ${vModel} response status:`, vRes.status);
         if (vRes.ok) {
           if (stream) {
             res.setHeader('Content-Type', 'text/event-stream');

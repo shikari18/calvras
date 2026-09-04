@@ -17,6 +17,17 @@ const FAILOVER_MODELS = [
   'openrouter/free'
 ];
 
+const VISION_FAILOVER_MODELS = [
+  'minimax/minimax-m3:free',
+  'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
+  'openrouter/free',
+  'google/gemini-2.0-flash-001',
+  'google/gemini-2.5-pro',
+  'anthropic/claude-3.5-sonnet',
+  'anthropic/claude-3.7-sonnet',
+  'openai/gpt-4o'
+];
+
 // Fast conversational models for voice mode — speed over flagship quality.
 // Free OpenRouter models verified working with the current key.
 const FAST_MODELS = [
@@ -592,7 +603,8 @@ export async function streamAIResponse({ messages, onThinkingChunk, onContentChu
   }
 
   if (!streamResponse && !fast) {
-    for (const model of FAILOVER_MODELS) {
+    const modelsToTry = hasImages ? VISION_FAILOVER_MODELS : FAILOVER_MODELS;
+    for (const model of modelsToTry) {
       try {
         const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST',

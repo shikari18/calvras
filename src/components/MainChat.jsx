@@ -32,8 +32,6 @@ import ProjectWorkspacePane from './ProjectWorkspacePane';
 import { generateFullArchitectureApp } from '../services/fullAppGenerator';
 import { BUILD_MODES } from '../data/mockData';
 import { generateAIResponse, streamAIResponse, MALVOS_SYSTEM_PROMPT } from '../services/aiService';
-import { speakText, stopSpeaking } from '../services/kokoroVoice';
-import VoiceConversation from './VoiceConversation';
 
 // ─── Extract Real Generated Files from AI Output (Zero Hardcoding) ───────────
 export function extractFilesFromAIResponse(rawText, query = '') {
@@ -120,11 +118,15 @@ export function extractFilesFromAIResponse(rawText, query = '') {
         filename = 'index.html';
       } else if (lang === 'css' && (content.includes('@tailwind') || content.includes(':root {'))) {
         filename = 'src/styles.css';
-      } else if (['tsx', 'jsx'].includes(lang) && (content.includes('import React') || content.includes('export default'))) {
-        filename = `src/App.${lang.includes('jsx') ? 'jsx' : 'tsx'}`;
+      } else if (['tsx', 'jsx', 'typescript', 'javascript', 'ts', 'js'].includes(lang) && (content.includes('from \'react\'') || content.includes('from "react"') || content.includes('import React') || content.includes('export default') || content.includes('return (') || content.includes('return <') || content.includes('className='))) {
+        filename = `src/App.${lang.includes('jsx') || lang.includes('js') ? 'jsx' : 'tsx'}`;
       } else {
-        // Not a project workspace file, just a markdown code snippet in chat
-        continue;
+        // Fallback for build queries: if language is code-like and has JSX elements
+        if (query && /build|duplicate|clone|create|make/i.test(query) && (content.includes('<div') || content.includes('return'))) {
+          filename = 'src/App.tsx';
+        } else {
+          continue;
+        }
       }
     }
 
@@ -709,16 +711,17 @@ function formatLiveInline(text) {
 }
 
 function LiveActivityIndicator({ liveThinkingDuration, statusText, activeFile, hasCodeFiles, isCodePrompt }) {
-  // Show a single clean status line — no "Working for Xs", no thinking text dump
-  const displayText = statusText && !statusText.includes('```') && !statusText.includes('export default') && !statusText.includes('import React') && statusText.length < 120
+  const displayText = statusText && !statusText.includes('```') && !statusText.includes('export default') && !statusText.includes('import React') && statusText.length < 130
     ? statusText.replace(/<think>[\s\S]*?<\/think>/gi, '').trim()
     : null;
 
+  const activeLabel = displayText || (hasCodeFiles ? 'Compiling application & updating live preview…' : 'Analyzing design & building application…');
+
   return (
-    <div className="w-full max-w-[660px] mx-auto py-1 px-4 text-left animate-in fade-in duration-150 select-none">
-      <div className="flex items-center gap-2 text-[13px] text-neutral-400">
-        <div className="w-3.5 h-3.5 rounded-full border-[1.5px] border-neutral-400 border-t-transparent animate-spin flex-shrink-0" />
-        <span>{displayText || '…'}</span>
+    <div className="w-full max-w-[660px] mx-auto py-2 px-4 text-left animate-in fade-in duration-150 select-none">
+      <div className="flex items-center gap-2.5 text-[13.5px] text-neutral-300">
+        <div className="w-4 h-4 rounded-full border-[2px] border-blue-400 border-t-transparent animate-spin flex-shrink-0" />
+        <span className="font-medium text-neutral-200">{activeLabel}</span>
       </div>
     </div>
   );
@@ -806,11 +809,7 @@ function RunningTasksDock({ runningTasks, tasksExpanded, setTasksExpanded, onSto
 }
 // ─── Toolbar shared between hero and reply inputs ─────────────────────────────
 function InputToolbar({
-  isHero,
-  isRecording,
-  setIsRecording,
-  isSttActive,
-  setIsSttActive,
+  isHero = false,
   input,
   attachedFiles = [],
   onSend,
@@ -861,24 +860,7 @@ function InputToolbar({
       </div>
 
       <div className="flex items-center gap-1.5">
-        {/* Left mic — speech-to-text dictation */}
-        <button
-          type="button"
-          onClick={() => { if (!isRecording) setIsSttActive(v => !v); }}
-          disabled={isRecording}
-          className={`p-1.5 rounded-full transition-all ${
-            isRecording
-              ? 'text-neutral-600 opacity-30 cursor-not-allowed'
-              : isSttActive
-              ? 'text-red-400 bg-red-500/15 ring-2 ring-red-500/30 animate-pulse'
-              : 'text-neutral-400 hover:text-white hover:bg-white/[0.08]'
-          }`}
-          title={isRecording ? 'Unavailable while in voice mode' : isSttActive ? 'Stop dictation' : 'Dictate (speech to text)'}
-        >
-          {isSttActive ? <MicOff size={16} /> : <Mic size={16} />}
-        </button>
-
-        {/* Right action button — Stop, Send, or Single Voice Mode Button */}
+        {/* Right action button — Stop or Send */}
         {isWorking ? (
           <button
             type="button"
@@ -888,45 +870,19 @@ function InputToolbar({
           >
             <Square size={13} fill="currentColor" />
           </button>
-        ) : hasContent ? (
+        ) : (
           <button
             type="button"
             onClick={onSend}
-            disabled={isSttActive}
+            disabled={!hasContent}
             className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-150 ${
-              isSttActive
-                ? 'bg-[#38383e] text-[#8e8e93] cursor-not-allowed'
-                : 'bg-white text-black hover:bg-neutral-200 shadow-md cursor-pointer'
+              hasContent
+                ? 'bg-white text-black hover:bg-neutral-200 shadow-md cursor-pointer'
+                : 'bg-white/[0.08] text-neutral-500 cursor-not-allowed opacity-40'
             }`}
             title="Send prompt"
           >
             <ArrowRight size={16} strokeWidth={2.4} />
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={() => { if (!isSttActive) setIsRecording(v => !v); }}
-            disabled={isSttActive}
-            className={`flex items-center justify-center w-8 h-8 rounded-full transition-all shadow-md cursor-pointer ${
-              isSttActive
-                ? 'bg-neutral-700 text-neutral-500 cursor-not-allowed opacity-30'
-                : isRecording
-                ? 'bg-red-500 text-white hover:bg-red-600 ring-2 ring-red-400/50 animate-pulse'
-                : 'bg-white hover:bg-neutral-100 text-black'
-            }`}
-            title={isSttActive ? 'Unavailable while dictating' : isRecording ? 'Stop voice mode' : 'Voice mode (speech to speech)'}
-          >
-            {isRecording ? (
-              <Square size={12} fill="currentColor" />
-            ) : (
-              <svg width="17" height="14" viewBox="0 0 17 14" fill="none">
-                <rect x="0"  y="5"  width="2.5" height="4"  rx="1.25" fill="currentColor" />
-                <rect x="4"  y="3"  width="2.5" height="8"  rx="1.25" fill="currentColor" />
-                <rect x="7.75" y="0.5" width="2.5" height="13" rx="1.25" fill="currentColor" />
-                <rect x="11.5" y="3"  width="2.5" height="8"  rx="1.25" fill="currentColor" />
-                <rect x="15.5" y="5"  width="2.5" height="4"  rx="1.25" fill="currentColor" />
-              </svg>
-            )}
           </button>
         )}
       </div>
@@ -975,17 +931,7 @@ export default function MainChat({
   const activeBuildMode = 'Build'; // fixed — Build/Plan toggle removed
   const webSearchMode = 'auto'; // always auto — web search is internal
   const [attachedFiles, setAttachedFiles] = useState([]);
-  const [isRecording, setIsRecording] = useState(false);
-  const [isSttActive, setIsSttActive] = useState(false);
-  const [kokoroLoading, setKokoroLoading] = useState(false);
-  // voicePhase: 'idle' | 'listening' | 'speaking'
-  const [voicePhase, setVoicePhase] = useState('idle');
   const [lastQuery, setLastQuery] = useState('');
-  // Refs so async callbacks (STT loop, TTS end) never read stale state
-  const isRecordingRef = useRef(false);
-  const voicePhaseRef = useRef('idle');
-  isRecordingRef.current = isRecording;
-  voicePhaseRef.current = voicePhase;
   const [activeSelectionQuestion, setActiveSelectionQuestion] = useState(null);
   const [importedFolderName, setImportedFolderName] = useState(null);
   const [importedFileCount, setImportedFileCount] = useState(0);
@@ -1081,16 +1027,6 @@ export default function MainChat({
   const [streamingText, setStreamingText] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
 
-  // Voice mode lifecycle: exiting voice mode always resets mic + audio.
-  // While recording, the loop is driven explicitly (listen → think → speak → listen).
-  React.useEffect(() => {
-    if (!isRecording) {
-      setVoicePhase('idle');
-      stopSpeaking(); // stop any active audio when voice mode exits
-    }
-  }, [isRecording]);
-
-  // Voice conversation handled by VoiceConversation component — no STT loop needed here
 
 
 
@@ -1530,9 +1466,6 @@ export default function MainChat({
     const sendStartTime = Date.now();
     const getThoughtDuration = () => `${Math.max(1, Math.round((Date.now() - sendStartTime) / 1000))}s`;
 
-    // Voice mode: stop the mic while the AI is processing/speaking
-    if (isRecordingRef.current) setVoicePhase('speaking');
-
     // ── Vague build clarification — intercept BEFORE anything else ──────────
     const trimmedEarly = query.trim();
     const hasImageEarly = currentAttachedFiles.length > 0;
@@ -1567,8 +1500,6 @@ export default function MainChat({
         ],
         isMultiSelect: false,
       });
-      // Voice mode: come back to listening while the user picks an option
-      if (isRecordingRef.current) setVoicePhase('listening');
       return;
     }
     // ────────────────────────────────────────────────────────────────────────
@@ -2067,26 +1998,6 @@ CRITICAL:
         thoughtDuration: getThoughtDuration(),
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }]);
-      // Voice mode: speak the status reply and return to listening
-      if (isRecordingRef.current && statusMsg) {
-        const plain = statusMsg.replace(/[*_`#>~]/g, '').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim().slice(0, 600);
-        if (plain) {
-          setKokoroLoading(true);
-          speakText(plain, {
-            onStart: () => { setKokoroLoading(false); setVoicePhase('speaking'); },
-            onEnd: () => {
-              setKokoroLoading(false);
-              if (isRecordingRef.current) setVoicePhase('listening');
-              else setVoicePhase('idle');
-            },
-            onError: () => {
-              setKokoroLoading(false);
-              if (isRecordingRef.current) setVoicePhase('listening');
-              else setVoicePhase('idle');
-            },
-          });
-        }
-      }
       return;
     }
 
@@ -2212,7 +2123,7 @@ CRITICAL:
           ...history.slice(0, -1),
           {
             role: 'user',
-            content: `${query}\n\nCRITICAL INSTRUCTIONS FOR CALVRAS:\n1. Build and duplicate the complete production-grade application in React 18 TypeScript with Lucide icons and Tailwind CSS.\n2. Output the full code in \`\`\`tsx file=src/App.tsx immediately. DO NOT just say you will clone or build it — you MUST output the actual full code blocks in this response!\n3. If 1 to 4 images are attached: duplicate the design with 10/10 pixel-perfect accuracy (exact layout, navbar, cards, colors, typography, and functional interactions).\n4. Every file must be self-contained and complete with export default.`,
+            content: `${query}\n\nCRITICAL INSTRUCTIONS FOR CALVRAS:\n1. State in 1 concise line what application you are building, then IMMEDIATELY output the complete code in \`\`\`tsx file=src/App.tsx.\n2. DO NOT output long bulleted outlines, architectural essays, or design breakdowns before the code. The full code block must begin immediately.\n3. If 1 to 4 images are attached: duplicate the design with 10/10 pixel-perfect accuracy (exact layout, navbar, cards, colors, typography, and functional interactions).\n4. Output real, production-ready React 18 TypeScript code using Tailwind CSS and Lucide icons. Every file must be self-contained and complete with export default.`,
             files: currentAttachedFiles
           }
         ];
@@ -2220,9 +2131,6 @@ CRITICAL:
 
       await streamAIResponse({
         messages: messagesForAI,
-        // Voice conversational queries take the fast path — no flagship latency
-        fast: isRecordingRef.current && isConversationalQuestion && !hasImageAttachment,
-        voiceMode: isRecordingRef.current && isConversationalQuestion && !hasImageAttachment,
         onThinkingChunk: (token, fullThinking) => {
           setIsThinking(true);
           setIsStreaming(false);
@@ -2239,6 +2147,8 @@ CRITICAL:
             hint = hint.charAt(0).toUpperCase() + hint.slice(1);
             if (!hint.endsWith('…') && !hint.endsWith('.')) hint += '…';
             setStreamingText(hint.slice(0, 80));
+          } else {
+            setStreamingText('Analyzing requirements & designing architecture…');
           }
         },
         onContentChunk: (token, fullContent) => {
@@ -2251,7 +2161,17 @@ CRITICAL:
             const filesWritten = (fullContent.match(/```[a-zA-Z0-9_-]*\s+(?:file=|filename=)[^\s\n]+/gi) || []).length;
             setIsSplitScreen(true);
             setActiveWorkspaceTab('preview');
-            setStreamingText(`Writing \`${writingFile}\`… (${filesWritten} file${filesWritten > 1 ? 's' : ''} so far)`);
+            setStreamingText(`Writing \`${writingFile}\`… (${filesWritten} file${filesWritten > 1 ? 's' : ''} ready)`);
+          } else {
+            // Give real-time update from the AI's opening sentence or status
+            const firstProse = fullContent.split('\n').map(l => l.trim()).find(l => l.length > 8 && !l.startsWith('`') && !l.startsWith('<') && !l.startsWith('#') && !l.startsWith('-'));
+            if (firstProse) {
+              setStreamingText(firstProse.slice(0, 90) + (firstProse.length > 90 ? '…' : ''));
+            } else if (hasImageAttachment) {
+              setStreamingText('Analyzing image layout and building fullstack components…');
+            } else {
+              setStreamingText('Building application & preparing preview…');
+            }
           }
           // Show run_cmd in progress
           const cmdMatch = fullContent.match(/<run_cmd>([^<]{1,120})<\/run_cmd>/i);
@@ -2259,7 +2179,6 @@ CRITICAL:
           // Show browse in progress
           const browseMatch = fullContent.match(/<browse>([^<]{1,300})<\/browse>/i);
           if (browseMatch) setCalvrasAction({ type: 'browse', text: browseMatch[1].trim() });
-          // Otherwise keep the last thinking hint — don't show streaming code
         },
         onDone: async (res) => {
           clearInterval(thinkingTimer);
@@ -2304,6 +2223,18 @@ CRITICAL:
                 }
               } catch (err) {
                 console.warn('[Self-Healing Code Generation]', err);
+              }
+            }
+
+            // Ultimate fail-safe: if still 0 files on an explicit build, generate full architecture app
+            if (isExplicitBuild && Object.keys(extractedFiles).length === 0) {
+              try {
+                const fullApp = generateFullArchitectureApp(query || 'Production Application UI', 'build');
+                if (fullApp && Object.keys(fullApp).length > 0) {
+                  Object.assign(extractedFiles, fullApp);
+                }
+              } catch (err) {
+                console.warn('[Full Architecture Generator Fallback]', err);
               }
             }
 
@@ -2446,34 +2377,6 @@ CRITICAL:
             setIsStreaming(false);
             setStreamingText('');
             setCalvrasAction(null);
-            // Speak the response if voice mode is active
-            if (isRecordingRef.current && guaranteedMessage) {
-              // Strip markdown before speaking
-              const plainText = guaranteedMessage
-                .replace(/```[\s\S]*?```/g, '')
-                .replace(/[*_`#>~]/g, '')
-                .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-                .replace(/\s+/g, ' ')
-                .trim()
-                .slice(0, 600); // cap length — short spoken replies stay snappy
-              if (plainText) {
-                setKokoroLoading(true);
-                speakText(plainText, {
-                  onStart: () => { setKokoroLoading(false); setVoicePhase('speaking'); },
-                  onEnd: () => {
-                    setKokoroLoading(false);
-                    // Full duplex: after speaking, listen again (unless voice mode was stopped)
-                    if (isRecordingRef.current) setVoicePhase('listening');
-                    else setVoicePhase('idle');
-                  },
-                  onError: () => {
-                    setKokoroLoading(false);
-                    if (isRecordingRef.current) setVoicePhase('listening');
-                    else setVoicePhase('idle');
-                  },
-                });
-              }
-            }
           }
         },
         onError: (err) => {
@@ -2536,20 +2439,13 @@ CRITICAL:
 
 
   return (
-    <div className={`relative flex flex-1 h-full overflow-hidden bg-[#141414] text-[#ededed] select-none ${isResizing ? 'cursor-col-resize select-none' : ''}`}>
+    <div className={`relative flex flex-1 h-full overflow-hidden bg-[#1c1c1c] text-[#ededed] select-none ${isResizing ? 'cursor-col-resize select-none' : ''}`}>
       
       {/* ── Left Pane: Chat Conversation ── */}
       <div 
         style={{ width: isSplitScreen ? `${100 - workspaceWidthPercent}%` : '100%' }}
         className={`relative flex flex-col h-full overflow-hidden transition-[width] duration-75 min-w-[320px]`}
       >
-        {/* Global Voice Conversation Engine */}
-        <VoiceConversation
-          isActive={isRecording}
-          onStop={() => setIsRecording(false)}
-          voicePhase={voicePhase}
-          setVoicePhase={setVoicePhase}
-        />
 
         {/* Top-Right Zoom / Toggle Button for Workspace (matching screenshot) */}
         <div className="absolute top-3.5 right-4 z-40 flex items-center gap-2">
@@ -2580,7 +2476,7 @@ CRITICAL:
         </div>
         
         {/* ── Scrollable chat area ── */}
-        <div ref={scrollRef} className="relative z-10 flex-1 overflow-y-auto px-4 sm:px-6 w-full scrollbar-thin scroll-smooth bg-[#141414]">
+        <div ref={scrollRef} className="relative z-10 flex-1 overflow-y-auto px-4 sm:px-6 w-full scrollbar-thin scroll-smooth bg-[#1c1c1c]">
 
           {/* ── Hero / empty state: prompt box centered ── */}
           {messages.length === 0 && (
@@ -2637,10 +2533,6 @@ CRITICAL:
                       />
                       <InputToolbar
                         isHero={true}
-                        isRecording={isRecording}
-                        setIsRecording={setIsRecording}
-                        isSttActive={isSttActive}
-                        setIsSttActive={setIsSttActive}
                         input={input}
                         onSend={handleSend}
                         onAttach={() => fileInputRef.current?.click()}
@@ -2688,10 +2580,6 @@ CRITICAL:
                     />
                     <InputToolbar
                       isHero={true}
-                      isRecording={isRecording}
-                      setIsRecording={setIsRecording}
-                      isSttActive={isSttActive}
-                      setIsSttActive={setIsSttActive}
                       input={input}
                       attachedFiles={attachedFiles}
                       onSend={handleSend}
@@ -2825,10 +2713,6 @@ CRITICAL:
                     />
                     <InputToolbar
                       isHero={false}
-                      isRecording={isRecording}
-                      setIsRecording={setIsRecording}
-                      isSttActive={isSttActive}
-                      setIsSttActive={setIsSttActive}
                       input={input}
                       attachedFiles={attachedFiles}
                       onSend={handleSend}
@@ -2847,31 +2731,9 @@ CRITICAL:
                   className={`relative w-full rounded-[26px] bg-[rgb(38,38,38)] border p-5 pt-4 pb-3.5 text-left transition-all ${
                     isDraggingOver
                       ? 'border-blue-500 ring-2 ring-blue-500/30'
-                      : voicePhase === 'listening'
-                      ? 'border-blue-500/50'
-                      : voicePhase === 'speaking'
-                      ? 'border-orange-500/50'
                       : 'border-[rgb(65,65,65)]'
                   } shadow-[0_12px_40px_rgba(0,0,0,0.5)]`}
                 >
-                  {/* Voice mode glow — blue when listening, orange when speaking */}
-                  <div
-                    className="absolute inset-x-0 top-0 h-24 pointer-events-none rounded-t-[26px] overflow-hidden"
-                    style={{
-                      transition: 'opacity 0.6s ease, background 0.6s ease',
-                      opacity: voicePhase === 'idle' ? 0 : 1,
-                      background: voicePhase === 'speaking'
-                        ? 'radial-gradient(ellipse 70% 60% at 50% 0%, rgba(200,90,20,0.4) 0%, transparent 100%)'
-                        : 'radial-gradient(ellipse 70% 60% at 50% 0%, rgba(30,100,220,0.35) 0%, transparent 100%)',
-                    }}
-                  />
-                  {/* Kokoro model loading indicator */}
-                  {kokoroLoading && (
-                    <div className="absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 backdrop-blur-sm text-[11px] text-white/70 z-10 select-none">
-                      <div className="w-2.5 h-2.5 rounded-full border border-white/40 border-t-white animate-spin" />
-                      <span>Loading voice model…</span>
-                    </div>
-                  )}
                   <FileAttachments />
                   <textarea
                     ref={replyTextareaRef}
@@ -2890,13 +2752,9 @@ CRITICAL:
                     accept="image/*,.png,.jpg,.jpeg,.webp,.svg,.gif,.pdf,.txt,.json,.ts,.tsx,.js,.jsx"
                     multiple 
                     className="hidden" 
-                  />
+                    />
                   <InputToolbar
                     isHero={false}
-                    isRecording={isRecording}
-                    setIsRecording={setIsRecording}
-                    isSttActive={isSttActive}
-                    setIsSttActive={setIsSttActive}
                     input={input}
                     attachedFiles={attachedFiles}
                     onSend={handleSend}

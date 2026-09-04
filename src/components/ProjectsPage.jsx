@@ -33,7 +33,7 @@ export default function ProjectsPage({
   );
 
   return (
-    <div className="flex-1 h-full overflow-y-auto bg-[#0f0f12] text-white p-6 sm:p-10 select-none">
+    <div className="flex-1 h-full overflow-y-auto bg-[#1c1c1c] text-white p-6 sm:p-10 select-none">
       <div className="max-w-6xl mx-auto space-y-7">
         
         {/* Page Header matching reference */}

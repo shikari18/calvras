@@ -399,41 +399,43 @@ export default function App() {
       </div>
 
       {/* Main Chat / Projects / Developer Frame */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0 bg-[#141414]">
-        {activeNav === 'projects' ? (
-          <ProjectsPage
-            sessions={sessions}
-            onSelectProject={(p) => {
-              if (p.sessionId) {
-                handleSelectSession(p.sessionId);
-              } else if (p.prompt) {
+      <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0 p-2 sm:py-2.5 sm:pr-2.5 sm:pl-0 bg-[#0d0d0f]">
+        <div className="relative flex flex-col flex-1 h-full overflow-hidden rounded-[20px] border border-white/[0.08] bg-[#1c1c1c] shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
+          {activeNav === 'projects' ? (
+            <ProjectsPage
+              sessions={sessions}
+              onSelectProject={(p) => {
+                if (p.sessionId) {
+                  handleSelectSession(p.sessionId);
+                } else if (p.prompt) {
+                  handleNewChat();
+                  setMessages([{
+                    id: `msg-${Date.now()}`,
+                    role: 'user',
+                    content: p.prompt,
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  }]);
+                }
+                setActiveNav('home');
+              }}
+              onCreateProject={() => {
                 handleNewChat();
-                setMessages([{
-                  id: `msg-${Date.now()}`,
-                  role: 'user',
-                  content: p.prompt,
-                  time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                }]);
-              }
-              setActiveNav('home');
-            }}
-            onCreateProject={() => {
-              handleNewChat();
-              setActiveNav('home');
-            }}
-          />
-        ) : activeNav === 'developer' ? (
-          <DeveloperPage />
-        ) : (
-          <MainChat
-            messages={messages}
-            setMessages={setMessages}
-            sidebarCollapsed={sidebarCollapsed}
-            setSidebarCollapsed={setSidebarCollapsed}
-            onBrowseAll={() => setIsCodeStudioOpen(true)}
-            onUserMessage={handleUserMessage}
-          />
-        )}
+                setActiveNav('home');
+              }}
+            />
+          ) : activeNav === 'developer' ? (
+            <DeveloperPage />
+          ) : (
+            <MainChat
+              messages={messages}
+              setMessages={setMessages}
+              sidebarCollapsed={sidebarCollapsed}
+              setSidebarCollapsed={setSidebarCollapsed}
+              onBrowseAll={() => setIsCodeStudioOpen(true)}
+              onUserMessage={handleUserMessage}
+            />
+          )}
+        </div>
       </div>
 
       {/* Modals & Studios */}
