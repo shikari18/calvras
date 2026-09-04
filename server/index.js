@@ -4,6 +4,7 @@ import { spawn, execSync } from 'child_process';
 import { Readable } from 'stream';
 import fs from 'fs';
 import path from 'path';
+import nodemailer from 'nodemailer';
 import { createRequire } from 'module';
 import { assignPort, getPort, releasePort } from './portManager.js';
 import { WORKSPACE, repoPath, repoExists, listFilesRecursive } from './repoManager.js';
