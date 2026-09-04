@@ -645,7 +645,7 @@ export default function ChatMessage({ message, onRegenerate, onOpenDetails, onOp
     }
   }
 
-  const thoughtDuration = message.thoughtDuration || '4s';
+  const thoughtDuration = message.thoughtDuration || '1s';
 
   return (
     <div className="w-full max-w-[660px] mx-auto px-4 py-2.5 text-left font-sans animate-message-in">

@@ -13,6 +13,7 @@ import SkeletonLoader from './components/SkeletonLoader';
 import AuthPage from './components/AuthPage';
 import PricingOnboarding from './components/PricingOnboarding';
 import LandingPage from './components/LandingPage';
+import ProjectsPage from './components/ProjectsPage';
 
 function getInitialRoute() {
   try {
@@ -226,8 +227,14 @@ export default function App() {
         setIsCommandPaletteOpen(prev => !prev);
       }
     };
+    const handleOpenTools = () => setIsToolsOpen(true);
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('calvras_open_tools', handleOpenTools);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('calvras_open_tools', handleOpenTools);
+    };
   }, []);
 
   const handleNewChat = () => {
@@ -390,17 +397,41 @@ export default function App() {
         />
       </div>
 
-      {/* Main Chat Inset Frame */}
+      {/* Main Chat / Projects Inset Frame */}
       <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
         <div className="relative flex flex-col flex-1 h-full overflow-hidden sm:rounded-[20px] rounded-none border sm:border-[#52525a] border-transparent bg-[#141414] shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
-          <MainChat
-            messages={messages}
-            setMessages={setMessages}
-            sidebarCollapsed={sidebarCollapsed}
-            setSidebarCollapsed={setSidebarCollapsed}
-            onBrowseAll={() => setIsCodeStudioOpen(true)}
-            onUserMessage={handleUserMessage}
-          />
+          {activeNav === 'projects' ? (
+            <ProjectsPage
+              sessions={sessions}
+              onSelectProject={(p) => {
+                if (p.sessionId) {
+                  handleSelectSession(p.sessionId);
+                } else if (p.prompt) {
+                  handleNewChat();
+                  setMessages([{
+                    id: `msg-${Date.now()}`,
+                    role: 'user',
+                    content: p.prompt,
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  }]);
+                }
+                setActiveNav('home');
+              }}
+              onCreateProject={() => {
+                handleNewChat();
+                setActiveNav('home');
+              }}
+            />
+          ) : (
+            <MainChat
+              messages={messages}
+              setMessages={setMessages}
+              sidebarCollapsed={sidebarCollapsed}
+              setSidebarCollapsed={setSidebarCollapsed}
+              onBrowseAll={() => setIsCodeStudioOpen(true)}
+              onUserMessage={handleUserMessage}
+            />
+          )}
         </div>
       </div>
 

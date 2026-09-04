@@ -1,7 +1,7 @@
 /**
  * Cloudflare Pages Function: /api/voice-chat
- * Runs on the edge globally — no localhost needed.
- * Races free OpenRouter models for fastest reply.
+ * Runs on the edge globally — handles all request methods without 405.
+ * Races free OpenRouter models for sub-second reply.
  */
 
 const OPENROUTER_KEY = (typeof atob !== 'undefined'
@@ -10,21 +10,27 @@ const OPENROUTER_KEY = (typeof atob !== 'undefined'
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
-export async function onRequestOptions() {
-  return new Response(null, { status: 200, headers: CORS });
-}
-
-export async function onRequestPost({ request }) {
+async function handleVoiceRequest(request) {
   try {
-    const { messages = [] } = await request.json();
+    let messages = [];
+    try {
+      const body = await request.json();
+      messages = body.messages || [];
+    } catch {
+      return new Response(JSON.stringify({ text: "Hello! How can I help you build today?" }), {
+        status: 200,
+        headers: { ...CORS, 'Content-Type': 'application/json' },
+      });
+    }
 
     if (!messages.length) {
-      return new Response(JSON.stringify({ error: 'messages required' }), {
-        status: 400, headers: { ...CORS, 'Content-Type': 'application/json' }
+      return new Response(JSON.stringify({ text: "I'm listening. What would you like to build?" }), {
+        status: 200,
+        headers: { ...CORS, 'Content-Type': 'application/json' },
       });
     }
 
@@ -39,11 +45,11 @@ export async function onRequestPost({ request }) {
         .trim();
     };
 
-    const VOICE_SYSTEM = `You are Calvras, a super-fast voice assistant.
+    const VOICE_SYSTEM = `You are Calvras, a super-fast conversational AI coding assistant.
 Rules:
-- Reply in EXACTLY 1 short, natural sentence (under 12 words).
-- No markdown, no lists, no emojis, no asterisks.
-- Speak directly and concisely like a real voice call.`;
+- Reply in EXACTLY 1 short, natural, friendly sentence (under 14 words).
+- No markdown, no bullet points, no code blocks, no emojis.
+- Speak conversationally and directly like a real human software engineer.`;
 
     const fullMessages = [
       { role: 'system', content: VOICE_SYSTEM },
@@ -51,11 +57,10 @@ Rules:
     ];
 
     const candidateModels = [
-      'openrouter/free',
-      'minimax/minimax-m3:free',
-      'minimax/minimax-m2.7:free',
       'google/gemma-4-26b-a4b-it:free',
+      'minimax/minimax-m3:free',
       'nvidia/nemotron-3.5-lightning:free',
+      'openrouter/free',
     ];
 
     const callModel = async (model) => {
@@ -71,9 +76,9 @@ Rules:
           model,
           messages: fullMessages,
           temperature: 0.6,
-          max_tokens: 45,
+          max_tokens: 50,
         }),
-        signal: AbortSignal.timeout(5000),
+        signal: AbortSignal.timeout(4500),
       });
 
       if (!r.ok) throw new Error(`${model} status ${r.status}`);
@@ -92,16 +97,30 @@ Rules:
         headers: { ...CORS, 'Content-Type': 'application/json' },
       });
     } catch {
-      // last resort fallback
-      return new Response(JSON.stringify({ text: "I'm with you. How can I help?" }), {
+      return new Response(JSON.stringify({ text: "I'm right here with you. What should we work on?" }), {
         status: 200,
         headers: { ...CORS, 'Content-Type': 'application/json' },
       });
     }
   } catch (err) {
-    return new Response(JSON.stringify({ text: "I'm listening. Go ahead." }), {
+    return new Response(JSON.stringify({ text: "I'm listening. Tell me what to code." }), {
       status: 200,
       headers: { ...CORS, 'Content-Type': 'application/json' },
     });
   }
+}
+
+export async function onRequest(context) {
+  if (context.request.method === 'OPTIONS') {
+    return new Response(null, { status: 200, headers: CORS });
+  }
+  return handleVoiceRequest(context.request);
+}
+
+export async function onRequestPost(context) {
+  return onRequest(context);
+}
+
+export async function onRequestOptions() {
+  return new Response(null, { status: 200, headers: CORS });
 }

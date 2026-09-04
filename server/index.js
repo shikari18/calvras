@@ -264,20 +264,52 @@ app.get('/api/all-files/:repo', (req, res) => {
     try {
       const fullPath = path.join(repoDir, relPath);
       const stat = fs.statSync(fullPath);
-      if (stat.size > 500000) continue; // skip oversized files
+      if (stat.size > 10000000) continue; // allow up to 10MB per asset
 
       const ext = path.extname(relPath).toLowerCase().replace('.', '');
-      if (/\.(tsx|jsx|ts|js|json|css|html|md|svg|yaml|yml|toml)$/i.test(relPath)) {
-        filesDict[`${repo}/${relPath}`] = fs.readFileSync(fullPath, 'utf-8');
-      } else if (/\.(png|jpg|jpeg|webp|gif|ico|bmp)$/i.test(relPath)) {
+      if (/\.(tsx|jsx|ts|js|json|css|html|md|svg|yaml|yml|toml|env|txt|sh)$/i.test(relPath)) {
+        const text = fs.readFileSync(fullPath, 'utf-8');
+        filesDict[`${repo}/${relPath}`] = text;
+        filesDict[relPath] = text;
+      } else if (/\.(png|jpg|jpeg|webp|gif|ico|bmp|avif)$/i.test(relPath)) {
         const mime = ext === 'jpg' ? 'jpeg' : ext;
         const b64 = fs.readFileSync(fullPath).toString('base64');
-        filesDict[`${repo}/${relPath}`] = `data:image/${mime};base64,${b64}`;
+        const dataUri = `data:image/${mime};base64,${b64}`;
+        filesDict[`${repo}/${relPath}`] = dataUri;
+        filesDict[relPath] = dataUri;
       }
     } catch {}
   }
 
   res.json({ files: filesDict });
+});
+
+// ─── POST /api/push ──────────────────────────────────────────────────────────
+// Commits and pushes changes back to GitHub repo
+app.post('/api/push', (req, res) => {
+  const { repo, remoteUrl, commitMessage = 'Update from Calvras' } = req.body;
+  if (!repo || !repoExists(repo)) return res.status(404).json({ error: 'Repo not found' });
+  const repoDir = repoPath(repo);
+
+  try {
+    if (remoteUrl) {
+      try {
+        execSync(`git remote set-url origin "${remoteUrl}"`, { cwd: repoDir });
+      } catch {
+        execSync(`git remote add origin "${remoteUrl}"`, { cwd: repoDir });
+      }
+    }
+    execSync('git add -A', { cwd: repoDir });
+    try {
+      execSync(`git commit -m "${commitMessage.replace(/"/g, '\\"')}"`, { cwd: repoDir });
+    } catch {
+      // No changes to commit, continue to push
+    }
+    const pushOut = execSync('git push origin HEAD', { cwd: repoDir }).toString();
+    res.json({ ok: true, output: pushOut });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
 });
 
 // ─── GET /api/raw/:repo ──────────────────────────────────────────────────────

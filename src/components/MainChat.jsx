@@ -804,7 +804,6 @@ function RunningTasksDock({ runningTasks, tasksExpanded, setTasksExpanded, onSto
     </div>
   );
 }
-
 // ─── Toolbar shared between hero and reply inputs ─────────────────────────────
 function InputToolbar({
   isHero,
@@ -824,14 +823,32 @@ function InputToolbar({
 
   return (
     <div className="flex items-center justify-between pt-1 mt-1">
-      <PlusActionMenu
-        onAttachFiles={onAttach}
-        onImportProject={onImportProject}
-        isHero={isHero}
-      />
+      <div className="flex items-center gap-1">
+        <PlusActionMenu
+          onAttachFiles={onAttach}
+          onImportProject={onImportProject}
+          isHero={isHero}
+        />
+
+        {/* Connectors button right at the side of plus with custom SVG */}
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new CustomEvent('calvras_open_tools'))}
+          className="flex items-center justify-center p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer"
+          title="Connectors"
+        >
+          <svg width={isHero ? 17 : 15} height={isHero ? 17 : 15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1.5" />
+            <rect x="14" y="3" width="7" height="7" rx="1.5" />
+            <rect x="14" y="14" width="7" height="7" rx="1.5" />
+            <rect x="3" y="14" width="7" height="7" rx="1.5" />
+            <path d="M10 6.5h4M6.5 10v4M17.5 10v4M10 17.5h4" />
+          </svg>
+        </button>
+      </div>
 
       <div className="flex items-center gap-1.5">
-        {/* Left mic — speech-to-text. Disabled when voice mode (isRecording) is active */}
+        {/* Left mic — speech-to-text dictation */}
         <button
           type="button"
           onClick={() => { if (!isRecording) setIsSttActive(v => !v); }}
@@ -848,7 +865,29 @@ function InputToolbar({
           {isSttActive ? <MicOff size={16} /> : <Mic size={16} />}
         </button>
 
-        {/* Right action button — 4 states */}
+        {/* Voice conversation mode button (speech-to-speech) */}
+        {!isWorking && !hasContent && (
+          <button
+            type="button"
+            onClick={() => setIsRecording(v => !v)}
+            className={`flex items-center justify-center w-8 h-8 rounded-full transition-all shadow-md cursor-pointer ${
+              isRecording
+                ? 'bg-white text-black hover:bg-neutral-200 ring-2 ring-white/40'
+                : 'bg-white/[0.08] hover:bg-white/[0.15] text-neutral-300 hover:text-white'
+            }`}
+            title={isRecording ? 'Stop voice mode' : 'Start voice conversation (speech to speech)'}
+          >
+            {isRecording ? (
+              <Square size={13} fill="currentColor" />
+            ) : (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 10v4M6 6v12M10 3v18M14 8v8M18 5v14M22 10v4" />
+              </svg>
+            )}
+          </button>
+        )}
+
+        {/* Right action button — Stop, Send, or Voice mode */}
         {isWorking ? (
           <button
             type="button"
@@ -858,18 +897,7 @@ function InputToolbar({
           >
             <Square size={13} fill="currentColor" />
           </button>
-        ) : isRecording ? (
-          // Voice mode active → stop button
-          <button
-            type="button"
-            onClick={() => setIsRecording(false)}
-            className="flex items-center justify-center w-8 h-8 rounded-full bg-white text-black hover:bg-neutral-200 transition-all shadow-md cursor-pointer"
-            title="Stop voice mode"
-          >
-            <Square size={13} fill="currentColor" />
-          </button>
         ) : hasContent ? (
-          // Has text → send. Disabled if STT running
           <button
             type="button"
             onClick={onSend}
@@ -877,14 +905,13 @@ function InputToolbar({
             className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-150 ${
               isSttActive
                 ? 'bg-[#38383e] text-[#8e8e93] cursor-not-allowed'
-                : 'bg-[#0084ff] text-white hover:bg-[#0074e0] hover:scale-105 shadow-md cursor-pointer'
+                : 'bg-white text-black hover:bg-neutral-200 shadow-md cursor-pointer'
             }`}
-            title="Send message"
+            title="Send prompt"
           >
             <ArrowRight size={16} strokeWidth={2.4} />
           </button>
         ) : (
-          // Empty + idle → waveform (speech-to-speech). Disabled if STT running
           <button
             type="button"
             onClick={() => { if (!isSttActive) setIsRecording(true); }}
@@ -1128,17 +1155,37 @@ export default function MainChat({
     }
   };
 
-  // Auto-scroll so the latest user turn sits at the top of the viewport (past messages go above)
+  const scrollToBottom = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  // Auto-scroll without jumping back when AI answers
+  const prevLastUserIndexRef = useRef(lastUserIndex);
   useEffect(() => {
-    if (messages.length > 0 && lastUserIndex >= 0) {
-      const timer1 = setTimeout(scrollToLatestTurn, 30);
-      const timer2 = setTimeout(scrollToLatestTurn, 120);
-      return () => {
-        clearTimeout(timer1);
-        clearTimeout(timer2);
-      };
+    if (messages.length === 0) return;
+    const isNewUserTurn = lastUserIndex !== prevLastUserIndexRef.current;
+    prevLastUserIndexRef.current = lastUserIndex;
+
+    if (isNewUserTurn && lastUserIndex >= 0) {
+      const timer = setTimeout(scrollToLatestTurn, 40);
+      return () => clearTimeout(timer);
+    } else {
+      const timer = setTimeout(scrollToBottom, 50);
+      return () => clearTimeout(timer);
     }
   }, [messages.length, lastUserIndex]);
+
+  // Auto-collapse left sidebar when preview pane opens
+  useEffect(() => {
+    if (isSplitScreen && setSidebarCollapsed) {
+      setSidebarCollapsed(true);
+    }
+  }, [isSplitScreen]);
 
   useEffect(() => {
     const handleSetFiles = (e) => {
@@ -1483,6 +1530,9 @@ export default function MainChat({
     const currentAttachedFiles = [...attachedFiles];
     if (!query && currentAttachedFiles.length === 0) return;
 
+    const sendStartTime = Date.now();
+    const getThoughtDuration = () => `${Math.max(1, Math.round((Date.now() - sendStartTime) / 1000))}s`;
+
     // Voice mode: stop the mic while the AI is processing/speaking
     if (isRecordingRef.current) setVoicePhase('speaking');
 
@@ -1665,6 +1715,7 @@ export default function MainChat({
                       ? `✓ **${repoName}** dev server is live on **http://localhost:${port}**. You can now test it in the preview or ask me to make any code or design changes.`
                       : `✓ **${repoName}** workspace is ready. In-browser live preview is active.`,
                     mode: activeBuildMode,
+                    thoughtDuration: getThoughtDuration(),
                     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                   }]);
                 } else if (event.type !== 'files_ready') {
@@ -1842,6 +1893,7 @@ CRITICAL:
             role: 'assistant',
             content: finalChatMsg,
             mode: activeBuildMode,
+            thoughtDuration: getThoughtDuration(),
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           }]);
 
@@ -1952,7 +2004,7 @@ CRITICAL:
                 setPreviewReloadTrigger(p => p + 1);
               }
               const summary = generateNaturalDoneSummary(query, Object.keys(files), false);
-              setMessages(prev => [...prev, { id: `msg-resp-${Date.now()}`, role: 'assistant', content: summary, thinking, mode: activeBuildMode, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+              setMessages(prev => [...prev, { id: `msg-resp-${Date.now()}`, role: 'assistant', content: summary, thinking, thoughtDuration: getThoughtDuration(), mode: activeBuildMode, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
             } else {
               const prose = rawFull
                 .replace(/<run_cmd>[\s\S]*?<\/run_cmd>/gi, '')
@@ -1963,7 +2015,7 @@ CRITICAL:
                 .replace(/<[^>]+>/g, '')
                 .replace(/\n{3,}/g, '\n\n')
                 .trim();
-              setMessages(prev => [...prev, { id: `msg-resp-${Date.now()}`, role: 'assistant', content: prose, thinking, mode: activeBuildMode, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+              setMessages(prev => [...prev, { id: `msg-resp-${Date.now()}`, role: 'assistant', content: prose, thinking, thoughtDuration: getThoughtDuration(), mode: activeBuildMode, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
             }
             setIsThinking(false);
             setIsStreaming(false);
@@ -2015,6 +2067,7 @@ CRITICAL:
         role: 'assistant',
         content: statusMsg,
         mode: activeBuildMode,
+        thoughtDuration: getThoughtDuration(),
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }]);
       // Voice mode: speak the status reply and return to listening
@@ -2354,6 +2407,7 @@ CRITICAL:
               role: 'assistant',
               content: guaranteedMessage,
               mode: activeBuildMode,
+              thoughtDuration: getThoughtDuration(),
               time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             }]);
           } catch (innerErr) {
@@ -2364,6 +2418,7 @@ CRITICAL:
               role: 'assistant',
               content: guaranteedMessage,
               mode: activeBuildMode,
+              thoughtDuration: getThoughtDuration(),
               time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             }]);
           } finally {
@@ -2412,6 +2467,7 @@ CRITICAL:
             role: 'assistant',
             content: `Connection error: ${err.message}. Please try again.`,
             mode: activeBuildMode,
+            thoughtDuration: getThoughtDuration(),
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           }]);
         }
@@ -2426,6 +2482,7 @@ CRITICAL:
         role: 'assistant',
         content: `Error: ${err.message}. Please retry.`,
         mode: activeBuildMode,
+        thoughtDuration: getThoughtDuration(),
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }]);
     }

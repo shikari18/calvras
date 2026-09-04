@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Plus, X } from 'lucide-react';
-import ConnectorsOverlay from './ConnectorsOverlay';
 
 export default function PlusActionMenu({
   onAttachFiles,
@@ -95,21 +94,9 @@ export default function PlusActionMenu({
             >
               Import project
             </button>
-
-            <button
-              type="button"
-              onClick={handleConnectClick}
-              className="w-full px-4 py-2.5 text-left text-[13.5px] text-[#d4d4d4] hover:text-white hover:bg-white/[0.06] rounded-[12px] transition-colors font-normal"
-            >
-              Connect
-            </button>
           </div>
         )}
       </div>
-
-      {showConnectors && (
-        <ConnectorsOverlay onClose={() => setShowConnectors(false)} />
-      )}
     </>
   );
 }
