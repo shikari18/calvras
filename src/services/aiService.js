@@ -358,6 +358,9 @@ export function formatMultimodalMessages(messages = []) {
  */
 export async function generateAIResponse({ messages, mode = 'build' }) {
   const formattedMessages = formatMultimodalMessages(messages);
+  const hasImages = formattedMessages.some(m =>
+    Array.isArray(m.content) && m.content.some(p => p.type === 'image_url')
+  );
 
   const hfToken = localStorage.getItem(HF_TOKEN_STORAGE_KEY) || '';
 
@@ -370,7 +373,7 @@ export async function generateAIResponse({ messages, mode = 'build' }) {
         ...(hfToken ? { 'Authorization': `Bearer ${hfToken}` } : {})
       },
       body: JSON.stringify({
-        model: 'SHIKARI2/Malvos-7B-Instruct',
+        model: hasImages ? 'google/gemini-2.0-flash-001' : 'SHIKARI2/Malvos-7B-Instruct',
         messages: formattedMessages,
         temperature: 0.3,
         max_tokens: 8192,
@@ -388,7 +391,8 @@ export async function generateAIResponse({ messages, mode = 'build' }) {
   }
 
   // 2. Elite Zero-Downtime Failover Pool
-  for (const model of FAILOVER_MODELS) {
+  const modelsToTry = hasImages ? VISION_FAILOVER_MODELS : FAILOVER_MODELS;
+  for (const model of modelsToTry) {
     try {
       const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',

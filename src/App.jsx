@@ -216,8 +216,25 @@ export default function App() {
   }, [sessions, messages, activeSession, user]);
 
   useEffect(() => {
-    if (activeSession && messages.length > 0) {
-      setSessions(prev => prev.map(s => s.id === activeSession ? { ...s, messages } : s));
+    if (messages.length > 0) {
+      if (activeSession) {
+        setSessions(prev => prev.map(s => s.id === activeSession ? { ...s, messages, updatedAt: Date.now() } : s));
+      } else {
+        const newId = 'session_' + Date.now();
+        const firstUserMsg = messages.find(m => m.role === 'user');
+        const rawContent = firstUserMsg?.content;
+        const textSnippet = typeof rawContent === 'string' ? rawContent : (Array.isArray(rawContent) ? rawContent.find(p => p.type === 'text')?.text || 'New Project' : 'New Project');
+        const cleanTitle = (textSnippet || 'New Project').replace(/^[#\s*`]+/, '').trim().slice(0, 42) || 'Untitled Project';
+        const newSession = {
+          id: newId,
+          title: cleanTitle,
+          createdAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+          updatedAt: Date.now(),
+          messages
+        };
+        setActiveSession(newId);
+        setSessions(prev => [newSession, ...prev]);
+      }
     }
   }, [messages, activeSession]);
 
@@ -422,6 +439,7 @@ export default function App() {
                 handleNewChat();
                 setActiveNav('home');
               }}
+              onDeleteProject={handleDeleteSession}
             />
           ) : activeNav === 'developer' ? (
             <DeveloperPage />

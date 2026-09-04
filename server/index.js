@@ -599,14 +599,14 @@ app.post('/api/v1/chat/completions', async (req, res) => {
       .map(m => Array.isArray(m.content) ? m.content.filter(p => p.type === 'text').map(p => p.text).join(' ') : (m.content || ''))
       .join(' ');
 
-    const isExplicitBuild = /\b(?:dupli[ca]?te|clone|recreate|rebuild|build|create|make|code|implement)\b/i.test(userQuery);
-    if (isExplicitBuild) {
+    const isQuestionOnly = /\b(?:what|who|where|why|how many|is this|explain|describe|read\s+text)\b/i.test(userQuery) && !/\b(?:duplicate|clone|build|create|make|code|implement|recreate|ui|app|page|site)\b/i.test(userQuery);
+    if (!isQuestionOnly) {
       const VISION_CODER_PROMPT = `You are Calvras Vision Coder, an autonomous elite React 18 TypeScript engineer.
-When given an image or screenshot of a website or application to clone or duplicate:
-1. State in 1 concise line what application you are building.
+When given an image or screenshot of a website or application to clone, duplicate, or build:
+1. State in 1 concise sentence what application you are building.
 2. IMMEDIATELY output the complete, production-grade, 10/10 pixel-perfect React 18 TypeScript application in:
 \`\`\`tsx file=Calvras/src/App.tsx
-// Full complete React 18 TypeScript code with all imports, Lucide icons, Tailwind CSS classes, state, and interactive components
+// Complete, working React 18 TypeScript code with all imports, Lucide icons, Tailwind CSS classes, state, and interactive components
 \`\`\`
 3. Output the ENTIRE application with real layout, interactive states, player/tabs/cards, and SVGs.
 4. DO NOT write long bullet-point analyses, architectural breakdowns, or essays before the code. Start writing the code immediately.`;
@@ -652,7 +652,7 @@ When given an image or screenshot of a website or application to clone or duplic
             max_tokens: 16384,
             stream
           }),
-          signal: AbortSignal.timeout(60000)
+          signal: AbortSignal.timeout(180000)
         });
 
         console.log(`[Multimodal Engine] ${vModel} response status:`, vRes.status);

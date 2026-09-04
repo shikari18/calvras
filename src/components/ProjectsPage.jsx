@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Search, ChevronDown, Plus, Globe, Sparkles, Folder } from 'lucide-react';
+import { Search, ChevronDown, Plus, Globe, Sparkles, Folder, Trash2 } from 'lucide-react';
 
 export default function ProjectsPage({ 
   sessions = [], 
   onSelectProject, 
-  onCreateProject 
+  onCreateProject,
+  onDeleteProject
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('last_edited');
@@ -107,7 +108,7 @@ export default function ProjectsPage({
               <div
                 key={project.id}
                 onClick={() => onSelectProject(project)}
-                className="group flex flex-col rounded-2xl bg-[#141419] border border-white/[0.06] hover:border-white/20 transition-all cursor-pointer overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.015]"
+                className="group flex flex-col rounded-2xl bg-[#141419] border border-white/[0.06] hover:border-white/20 transition-all cursor-pointer overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.015] relative"
               >
                 {/* Thumbnail Container */}
                 <div className="relative w-full aspect-[16/10] bg-[#1a1a22] overflow-hidden flex items-center justify-center">
@@ -124,21 +125,55 @@ export default function ProjectsPage({
                       </span>
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
                     <span className="px-3.5 py-1.5 rounded-full bg-white text-black text-xs font-semibold shadow-lg">
                       Open Project
                     </span>
                   </div>
+
+                  {/* Delete button on top-right of thumbnail */}
+                  {onDeleteProject && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (window.confirm(`Delete project "${project.title}"?`)) {
+                          onDeleteProject(project.id);
+                        }
+                      }}
+                      className="absolute top-2.5 right-2.5 z-20 p-2 rounded-xl bg-black/70 hover:bg-red-600/90 text-neutral-300 hover:text-white backdrop-blur-md transition-all opacity-0 group-hover:opacity-100 shadow-lg cursor-pointer border border-white/10"
+                      title="Delete project"
+                    >
+                      <Trash2 size={13} strokeWidth={2} />
+                    </button>
+                  )}
                 </div>
 
                 {/* Title & Date Details */}
-                <div className="p-3.5 flex flex-col">
-                  <h3 className="text-[13.5px] font-medium text-white truncate group-hover:text-blue-400 transition-colors">
-                    {project.title}
-                  </h3>
-                  <span className="text-[11.5px] text-neutral-500 mt-1">
-                    {project.date}
-                  </span>
+                <div className="p-3.5 flex items-center justify-between">
+                  <div className="flex flex-col min-w-0 flex-1 pr-2">
+                    <h3 className="text-[13.5px] font-medium text-white truncate group-hover:text-blue-400 transition-colors">
+                      {project.title}
+                    </h3>
+                    <span className="text-[11.5px] text-neutral-500 mt-1">
+                      {project.date}
+                    </span>
+                  </div>
+                  {onDeleteProject && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (window.confirm(`Delete project "${project.title}"?`)) {
+                          onDeleteProject(project.id);
+                        }
+                      }}
+                      className="p-1.5 rounded-lg text-neutral-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer flex-shrink-0"
+                      title="Delete project"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

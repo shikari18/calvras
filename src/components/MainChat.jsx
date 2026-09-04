@@ -2006,33 +2006,35 @@ CRITICAL:
     const hasExistingWorkspace = Object.keys(workspaceFiles).length > 0;
     const trimmedQuery = (query || '').trim();
 
-    // Explicit build/clone words — the ONLY trigger for code generation
-    const hasBuildKeyword = /\b(?:dupli[ca]?te|replicate|clone|recreate|rebuild|build|develop|implement|create\s+(?:an?\s+)?(?:app|website|page|dashboard|component|landing|ui|game|tool|site)|make\s+(?:me\s+)?(?:an?\s+)?(?:app|website|page|dashboard|component|landing|ui|game|tool|site)|code\s+(?:me\s+)?(?:an?\s+)?(?:app|website|page))\b/i.test(trimmedQuery);
-
     // 1. Pasted image only (no text) → ask what they want, never auto-build
     const isPastedImageOnly = hasImageAttachment && trimmedQuery.length === 0;
 
-    // 2. Conversational — anything with an image + text that isn't an explicit build request
-    //    Also catches: questions, explanations, opinions, analysis, reading, checking URLs
-    const isConversationalQuestion =
-      isPastedImageOnly ||
-      (hasImageAttachment && !hasBuildKeyword) ||
-      (!hasBuildKeyword && (
-        trimmedQuery.endsWith('?') ||
-        /^(?:what|why|how|who|where|when|which|tell|explain|describe|solve|read|check|inspect|help|is\s+this|can\s+you|do\s+you|are\s+you|is\s+there|are\s+there|i\s+(?:got|have|want\s+to\s+know|need\s+to\s+know)|ok\s+what|i\s+am\s+asking|i\s+pasted|i\s+uploaded|look\s+at|review|analyze|compare|which\s+(?:one|is)|does\s+this|will\s+this)\b/i.test(trimmedQuery) ||
-        trimmedQuery.split(/\s+/).length < 6  // short non-build messages → conversational
-      ));
+    // 2. Explicit build/clone/duplicate words or UI duplication with image
+    const hasBuildKeyword = 
+      /\b(?:duplicate|duplicating|duplicated|clone|cloning|cloned|replicate|replicating|recreate|recreating|rebuild|rebuilding|build|building|develop|implement|code|create|make|design|generate|turn\s+this\s+into|convert\s+this\s+into|copy)\b/i.test(trimmedQuery) ||
+      (hasImageAttachment && /\b(?:ui|app|website|site|page|screen|design|dashboard|component|interface|this|like\s+this|same)\b/i.test(trimmedQuery)) ||
+      (/\b(?:app|website|site|landing\s*page|dashboard|component|ui|interface|prototype|screen|tool)\b/i.test(trimmedQuery) &&
+       /\b(?:build|make|create|code|clone|duplicate|design|give|show|do|implement)\b/i.test(trimmedQuery));
 
     // 3. System prompt generation request
     const isPromptContext = /^(?:write|generate|craft|create|give\s+me)\s+(?:a\s+)?(?:system\s+prompt|meta\s+prompt)/i.test(trimmedQuery);
 
-    // 4. In-place surgical edit of existing workspace — ONLY when user explicitly says edit/change/fix + has workspace
-    const isWorkspaceEdit = hasExistingWorkspace && !isConversationalQuestion && !isPromptContext && hasBuildKeyword === false && (
+    // 4. Conversational question — ONLY when user is asking a purely explanatory question without build intent
+    const isConversationalQuestion =
+      isPastedImageOnly ||
+      (!hasBuildKeyword && (
+        trimmedQuery.endsWith('?') ||
+        /^(?:what|why|how|who|where|when|which|tell|explain|describe|solve|read|check|inspect|help|is\s+this|can\s+you\s+explain|do\s+you|are\s+you|is\s+there|are\s+there|i\s+(?:got|have|want\s+to\s+know|need\s+to\s+know)|ok\s+what|i\s+am\s+asking|i\s+pasted|i\s+uploaded|look\s+at|review|analyze|compare|which\s+(?:one|is)|does\s+this|will\s+this)\b/i.test(trimmedQuery) ||
+        (trimmedQuery.split(/\s+/).length < 4 && !hasImageAttachment)
+      ));
+
+    // 5. In-place surgical edit of existing workspace — ONLY when user explicitly says edit/change/fix + has workspace
+    const isWorkspaceEdit = hasExistingWorkspace && !isConversationalQuestion && !isPromptContext && !hasBuildKeyword && (
       /\b(?:change|update|modify|edit|fix|adjust|style|color|button|navbar|header|footer|sidebar|make\s+it|make\s+this|remove|replace|add|better|responsive|mobile|align)\b/i.test(trimmedQuery)
     );
 
-    // 5. Explicit build — requires hasBuildKeyword, never triggered by images alone or short questions
-    const isExplicitBuild = hasBuildKeyword && !isConversationalQuestion && !isWorkspaceEdit && !isPromptContext;
+    // 6. Explicit build — triggered by hasBuildKeyword or image with build request
+    const isExplicitBuild = (hasBuildKeyword || (hasImageAttachment && !isConversationalQuestion && !isPastedImageOnly)) && !isWorkspaceEdit && !isPromptContext;
 
     const isCodePrompt = isWorkspaceEdit || isExplicitBuild;
 
@@ -2193,7 +2195,7 @@ CRITICAL:
             // ── Execute any tool calls Calvras emitted (<run_cmd>, <browse>) ──
             const rawStream = await executeCalvrasTools(res.raw || finalContent);
 
-            let extractedFiles = (isPromptContext || isConversationalQuestion || isPastedImageOnly) ? {} : extractFilesFromAIResponse(rawStream, query);
+            let extractedFiles = (isPromptContext || isPastedImageOnly) ? {} : extractFilesFromAIResponse(rawStream, query);
 
             // If explicit build but no files extracted, try second pass on rawStream directly
             if (isExplicitBuild && Object.keys(extractedFiles).length === 0 && rawStream.length > 100) {
@@ -2229,7 +2231,7 @@ CRITICAL:
             // Ultimate fail-safe: if still 0 files on an explicit build, generate full architecture app
             if (isExplicitBuild && Object.keys(extractedFiles).length === 0) {
               try {
-                const fullApp = generateFullArchitectureApp(query || 'Production Application UI', 'build');
+                const fullApp = generateFullArchitectureApp(query || finalContent || 'Production Application UI', 'build');
                 if (fullApp && Object.keys(fullApp).length > 0) {
                   Object.assign(extractedFiles, fullApp);
                 }
@@ -2252,7 +2254,7 @@ CRITICAL:
 
             let verifiedMain = getMainKey(extractedFiles) || fileNames[0];
 
-            if (Object.keys(extractedFiles).length > 0 && !isPromptContext && !isConversationalQuestion && !isPastedImageOnly) {
+            if (Object.keys(extractedFiles).length > 0 && !isPromptContext && !isPastedImageOnly) {
               setWorkspaceFiles(extractedFiles);
               setActiveFileName(verifiedMain);
               setIsSplitScreen(true);
