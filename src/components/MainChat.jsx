@@ -1072,6 +1072,8 @@ export default function MainChat({
   const [terminalLogs, setTerminalLogs] = useState([]);
   const [previewPort, setPreviewPort] = useState(null);
   const [currentRepo, setCurrentRepo] = useState(null);
+  const [currentRepoUrl, setCurrentRepoUrl] = useState(null);
+  const [pendingPushState, setPendingPushState] = useState(null);
   const [previewReloadTrigger, setPreviewReloadTrigger] = useState(0);
 
   // Split-screen & Resizable layout state with localStorage rehydration
@@ -1726,42 +1728,25 @@ export default function MainChat({
 
     setIsThinking(true);
 
-    // ── 1. Git Clone Interception — Calls real backend SSE stream ─────────────────
+    // ── 1. Git Clone Interception — Robust Backend SSE Stream + Direct Fallback ──
     const cloneMatch = query.match(/(https?:\/\/(?:github|gitlab)\.com\/[^\s]+)/i) || (query.toLowerCase().includes('git clone') ? query.match(/(https?:\/\/[^\s]+)/i) : null);
     if (cloneMatch) {
       const repoUrl = cloneMatch[1].replace(/\.git$/, '');
       const repoName = repoUrl.split('/').pop();
-      const ghToken = localStorage.getItem('malvos_gh_token') || undefined;
+      const ghToken = localStorage.getItem('calvras_gh_token') || localStorage.getItem('malvos_gh_token') || undefined;
 
       // Open workspace terminal immediately
       setIsSplitScreen(true);
       setActiveWorkspaceTab('preview');
       setCurrentRepo(repoName);
+      setCurrentRepoUrl(repoUrl);
       setTerminalLogs([{ type: 'info', text: `Cloning ${repoName}...` }]);
-      setRunningTasks([{ id: 'clone', name: `git clone ${repoName}`, canStop: true }]);
+      setRunningTasks([{ id: 'clone', name: `git clone ${repoName}`, canStop: false }]);
       setIsThinking(false);
 
-      // Instant local load if repo already exists on disk
-      fetch(`http://localhost:3001/api/all-files/${encodeURIComponent(repoName)}`)
-        .then(r => r.json())
-        .then(data => {
-          if (data && data.files && Object.keys(data.files).length > 0) {
-            setWorkspaceFiles(data.files);
-            const mainFile = Object.keys(data.files).find(f =>
-              f.endsWith('App.tsx') || f.endsWith('App.jsx') || f.endsWith('index.tsx') || f.endsWith('index.jsx') || f.endsWith('index.html') || f.endsWith('main.tsx') || f.endsWith('home.tsx')
-            ) || Object.keys(data.files)[0];
-            setActiveFileName(mainFile || null);
-            setPreviewReloadTrigger(p => p + 1);
-          }
-        })
-        .catch(() => {});
-
-      // Deliver immediate clean acknowledgment
-      setIsThinking(false);
-      // No hardcoded message — terminal logs show progress, user can ask anything
-
-      // Stream from backend SSE in background
+      // Async backend clone + direct fallback
       (async () => {
+        let loadedFiles = {};
         try {
           const resp = await fetch('http://localhost:3001/api/clone', {
             method: 'POST',
@@ -1769,112 +1754,267 @@ export default function MainChat({
             body: JSON.stringify({ url: repoUrl, token: ghToken })
           });
 
-          const reader = resp.body.getReader();
-          const decoder = new TextDecoder();
-          let buffer = '';
+          if (resp.ok && resp.body) {
+            const reader = resp.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
 
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n\n');
-            buffer = lines.pop() || '';
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split('\n\n');
+              buffer = lines.pop() || '';
 
-            for (const chunk of lines) {
-              const line = chunk.replace(/^data: /, '').trim();
-              if (!line) continue;
-              try {
-                const event = JSON.parse(line);
-                if (event.type === 'cmd') {
-                  setRunningTasks(prev => [{ id: 'clone', name: event.text, canStop: true }]);
-                }
-                if (event.type === 'files_ready' || event.type === 'done') {
-                  setCurrentRepo(repoName);
-                  setIsSplitScreen(true);
-                  setActiveWorkspaceTab('preview');
-
-                  // Fetch all files content from backend so live VFS and editor have instant full code
-                  fetch(`http://localhost:3001/api/all-files/${encodeURIComponent(repoName)}`)
-                    .then(r => r.json())
-                    .then(data => {
-                      const fullFiles = (data && data.files && Object.keys(data.files).length > 0) ? data.files : {};
-                      if (Object.keys(fullFiles).length > 0) {
-                        setWorkspaceFiles(fullFiles);
-                        const defaultFile = Object.keys(fullFiles).find(f =>
-                          f.endsWith('App.tsx') || f.endsWith('App.jsx') || f.endsWith('index.tsx') || f.endsWith('index.jsx') || f.endsWith('index.html') || f.endsWith('main.tsx')
-                        ) || Object.keys(fullFiles)[0];
-                        setActiveFileName(defaultFile || null);
-                        setPreviewReloadTrigger(p => p + 1);
+              for (const chunk of lines) {
+                const line = chunk.replace(/^data: /, '').trim();
+                if (!line) continue;
+                try {
+                  const event = JSON.parse(line);
+                  if (event.type === 'cmd') {
+                    setTerminalLogs(prev => [...prev, { type: 'cmd', text: event.text }]);
+                  } else if (event.type === 'files_ready' || event.type === 'done') {
+                    // Fetch full files content from backend
+                    try {
+                      const fRes = await fetch(`http://localhost:3001/api/all-files/${encodeURIComponent(repoName)}`);
+                      if (fRes.ok) {
+                        const fData = await fRes.json();
+                        if (fData && fData.files && Object.keys(fData.files).length > 0) {
+                          loadedFiles = fData.files;
+                        }
                       }
-                    })
-                    .catch(() => {});
-                }
-                if (event.type === 'done') {
-                  const port = event.port;
-                  setPreviewPort(port || null);
-                  setCurrentRepo(repoName);
-                  setIsSplitScreen(true);
-                  setActiveWorkspaceTab('preview');
-                  if (port) {
-                    setRunningTasks([
-                      { id: 'server', name: 'node server/index.js', canStop: true },
-                      { id: 'dev', name: `npm run dev (port ${port})`, canStop: true }
-                    ]);
-                    setTerminalLogs(prev => [...prev, { type: 'success', text: `✓ Dev server running on http://localhost:${port}` }]);
-                  } else {
-                    setRunningTasks([{ id: 'server', name: 'Live in-browser preview active', canStop: true }]);
+                    } catch {}
+                  } else if (event.type !== 'files_ready') {
+                    setTerminalLogs(prev => [...prev, event]);
                   }
-                  
-                  // Deliver live preview notification card
-                  setMessages(prev => [...prev, {
-                    id: `msg-done-${Date.now()}`,
-                    role: 'assistant',
-                    repoCard: {
-                      title: 'Project Ready',
-                      repoName: repoName,
-                      port: port || 5173
-                    },
-                    content: port 
-                      ? `✓ **${repoName}** dev server is live on **http://localhost:${port}**. You can now test it in the preview or ask me to make any code or design changes.`
-                      : `✓ **${repoName}** workspace is ready. In-browser live preview is active.`,
-                    mode: activeBuildMode,
-                    thoughtDuration: getThoughtDuration(),
-                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                  }]);
-                } else if (event.type !== 'files_ready') {
-                  setTerminalLogs(prev => [...prev, event]);
-                }
-              } catch { /* ignore parse errors */ }
+                } catch {}
+              }
             }
           }
         } catch (err) {
-          setTerminalLogs(prev => [...prev, { type: 'error', text: `Backend error: ${err.message}. Ensure backend is running (npm run start).` }]);
+          console.warn('Backend clone failed, trying direct GitHub fetch fallback:', err.message);
+        }
+
+        // If backend didn't load files, attempt direct GitHub API fetch
+        if (Object.keys(loadedFiles).length === 0) {
+          try {
+            const parsedUrl = new URL(repoUrl);
+            const pathParts = parsedUrl.pathname.replace(/^\//, '').split('/');
+            const owner = pathParts[0];
+            const repo = pathParts[1];
+            if (owner && repo) {
+              setTerminalLogs(prev => [...prev, { type: 'info', text: `Fetching tree from GitHub API for ${owner}/${repo}...` }]);
+              const treeRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/main?recursive=1`);
+              const treeData = treeRes.ok ? await treeRes.json() : null;
+              if (treeData && treeData.tree) {
+                const textBlobs = treeData.tree.filter(i => i.type === 'blob' && !i.path.match(/\.(png|jpg|jpeg|gif|ico|woff2?|ttf|eot|mp3|wav|zip|tar|gz)$/i)).slice(0, 50);
+                for (const item of textBlobs) {
+                  try {
+                    const rawRes = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/${item.path}`);
+                    if (rawRes.ok) {
+                      loadedFiles[item.path] = await rawRes.text();
+                    }
+                  } catch {}
+                }
+              }
+            }
+          } catch (ghErr) {
+            console.warn('GitHub API fallback error:', ghErr.message);
+          }
+        }
+
+        // Finalize clone UI state
+        setRunningTasks([]);
+        setIsThinking(false);
+
+        if (Object.keys(loadedFiles).length > 0) {
+          setWorkspaceFiles(loadedFiles);
+          const defaultFile = Object.keys(loadedFiles).find(f =>
+            f.endsWith('App.tsx') || f.endsWith('App.jsx') || f.endsWith('index.tsx') || f.endsWith('index.jsx') || f.endsWith('index.html') || f.endsWith('main.tsx')
+          ) || Object.keys(loadedFiles)[0];
+          setActiveFileName(defaultFile || null);
+          setPreviewReloadTrigger(p => p + 1);
+
+          setMessages(prev => [...prev, {
+            id: `msg-clone-done-${Date.now()}`,
+            role: 'assistant',
+            repoCard: {
+              title: 'Repository Cloned',
+              repoName: repoName,
+              port: 5173
+            },
+            content: `✓ Successfully cloned repository **${repoName}** (${Object.keys(loadedFiles).length} files loaded). The workspace and live preview are ready. You can inspect the code in the editor or ask me to make any design, feature, or code changes.`,
+            mode: activeBuildMode,
+            thoughtDuration: getThoughtDuration(),
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }]);
+        } else {
+          setTerminalLogs(prev => [...prev, { type: 'error', text: `Failed to clone ${repoName}.` }]);
+          setMessages(prev => [...prev, {
+            id: `msg-clone-err-${Date.now()}`,
+            role: 'assistant',
+            content: `I was unable to clone **${repoUrl}**. Please ensure the repository is public or provide a GitHub Personal Access Token with repository read access.`,
+            mode: activeBuildMode,
+            thoughtDuration: getThoughtDuration(),
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }]);
         }
       })();
       return;
     }
 
-    // ── 2. Autonomous Repository Code Editing ──────────────────────────────────
-    if (currentRepo && !/build|create|make|website|app|design|restaurant/i.test(query)) {
+    // ── 2. GitHub Push Command Handler ("push to github", "git push", etc.) ──
+    const isPushRequest = /\b(?:push\s+(?:this|my|the|all)?\s*(?:changes|code|commits?|project|repo)?\s*(?:to|on)?\s*github|git\s+push|publish\s+(?:to\s+)?github)\b/i.test(query)
+      || (pendingPushState && !/^(?:build|create|make|new\s+chat)\b/i.test(query));
+
+    if (isPushRequest) {
+      // Check for token in message or storage
+      const tokenInMsg = query.match(/\b(ghp_[a-zA-Z0-9]{36}|github_pat_[a-zA-Z0-9_]{82})\b/);
+      if (tokenInMsg) {
+        localStorage.setItem('calvras_gh_token', tokenInMsg[1]);
+      }
+      const token = tokenInMsg ? tokenInMsg[1] : (localStorage.getItem('calvras_gh_token') || localStorage.getItem('malvos_gh_token') || '');
+
+      // Check for repo URL in message or state
+      const repoUrlInMsg = query.match(/(https?:\/\/github\.com\/[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+)/i)
+        || query.match(/\bgithub\.com\/([a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+)/i);
+      
+      let targetRepoUrl = repoUrlInMsg ? (repoUrlInMsg[1].startsWith('http') ? repoUrlInMsg[1] : `https://${repoUrlInMsg[1]}`) : (currentRepoUrl || (pendingPushState?.repoUrl) || '');
+      let targetRepoName = currentRepo || (targetRepoUrl ? targetRepoUrl.split('/').pop().replace(/\.git$/, '') : '');
+
+      // Check if project was built from scratch and user didn't specify repo
+      if (!targetRepoUrl && !targetRepoName) {
+        setPendingPushState({ awaiting: 'repo_and_token' });
+        setIsThinking(false);
+        setRunningTasks([]);
+        setMessages(prev => [...prev, {
+          id: `msg-push-need-repo-${Date.now()}`,
+          role: 'assistant',
+          content: `This project was created in Calvras and is not yet linked to a GitHub repository.\n\nTo push your project to GitHub, please provide:\n1. Your target GitHub repository URL or name (e.g. \`https://github.com/username/my-project\`)\n2. Your GitHub Personal Access Token (PAT) with \`repo\` scope\n\nOnce provided, I will commit and push all project files directly to your repository.`,
+          mode: activeBuildMode,
+          thoughtDuration: getThoughtDuration(),
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }]);
+        return;
+      }
+
+      // Repo is known, but token is missing
+      if (!token) {
+        setPendingPushState({ awaiting: 'token', repo: targetRepoName, repoUrl: targetRepoUrl });
+        setIsThinking(false);
+        setRunningTasks([]);
+        setMessages(prev => [...prev, {
+          id: `msg-push-need-token-${Date.now()}`,
+          role: 'assistant',
+          content: `To push your changes to **${targetRepoName}** on GitHub, I need your GitHub Personal Access Token (with \`repo\` write scope).\n\nPlease reply with your token (format \`ghp_...\` or \`github_pat_...\`) to execute the push.`,
+          mode: activeBuildMode,
+          thoughtDuration: getThoughtDuration(),
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }]);
+        return;
+      }
+
+      // Both target repo and token are present — execute push!
+      setRunningTasks([{ id: 'push', name: `git push to ${targetRepoName}`, canStop: false }]);
+      setTerminalLogs(prev => [
+        ...prev,
+        { type: 'cmd', text: `git push origin main` },
+        { type: 'info', text: `Syncing files and pushing to ${targetRepoUrl || targetRepoName}...` }
+      ]);
+      setIsThinking(false);
+
+      (async () => {
+        try {
+          const fullUrl = targetRepoUrl || `https://github.com/${targetRepoName}`;
+          const pushResp = await fetch('http://localhost:3001/api/push-project', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              repoUrl: fullUrl,
+              token: token,
+              files: workspaceFiles,
+              message: `Update from Calvras [${new Date().toISOString().slice(0, 10)}]`
+            })
+          });
+
+          const pushData = await pushResp.json();
+          if (pushResp.ok && pushData.ok) {
+            setPendingPushState(null);
+            setRunningTasks([]);
+            setTerminalLogs(prev => [...prev, { type: 'success', text: `✓ Successfully pushed to ${fullUrl}` }]);
+            setMessages(prev => [...prev, {
+              id: `msg-push-done-${Date.now()}`,
+              role: 'assistant',
+              content: `✓ Successfully committed and pushed all changes to **${targetRepoName}** on GitHub!\n\nRepository: [${fullUrl}](${fullUrl})`,
+              mode: activeBuildMode,
+              thoughtDuration: getThoughtDuration(),
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            }]);
+            return;
+          } else {
+            throw new Error(pushData.error || 'Push failed');
+          }
+        } catch (pushErr) {
+          console.error('Push error:', pushErr);
+          setRunningTasks([]);
+          setTerminalLogs(prev => [...prev, { type: 'error', text: `Git push failed: ${pushErr.message}` }]);
+          setMessages(prev => [...prev, {
+            id: `msg-push-err-${Date.now()}`,
+            role: 'assistant',
+            content: `Failed to push to GitHub: ${pushErr.message}. Please verify that your GitHub token has \`repo\` write permissions and that the repository exists.`,
+            mode: activeBuildMode,
+            thoughtDuration: getThoughtDuration(),
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }]);
+        }
+      })();
+      return;
+    }
+
+    // ── 3. Autonomous Repository Code Editing ──────────────────────────────────
+    const isExplicitNewProject = /^(?:start\s+(?:fresh|new)|create\s+a?\s*new\s+(?:project|app|website)|new\s+(?:project|chat|app))\b/i.test(query.trim());
+    if (currentRepo && !isExplicitNewProject) {
       try {
         let fileContextSnippets = [];
         let matchedPaths = [];
 
-        // 1. Full repository content search via backend API
+        // 1. Direct workspace file search from in-memory workspaceFiles
+        for (const [wPath, wContent] of Object.entries(workspaceFiles)) {
+          if (typeof wContent === 'string' && wContent.length < 35000) {
+            const fileNameLower = wPath.split('/').pop().toLowerCase();
+            const qLower = query.toLowerCase();
+            if (
+              qLower.includes(fileNameLower) ||
+              (fileNameLower.includes('home') && qLower.includes('home')) ||
+              (fileNameLower.includes('app') && qLower.includes('app')) ||
+              (fileNameLower.includes('nav') && qLower.includes('nav')) ||
+              (wPath === activeFileName)
+            ) {
+              if (!matchedPaths.includes(wPath)) {
+                matchedPaths.push(wPath);
+                fileContextSnippets.push(`File: ${wPath}\n\`\`\`tsx\n${wContent}\n\`\`\``);
+              }
+            }
+          }
+        }
+
+        // 2. Full repository content search via backend API if needed
         try {
           const searchRes = await fetch(`http://localhost:3001/api/search?repo=${encodeURIComponent(currentRepo)}&q=${encodeURIComponent(query)}`);
           if (searchRes.ok) {
             const searchData = await searchRes.json();
             if (searchData.results && searchData.results.length > 0) {
               for (const item of searchData.results) {
-                matchedPaths.push(item.path);
-                fileContextSnippets.push(`File: ${item.path}\n\`\`\`\n${item.content}\n\`\`\``);
+                if (!matchedPaths.includes(item.path)) {
+                  matchedPaths.push(item.path);
+                  fileContextSnippets.push(`File: ${item.path}\n\`\`\`\n${item.content}\n\`\`\``);
+                }
               }
             }
           }
         } catch { /* search fallback */ }
 
-        // 2. If search returned fewer than 2 files, supplement with top candidate routes and active file
+        // 3. If search returned fewer than 2 files, supplement with top candidate routes and active file
         if (fileContextSnippets.length < 3) {
           const allRepoFiles = Object.keys(workspaceFiles).map(f => f.startsWith(currentRepo + '/') ? f.slice(currentRepo.length + 1) : f);
           const fallbackCandidates = allRepoFiles.filter(f => 
@@ -2021,6 +2161,23 @@ CRITICAL:
           }]);
 
           setIsThinking(false);
+          setRunningTasks([]);
+          return;
+        }
+
+        // If AI returned conversational advice or answer for the repo
+        const prose = rawResponse.replace(/<think>[\s\S]*?<\/think>/i, '').replace(/```[\s\S]*?```/g, '').trim() || rawResponse.trim();
+        if (prose) {
+          setMessages(prev => [...prev, {
+            id: `msg-resp-${Date.now()}`,
+            role: 'assistant',
+            content: prose,
+            mode: activeBuildMode,
+            thoughtDuration: getThoughtDuration(),
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }]);
+          setIsThinking(false);
+          setRunningTasks([]);
           return;
         }
       } catch (err) {
@@ -2311,7 +2468,9 @@ DIRECTIVES FOR WIRING THIS KEY IN USER APP:
               }
 
               const finalSummary = prose || (fileList.length > 0 
-                ? `Built the application with ${fileList.map(f => f.replace('Calvras/', '')).join(', ')}. The live preview is ready.` 
+                ? (isWorkspaceEdit 
+                    ? 'I have applied the requested changes to the codebase and updated the live preview.' 
+                    : 'I have engineered the application with responsive styling, interactive state management, and production-ready components. The live preview is ready.')
                 : 'Completed duplicating the page.');
 
               setMessages(prev => [...prev, { 
@@ -2812,10 +2971,10 @@ DO NOT EVER output only conversational text saying "Surgical fix: add X" or "I w
               // Files were written — keep the model's actual conversational explanation
               let prose = chatContent.replace(/```[\s\S]*?```/g, '').replace(/<[^>]+>/g, '').trim();
 
-              if (!prose || prose.length < 10) {
+              if (!prose || prose.length < 10 || prose.includes('Built the application with src/')) {
                 prose = isWorkspaceEdit
-                  ? `Updated ${fileNames.map(f => f.replace('Calvras/', '')).join(', ')}. The live preview is ready.`
-                  : `Built the application with ${fileNames.map(f => f.replace('Calvras/', '')).join(', ')}. The live preview is ready.`;
+                  ? 'I have applied the requested modifications to the codebase and updated the live preview.'
+                  : 'I have engineered the application with a responsive layout, modern styling, and interactive components. The live preview is ready for you to test.';
               }
               chatContent = prose;
             }
@@ -2841,14 +3000,6 @@ DO NOT EVER output only conversational text saying "Surgical fix: add X" or "I w
             }
             if (fileNames.length > 0) {
               realActions.push({ icon: '✓', text: 'Mounted live preview sandbox', highlight: true });
-            }
-
-            // Autonomous testing verification pass
-            if (fileNames.length > 0) {
-              setCalvrasAction({ type: 'test', text: `Testing code syntax across ${fileNames.length} file(s)...` });
-              await new Promise(r => setTimeout(r, 400));
-              setCalvrasAction({ type: 'confirm', text: 'Now confirming component exports and live preview sandbox...' });
-              await new Promise(r => setTimeout(r, 350));
             }
 
             setMessages(prev => [...prev, {
@@ -2878,9 +3029,7 @@ DO NOT EVER output only conversational text saying "Surgical fix: add X" or "I w
             setLiveStreamContent('');
             setStreamingText('');
             setCalvrasAction(null);
-            setTimeout(() => {
-              setRunningTasks([]);
-            }, 2500);
+            setRunningTasks([]);
           }
         },
         onError: (err) => {

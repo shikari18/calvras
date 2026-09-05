@@ -225,28 +225,11 @@ app.post('/api/clone', (req, res) => {
     send({ type: 'success', text: `✓ Workspace '${repoName}' ready.` });
 
     const allRepoFiles = listFilesRecursive(destPath);
-    // Send files_ready so frontend populates workspace files and in-browser preview
+    // Send files_ready and done so frontend immediately populates workspace files and in-browser preview
     send({ type: 'files_ready', repoName, files: allRepoFiles });
-
-    // Step 2: Detect package manager and frontend subfolder
-    let appDir = destPath;
-    let hasPackageJson = fs.existsSync(path.join(destPath, 'package.json'));
-    if (!hasPackageJson) {
-      for (const sub of ['frontend', 'client', 'web', 'app', 'ui']) {
-        if (fs.existsSync(path.join(destPath, sub, 'package.json'))) {
-          appDir = path.join(destPath, sub);
-          hasPackageJson = true;
-          send({ type: 'info', text: `Detected application in subdirectory: /${sub}` });
-          break;
-        }
-      }
-    }
-
-    if (!hasPackageJson) {
-      send({ type: 'done', repoName, port: null, files: allRepoFiles });
-      res.end();
-      return;
-    }
+    send({ type: 'done', repoName, port: null, files: allRepoFiles });
+    res.end();
+    return;
 
     const startDevServer = () => {
       const port = assignPort(repoName);
@@ -521,11 +504,77 @@ app.post('/api/push/:repo', (req, res) => {
     execSync('git config user.email "calvras@ai.local"', { cwd });
     execSync('git config user.name "Calvras"', { cwd });
     execSync('git add -A', { cwd });
-    execSync(`git commit -m "${message.replace(/"/g, '\\"')}"`, { cwd });
+    try {
+      execSync(`git commit -m "${message.replace(/"/g, '\\"')}"`, { cwd });
+    } catch {
+      // Nothing new to commit, continue to push
+    }
     execSync(`git push "${authedUrl}" HEAD`, { cwd });
 
     res.json({ ok: true });
   } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── POST /api/push-project ───────────────────────────────────────────────────
+// Commits and pushes any project files (new or cloned) to GitHub
+app.post('/api/push-project', (req, res) => {
+  const { repoUrl, token, files, message = 'Update from Calvras' } = req.body;
+  if (!repoUrl || !token) return res.status(400).json({ error: 'repoUrl and token are required' });
+
+  const cleanRepoUrl = repoUrl.trim().replace(/\.git$/, '');
+  const repoName = cleanRepoUrl.split('/').pop();
+  const repoDir = repoPath(repoName);
+
+  try {
+    fs.mkdirSync(repoDir, { recursive: true });
+
+    // Write files to disk
+    if (files && typeof files === 'object') {
+      for (const [relPath, content] of Object.entries(files)) {
+        if (typeof content !== 'string') continue;
+        const cleanPath = relPath.replace(/^(?:Calvras|[^/]+)\//, '');
+        const fullPath = path.join(repoDir, cleanPath);
+        fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+        fs.writeFileSync(fullPath, content, 'utf-8');
+      }
+    }
+
+    const cwd = repoDir;
+    if (!fs.existsSync(path.join(repoDir, '.git'))) {
+      try {
+        execSync('git init -b main', { cwd });
+      } catch {
+        execSync('git init', { cwd });
+      }
+    }
+
+    const urlObj = new URL(cleanRepoUrl.replace('git@github.com:', 'https://github.com/') + '.git');
+    const authedUrl = `${urlObj.protocol}//${token}@${urlObj.host}${urlObj.pathname}`;
+
+    execSync('git config user.email "calvras@ai.local"', { cwd });
+    execSync('git config user.name "Calvras"', { cwd });
+    execSync('git add -A', { cwd });
+    try {
+      execSync(`git commit -m "${message.replace(/"/g, '\\"')}"`, { cwd });
+    } catch {
+      // Nothing new to commit
+    }
+
+    try {
+      execSync('git remote remove origin', { cwd });
+    } catch {}
+    execSync(`git remote add origin "${authedUrl}"`, { cwd });
+    try {
+      execSync('git push -u origin main --force', { cwd });
+    } catch {
+      execSync('git push -u origin HEAD --force', { cwd });
+    }
+
+    res.json({ ok: true, repoName, repoUrl: cleanRepoUrl });
+  } catch (err) {
+    console.error('[API Push-Project Error]', err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -555,25 +604,27 @@ const HF_CUSTOM_ROUTER_URLS = [
 ];
 
 const FAILOVER_MODELS = [
+  'minimax/minimax-m3:free',
+  'openrouter/free',
+  'minimax/minimax-m2.7:free',
+  'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
+  'google/gemma-4-31b-it:free',
   'anthropic/claude-3.7-sonnet',
   'anthropic/claude-3.5-sonnet',
   'google/gemini-2.5-pro',
   'google/gemini-2.0-flash-001',
   'openai/gpt-4o',
-  'deepseek/deepseek-chat',
-  'google/gemini-2.0-flash-exp:free',
-  'meta-llama/llama-3.3-70b-instruct:free',
-  'openrouter/free'
+  'deepseek/deepseek-chat'
 ];
 
 const VISION_MODELS = [
-  'anthropic/claude-3.7-sonnet',
-  'anthropic/claude-3.5-sonnet',
-  'google/gemini-2.5-pro',
+  'minimax/minimax-m3:free',
+  'openrouter/free',
+  'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
   'google/gemini-2.0-flash-001',
-  'openai/gpt-4o',
-  'google/gemini-2.0-flash-exp:free',
-  'openrouter/free'
+  'anthropic/claude-3.5-sonnet',
+  'anthropic/claude-3.7-sonnet',
+  'openai/gpt-4o'
 ];
 
 // Fast conversational engines for voice mode — speed first, no flagship latency.
@@ -782,9 +833,9 @@ When given an image or screenshot of a website or application to clone, duplicat
 4. STRICT MANDATE FOR AI-GENERATED EXACT IMAGES:
    - When duplicating a screenshot or design, inspect every photo, artwork, album art, banner, card, and avatar.
    - Generate the EXACT images you see directly in the workspace code using Pollinations AI:
-     `https://image.pollinations.ai/prompt/${encodeURIComponent("detailed descriptive prompt of what you see in the screenshot")}?width=800&height=800&nologo=true`
+     https://image.pollinations.ai/prompt/[URL_ENCODED_DESCRIPTION]?width=800&height=800&nologo=true
    - NEVER use numbered placeholders (1, 2, 3, 4), blank boxes, or unrelated generic images. Replicate the exact visual subjects from the screenshot.
-   - WORKSPACE-ONLY RULE: All generated images MUST be placed directly in the workspace code (`src/App.tsx`). NEVER output standalone markdown images (`![...](...)`) in the chat conversation. All images live exclusively inside the application workspace and live preview.
+   - WORKSPACE-ONLY RULE: All generated images MUST be placed directly in the workspace code (src/App.tsx). NEVER output standalone markdown images (![...](...)) in the chat conversation. All images live exclusively inside the application workspace and live preview.
 5. STRICT MANDATE FOR MOBILE RESPONSIVENESS:
    - Every single website, page, and component MUST be 100% mobile-responsive across phone, tablet, and desktop viewports.
    - Use Tailwind responsive classes: grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 for all card grids.
@@ -893,7 +944,7 @@ OUTPUT FORMAT: Output ALL project files in standard markdown code blocks with fi
 \`\`\`
 
 CRITICAL DESIGN & QUALITY RULES:
-1. MANDATORY AI-GENERATED EXACT IMAGES: When building cards, feeds, galleries, album artwork, or portfolios, generate exact matching images directly in the code using Pollinations AI: `https://image.pollinations.ai/prompt/${encodeURIComponent("detailed descriptive prompt")}?width=800&height=800&nologo=true`. Embed all images directly in src/App.tsx. NEVER output standalone images in the chat.
+1. MANDATORY AI-GENERATED EXACT IMAGES: When building cards, feeds, galleries, album artwork, or portfolios, generate exact matching images directly in the code using Pollinations AI: https://image.pollinations.ai/prompt/[URL_ENCODED_DESCRIPTION]?width=800&height=800&nologo=true. Embed all images directly in src/App.tsx. NEVER output standalone images in the chat.
 2. MANDATORY 100% MOBILE RESPONSIVENESS: Every UI must be fully responsive on mobile, tablet, and desktop (e.g., grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4, mobile hamburger menu, touch-friendly buttons).
 3. Start directly with code blocks. No preamble, no reasoning, no explanation before the code.
 4. Concluding prose: After all code blocks, write 1-2 friendly sentences talking directly to the user in past tense summarizing what was built and inviting them to test the live preview.`;
@@ -965,7 +1016,7 @@ CRITICAL DESIGN & QUALITY RULES:
           top_p,
           stream
         }),
-        signal: AbortSignal.timeout(120000)
+        signal: AbortSignal.timeout(30000)
       });
 
       if (orResp.ok) {

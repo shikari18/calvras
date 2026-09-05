@@ -6,26 +6,27 @@ const OPENROUTER_KEY = atob('c2stb3ItdjEtMWM1YmJlYjk0ODNiNzlmODVhODdlN2IzNzNlZmE
 
 // Elite Flagship Models in priority order (SOTA coding + vision + reasoning):
 const FAILOVER_MODELS = [
+  'minimax/minimax-m3:free',
+  'openrouter/free',
+  'minimax/minimax-m2.7:free',
+  'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
+  'google/gemma-4-31b-it:free',
   'anthropic/claude-3.7-sonnet',
   'anthropic/claude-3.5-sonnet',
   'google/gemini-2.5-pro',
   'google/gemini-2.0-flash-001',
   'openai/gpt-4o',
-  'deepseek/deepseek-chat',
-  'google/gemini-2.0-flash-exp:free',
-  'meta-llama/llama-3.3-70b-instruct:free',
-  'openrouter/free'
+  'deepseek/deepseek-chat'
 ];
 
 const VISION_FAILOVER_MODELS = [
+  'minimax/minimax-m3:free',
+  'openrouter/free',
+  'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
   'google/gemini-2.0-flash-001',
-  'google/gemini-2.5-pro',
   'anthropic/claude-3.5-sonnet',
   'anthropic/claude-3.7-sonnet',
-  'openai/gpt-4o',
-  'minimax/minimax-m3:free',
-  'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
-  'openrouter/free'
+  'openai/gpt-4o'
 ];
 
 // Fast conversational models for voice mode — speed over flagship quality.
@@ -410,7 +411,8 @@ export async function generateAIResponse({ messages, mode = 'build' }) {
         temperature: 0.3,
         max_tokens: 8192,
         top_p: 0.95
-      })
+      }),
+      signal: AbortSignal.timeout(15000)
     });
 
     if (backendRes.ok) {
@@ -439,7 +441,8 @@ export async function generateAIResponse({ messages, mode = 'build' }) {
           messages: formattedMessages,
           temperature: 0.2,
           max_tokens: 8192
-        })
+        }),
+        signal: AbortSignal.timeout(20000)
       });
 
       if (res.ok) {
@@ -667,7 +670,8 @@ export async function streamAIResponse({ messages, onThinkingChunk, onContentChu
             temperature: 0.3,
             max_tokens: 16384,
             stream: true
-          })
+          }),
+          signal: AbortSignal.timeout(25000)
         });
 
         if (res.ok && res.body) {
@@ -681,25 +685,9 @@ export async function streamAIResponse({ messages, onThinkingChunk, onContentChu
   }
 
   if (!streamResponse) {
-    // ── Resilient Autonomous Fallback Stream ──────────────────────────────────
-    const synthesized = generateSmartAutonomousSynthesis(messages);
-    const { thinking, content } = splitThinkingAndContent(synthesized);
-
-    if (thinking && onThinkingChunk) {
-      onThinkingChunk(thinking, thinking);
-      await new Promise(r => setTimeout(r, 300));
-    }
-
-    const words = content.split(' ');
-    let currentOut = '';
-    for (const w of words) {
-      currentOut += (currentOut ? ' ' : '') + w;
-      if (onContentChunk) onContentChunk(w + ' ', currentOut);
-      await new Promise(r => setTimeout(r, 16));
-    }
-
-    if (onDone) onDone(currentOut);
-    return currentOut;
+    const errorMsg = 'AI generation endpoints are currently unavailable. Please check your network or API keys in settings and try again.';
+    if (onError) onError(new Error(errorMsg));
+    return errorMsg;
   }
 
   const reader = streamResponse.body.getReader();
