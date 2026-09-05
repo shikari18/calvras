@@ -28,7 +28,7 @@ import {
 import ChatMessage from './ChatMessage';
 import PlusActionMenu from './PlusActionMenu';
 import InteractiveQuestionCard from './InteractiveQuestionCard';
-import SelectionBlock, { extractSelectionQuestion } from './SelectionBlock';
+import { extractSelectionQuestion } from './SelectionBlock';
 import ProjectWorkspacePane from './ProjectWorkspacePane';
 import { generateFullArchitectureApp } from '../services/fullAppGenerator';
 import { BUILD_MODES } from '../data/mockData';
@@ -1687,43 +1687,6 @@ export default function MainChat({
       return;
     }
 
-    // ── Vague build clarification — intercept BEFORE anything else ──────────
-    const hasImageEarly = currentAttachedFiles.length > 0;
-    const hasWorkspaceEarly = Object.keys(workspaceFiles).length > 0;
-    const isVagueBuildEarly = !hasImageEarly && !hasWorkspaceEarly && (
-      /^(?:hey\s+)?(?:i\s+(?:need|want|would\s+like)\s+(?:a\s+)?|build|create|make|develop)\s+(?:me\s+)?(?:a\s+)?(?:website|web\s+app|app|application|site|page|dashboard|tool|game|platform)[\s.!?]*$/i.test(trimmedEarly) ||
-      (/\b(?:build|create|make|need|want)\b/i.test(trimmedEarly) && /\b(?:website|web\s*app|app|site|page|application)\b/i.test(trimmedEarly) && trimmedEarly.split(/\s+/).length <= 8 && !/\b(?:like|similar|clone|duplicate|copy|for\s+my|barber|coffee|portfolio|restaurant|shop|store)\b/i.test(trimmedEarly))
-    );
-
-    if (isVagueBuildEarly) {
-      // Add user message to chat then show selection in input area
-      const userMsgEarly = {
-        id: `msg-${Date.now()}`,
-        role: 'user',
-        content: query,
-        files: currentAttachedFiles,
-        workspaceSnapshot: { ...workspaceFiles },
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-      setMessages(prev => [...prev, userMsgEarly]);
-      setInput('');
-      setAttachedFiles([]);
-      if (onUserMessage) onUserMessage(query);
-      setActiveSelectionQuestion({
-        question: "What type of website do you need?",
-        options: [
-          { label: "Personal or portfolio site", detail: "Showcase your work, skills, or brand" },
-          { label: "Business or landing page", detail: "Promote a product, service, or company" },
-          { label: "SaaS or web app", detail: "Dashboard, tool, or subscription product" },
-          { label: "E-commerce or store", detail: "Online shop with products and checkout" },
-          { label: "Blog or content site", detail: "Articles, news, or thought leadership" },
-        ],
-        isMultiSelect: false,
-      });
-      return;
-    }
-    // ────────────────────────────────────────────────────────────────────────
-
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -2823,18 +2786,12 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
 
             const questionBlock = extractSelectionQuestion(finalContent) || extractSelectionQuestion(chatContent);
             if (questionBlock) {
-              setActiveSelectionQuestion(questionBlock);
-              chatContent = chatContent.replace(questionBlock.rawTag, '').trim();
-              if (!chatContent) {
-                setIsThinking(false);
-                setIsStreaming(false);
-                setStreamingText('');
-                setLiveThinkingText('');
-                setRunningTasks([]);
-                return;
-              }
-            } else {
-              setActiveSelectionQuestion(null);
+              const optionsFormatted = (questionBlock.options || [])
+                .map((opt, i) => `${i + 1}. **${opt.label}**${opt.detail ? ` — ${opt.detail}` : ''}`)
+                .join('\n');
+              const conversationalQuestion = `${questionBlock.question}\n\n${optionsFormatted}\n\nTell me what you have in mind or any key features you need, and I will build it for you.`;
+              chatContent = chatContent.replace(questionBlock.rawTag, conversationalQuestion).trim();
+              if (!chatContent) chatContent = conversationalQuestion;
             }
 
             if (Object.keys(extractedFiles).length === 0 || isConversationalQuestion || isPastedImageOnly) {
@@ -3241,28 +3198,7 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
         {messages.length > 0 && (
           <div className="sticky bottom-0 left-0 right-0 p-2 sm:p-3.5 bg-gradient-to-t from-[#171615] via-[#171615]/95 to-transparent z-30">
             <div className="max-w-[660px] mx-auto relative">
-              {activeSelectionQuestion ? (
-                <SelectionBlock
-                  question={activeSelectionQuestion.question}
-                  options={activeSelectionQuestion.options}
-                  isMultiSelect={activeSelectionQuestion.isMultiSelect}
-                  onSelectOption={(chosenValue) => {
-                    if (chosenValue === '__skip__') {
-                      // Skip = proceed with original last query
-                      setActiveSelectionQuestion(null);
-                      handleSend(lastQuery || 'Build it — use your best judgment on the type and style.');
-                      return;
-                    }
-                    setActiveSelectionQuestion(null);
-                    handleSend(chosenValue);
-                  }}
-                  onSkip={() => {
-                    setActiveSelectionQuestion(null);
-                    handleSend(lastQuery || 'Build it — use your best judgment on the type and style.');
-                  }}
-                  disabled={isThinking || isStreaming}
-                />
-              ) : runningTasks.length > 0 ? (
+              {runningTasks.length > 0 ? (
                 <div 
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
