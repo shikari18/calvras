@@ -20,6 +20,7 @@ import LegalDocumentPage from './pages/LegalDocumentPage';
 import AboutUsPage from './pages/AboutUsPage';
 import DynamicTopicPage from './pages/DynamicTopicPage';
 import CustomerServiceWidget from './components/CustomerServiceWidget';
+import { ALL_FOOTER_LINKS } from './data/topicRegistry';
 
 const generateConversationId = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -41,15 +42,7 @@ function getSessionIdFromPath() {
   }
 }
 
-const KNOWN_TOPIC_SLUGS = [
-  'calvras-chat', 'calvras-code', 'calvras-enterprise', 'calvras-teams', 'calvras-education', 'download-app',
-  'model-opus', 'model-sonnet', 'model-haiku', 'models-overview',
-  'solution-modernization', 'solution-qa-testing', 'solution-support-bot', 'solution-fintech',
-  'api-console', 'documentation', 'platform-search-engine', 'platform-sandbox',
-  'research-papers', 'changelog', 'customer-stories', 'cookbook',
-  'program-architect', 'program-startups', 'program-opensource',
-  'status', 'trust-safety', 'careers', 'security', 'press', 'acceptable-use'
-];
+const ALL_TOPIC_SLUGS = ALL_FOOTER_LINKS.map(l => l.slug);
 
 function getInitialRoute() {
   try {
@@ -75,8 +68,8 @@ function getInitialRoute() {
     if (path.startsWith('/refund') || path.startsWith('/shipping')) return 'refund';
     if (path.startsWith('/about')) return 'about';
     if (path.startsWith('/help') || path.startsWith('/support')) return 'help';
-    if (path.startsWith('/topic/') || KNOWN_TOPIC_SLUGS.includes(cleanPath) ||
-        cleanPath.startsWith('model-') || cleanPath.startsWith('solution-') || cleanPath.startsWith('program-')) {
+    if (path.startsWith('/topic/') || ALL_TOPIC_SLUGS.includes(cleanPath) ||
+        cleanPath.startsWith('model-') || cleanPath.startsWith('solution-') || cleanPath.startsWith('program-') || cleanPath.startsWith('company-') || cleanPath.startsWith('resources-')) {
       return 'topic';
     }
     if (path.startsWith('/chat') || path.startsWith('/app') || hash.includes('chat')) {
@@ -219,17 +212,9 @@ export default function App() {
       setTopicSlug(meta);
     }
 
-    const footerSlugs = [
-      'calvras-chat', 'calvras-code', 'calvras-enterprise', 'calvras-teams', 'calvras-education', 'download-app',
-      'model-opus', 'model-sonnet', 'model-haiku', 'models-overview',
-      'solution-modernization', 'solution-qa-testing', 'solution-support-bot', 'solution-fintech',
-      'api-console', 'documentation', 'platform-search-engine', 'platform-sandbox',
-      'research-papers', 'changelog', 'customer-stories', 'cookbook',
-      'program-architect', 'program-startups', 'program-opensource',
-      'status', 'trust-safety', 'careers', 'security', 'press', 'acceptable-use'
-    ];
-    if (footerSlugs.includes(target) || (typeof target === 'string' && (target.startsWith('model-') || target.startsWith('solution-') || target.startsWith('program-')))) {
-      setTopicSlug(target);
+    const DIRECT_ROUTES = ['chat', 'landing', 'pricing', 'auth', 'login', 'signup', 'privacy', 'terms', 'refund', 'about', 'help', 'support', 'developer', 'projects'];
+    if (!DIRECT_ROUTES.includes(target)) {
+      setTopicSlug(meta || target);
       target = 'topic';
     }
 
