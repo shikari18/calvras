@@ -56,7 +56,7 @@ export default function DeveloperPage() {
   };
 
   return (
-    <div className="flex-1 h-full overflow-y-auto bg-[#1B1B1D] text-white p-6 sm:p-10 select-none">
+    <div className="flex-1 h-full overflow-y-auto bg-[#1B1B1C] text-white p-6 sm:p-10 select-none">
       <div className="max-w-5xl mx-auto space-y-8">
         
         {/* Header */}

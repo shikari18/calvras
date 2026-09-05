@@ -2777,7 +2777,7 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
 
 
   return (
-    <div className={`relative flex flex-1 h-full overflow-hidden bg-[#1B1B1D] text-[#ededed] ${isResizing ? 'cursor-col-resize select-none' : ''}`}>
+    <div className={`relative flex flex-1 h-full overflow-hidden bg-[#1B1B1C] text-[#ededed] ${isResizing ? 'cursor-col-resize select-none' : ''}`}>
       
       {/* ── Left Pane: Chat Conversation ── */}
       <div 
@@ -2814,7 +2814,7 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
         </div>
         
         {/* ── Scrollable chat area ── */}
-        <div ref={scrollRef} className="relative z-10 flex-1 overflow-y-auto px-4 sm:px-6 w-full scrollbar-thin scroll-smooth bg-[#1B1B1D]">
+        <div ref={scrollRef} className="relative z-10 flex-1 overflow-y-auto px-4 sm:px-6 w-full scrollbar-thin scroll-smooth bg-[#1B1B1C]">
 
           {/* ── Hero / empty state: prompt box centered ── */}
           {messages.length === 0 && (
@@ -2834,12 +2834,12 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    className={`relative w-full rounded-[24px] bg-[#1A1A1A] border transition-all text-left overflow-hidden ${
-                      isDraggingOver ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.5)]'
+                    className={`relative w-full rounded-[24px] bg-[#1E1E1F] border transition-all text-left overflow-hidden ${
+                      isDraggingOver ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-white/[0.08] shadow-[0_12px_40px_rgba(0,0,0,0.5)]'
                     }`}
                   >
                     <RunningTasksDock runningTasks={runningTasks} tasksExpanded={tasksExpanded} setTasksExpanded={setTasksExpanded} onStopTask={handleStopTask} />
-                    <div className="m-1 rounded-[18px] bg-[#1A1A1A] border border-white/10 p-5 pt-4 pb-3.5 shadow-sm text-left transition-all">
+                    <div className="m-1 rounded-[18px] bg-[#1E1E1F] border border-white/[0.06] p-5 pt-4 pb-3.5 shadow-sm text-left transition-all">
                       <FileAttachments />
                       {importedFolderName && (
                         <div className="flex items-center gap-2 mb-3">
@@ -2883,8 +2883,8 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    className={`relative w-full rounded-[26px] bg-[#1A1A1A] border p-5 pt-4 pb-3.5 text-left transition-all ${
-                      isDraggingOver ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.5)]'
+                    className={`relative w-full rounded-[26px] bg-[#1E1E1F] border p-5 pt-4 pb-3.5 text-left transition-all ${
+                      isDraggingOver ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-white/[0.08] shadow-[0_12px_40px_rgba(0,0,0,0.5)]'
                     }`}
                   >
                     <FileAttachments />
@@ -2928,6 +2928,30 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
                     />
                   </div>
                 )}
+
+                {/* ── Kimi AI-Style Quick Action Pills ── */}
+                <div className="flex flex-wrap items-center justify-center gap-2 mt-4 select-none">
+                  {[
+                    { label: 'Agent Mode', prompt: 'Task an autonomous engineering agent to build: ' },
+                    { label: 'Deep Research', prompt: 'Deeply research, analyze and document: ' },
+                    { label: 'Code Sandbox', prompt: 'Build a full-stack React TypeScript application: ' },
+                    { label: 'Web Browse', prompt: 'Search the live web and summarize: ' },
+                    { label: 'Code Modernization', prompt: 'Modernize and refactor this code to clean production architecture: ' },
+                    { label: 'QA & Tests', prompt: 'Write comprehensive automated test suites and verify: ' }
+                  ].map((chip, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setInput(chip.prompt);
+                        if (heroTextareaRef.current) heroTextareaRef.current.focus();
+                      }}
+                      className="px-3 py-1.5 rounded-full bg-[#1E1E1F] hover:bg-white/[0.08] text-neutral-300 hover:text-white border border-white/[0.08] hover:border-white/20 text-xs font-medium transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <span>{chip.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
 
             </div>
@@ -3010,7 +3034,7 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
 
         {/* ── Sticky reply dock with outer task shell and nested input ── */}
         {messages.length > 0 && (
-          <div className="sticky bottom-0 left-0 right-0 p-2 sm:p-3.5 bg-gradient-to-t from-[#1B1B1D] via-[#1B1B1D]/95 to-transparent z-30">
+          <div className="sticky bottom-0 left-0 right-0 p-2 sm:p-3.5 bg-gradient-to-t from-[#1B1B1C] via-[#1B1B1C]/95 to-transparent z-30">
             <div className="max-w-[660px] mx-auto relative">
               {activeSelectionQuestion ? (
                 <SelectionBlock
@@ -3038,12 +3062,12 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
-                  className={`relative w-full rounded-[24px] bg-[#1A1A1A] border transition-all text-left overflow-hidden ${
-                    isDraggingOver ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.5)]'
+                  className={`relative w-full rounded-[24px] bg-[#1E1E1F] border transition-all text-left overflow-hidden ${
+                    isDraggingOver ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-white/[0.08] shadow-[0_12px_40px_rgba(0,0,0,0.5)]'
                   }`}
                 >
                   <RunningTasksDock runningTasks={runningTasks} tasksExpanded={tasksExpanded} setTasksExpanded={setTasksExpanded} onStopTask={handleStopTask} />
-                  <div className="m-1 rounded-[18px] bg-[#1A1A1A] border border-white/10 p-5 pt-4 pb-3.5 shadow-sm text-left transition-all">
+                  <div className="m-1 rounded-[18px] bg-[#1E1E1F] border border-white/[0.06] p-5 pt-4 pb-3.5 shadow-sm text-left transition-all">
                     <FileAttachments />
                     <textarea
                       ref={replyTextareaRef}
@@ -3080,10 +3104,10 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
-                  className={`relative w-full rounded-[26px] bg-[#1A1A1A] border p-5 pt-4 pb-3.5 text-left transition-all ${
+                  className={`relative w-full rounded-[26px] bg-[#1E1E1F] border p-5 pt-4 pb-3.5 text-left transition-all ${
                     isDraggingOver
                       ? 'border-blue-500 ring-2 ring-blue-500/30'
-                      : 'border-white/10'
+                      : 'border-white/[0.08]'
                   } shadow-[0_12px_40px_rgba(0,0,0,0.5)]`}
                 >
                   <FileAttachments />

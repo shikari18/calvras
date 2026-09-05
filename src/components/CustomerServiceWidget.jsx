@@ -93,7 +93,7 @@ export default function CustomerServiceWidget({ isOpen, onClose, onNavigateHelp,
     : helpArticles;
 
   return (
-    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-[calc(100vw-32px)] sm:w-[400px] h-[580px] max-h-[85vh] bg-[#1B1B1D] text-white rounded-2xl sm:rounded-3xl border border-white/10 shadow-[0_24px_70px_rgba(0,0,0,0.9)] flex flex-col z-50 overflow-hidden font-sans animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-[calc(100vw-32px)] sm:w-[400px] h-[580px] max-h-[85vh] bg-[#1B1B1C] text-white rounded-2xl sm:rounded-3xl border border-white/10 shadow-[0_24px_70px_rgba(0,0,0,0.9)] flex flex-col z-50 overflow-hidden font-sans animate-in fade-in zoom-in-95 duration-200">
       
       {/* ── Top Header ── */}
       <div className="p-4 bg-[#141416] border-b border-white/[0.08] flex items-center justify-between flex-shrink-0">
@@ -126,7 +126,7 @@ export default function CustomerServiceWidget({ isOpen, onClose, onNavigateHelp,
       </div>
 
       {/* ── Main Tab Content ── */}
-      <div className="flex-1 overflow-y-auto min-h-0 bg-[#1B1B1D]">
+      <div className="flex-1 overflow-y-auto min-h-0 bg-[#1B1B1C]">
         
         {/* ── TAB: HOME ── */}
         {activeTab === 'home' && (

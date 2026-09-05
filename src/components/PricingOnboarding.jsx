@@ -108,10 +108,10 @@ export default function PricingOnboarding({
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#1B1B1D] text-white font-sans selection:bg-white selection:text-black flex flex-col items-center">
+    <div className="min-h-screen w-full bg-[#1B1B1C] text-white font-sans selection:bg-white selection:text-black flex flex-col items-center">
       
       {/* ─── Clean Header: Only Close on top right ─── */}
-      <header className="w-full bg-[#1B1B1D] px-6 py-4 flex items-center justify-end">
+      <header className="w-full bg-[#1B1B1C] px-6 py-4 flex items-center justify-end">
         <button
           onClick={handleCloseToFree}
           className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-all cursor-pointer font-medium"

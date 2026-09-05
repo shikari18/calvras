@@ -62,10 +62,10 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onN
   ];
 
   return (
-    <div className="min-h-screen w-full bg-[#1B1B1D] text-white font-sans selection:bg-white selection:text-black">
+    <div className="min-h-screen w-full bg-[#1B1B1C] text-white font-sans selection:bg-white selection:text-black">
       
       {/* ─── Top Header (No margin line under nav, right side is just Sign in and Get Started) ─── */}
-      <header className="sticky top-0 z-50 w-full bg-[#1B1B1D] px-6 py-4 select-none">
+      <header className="sticky top-0 z-50 w-full bg-[#1B1B1C] px-6 py-4 select-none">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           
           {/* Left: Brand Logo & Title */}
@@ -73,7 +73,7 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onN
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             className="flex items-center gap-2.5 cursor-pointer select-none group"
           >
-            <div className="w-7 h-7 rounded-lg bg-[#1B1B1D] border border-white/15 flex items-center justify-center group-hover:border-white/30 transition-colors">
+            <div className="w-7 h-7 rounded-lg bg-[#1B1B1C] border border-white/15 flex items-center justify-center group-hover:border-white/30 transition-colors">
               <CalvrasLogoIcon className="w-4 h-4 text-white" />
             </div>
             <span className="text-[15px] font-bold text-white tracking-tight uppercase">
@@ -111,7 +111,7 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onN
 
               {resourcesOpen && (
                 <div className="absolute top-full left-1/2 -translate-x-1/2 w-[340px] pt-1 z-50">
-                  <div className="bg-[#1B1B1D] border border-white/10 rounded-2xl p-2.5 shadow-2xl text-left">
+                  <div className="bg-[#1B1B1C] border border-white/10 rounded-2xl p-2.5 shadow-2xl text-left">
                     <div className="px-3 py-1.5 text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">
                       Resources & Docs
                     </div>
@@ -192,7 +192,7 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onN
       </header>
 
       {/* ─── Hero Section (Exact matching user screenshot media_1788573250619.png) ─── */}
-      <section className="relative pt-20 sm:pt-28 pb-14 px-6 sm:px-12 max-w-7xl mx-auto bg-[#1B1B1D]">
+      <section className="relative pt-20 sm:pt-28 pb-14 px-6 sm:px-12 max-w-7xl mx-auto bg-[#1B1B1C]">
         
         {/* Left-Aligned Headline (Exact) */}
         <h1 className="text-left text-[44px] sm:text-[58px] md:text-[68px] font-normal tracking-[-0.035em] leading-[1.08] text-white max-w-3xl mb-8">
@@ -218,11 +218,11 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onN
           </button>
         </div>
 
-        {/* ─── Apple-Style Clean Studio Window (Simple, Elegant, #1B1B1D) ─── */}
-        <div className="w-full rounded-3xl border border-white/10 bg-[#1B1B1D] shadow-2xl overflow-hidden text-left">
+        {/* ─── Apple-Style Clean Studio Window (Simple, Elegant, #1B1B1C) ─── */}
+        <div className="w-full rounded-3xl border border-white/10 bg-[#1B1B1C] shadow-2xl overflow-hidden text-left">
           
           {/* Minimal Window Header Bar */}
-          <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.08] select-none bg-[#1B1B1D]">
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.08] select-none bg-[#1B1B1C]">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-white/20" />
               <div className="w-3 h-3 rounded-full bg-white/20" />
@@ -230,7 +230,7 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onN
               <span className="text-[12px] font-mono text-neutral-400 ml-2">Calvras Studio — AI Coding & Growth Engine</span>
             </div>
 
-            <div className="flex items-center gap-1.5 bg-[#1B1B1D] border border-white/10 rounded-lg p-1">
+            <div className="flex items-center gap-1.5 bg-[#1B1B1C] border border-white/10 rounded-lg p-1">
               <button
                 onClick={() => setPreviewTab('code')}
                 className={`px-3 py-1 rounded-md text-[11.5px] font-medium transition-colors cursor-pointer ${
@@ -251,11 +251,11 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onN
           </div>
 
           {/* Window Body */}
-          <div className="p-6 sm:p-8 bg-[#1B1B1D] grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="p-6 sm:p-8 bg-[#1B1B1C] grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
             {/* Left: Prompt & Real-time AI Agent Reasoning */}
             <div className="lg:col-span-5 space-y-4">
-              <div className="border border-white/10 rounded-2xl p-4 bg-[#1B1B1D]">
+              <div className="border border-white/10 rounded-2xl p-4 bg-[#1B1B1C]">
                 <div className="text-[11px] font-mono text-neutral-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                   <Command size={12} className="text-neutral-400" />
                   <span>User Prompt</span>
@@ -266,7 +266,7 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onN
               </div>
 
               {/* Autonomous Agent Thinking Progress */}
-              <div className="border border-white/10 rounded-2xl p-4 bg-[#1B1B1D] space-y-3">
+              <div className="border border-white/10 rounded-2xl p-4 bg-[#1B1B1C] space-y-3">
                 <div className="flex items-center justify-between text-[11px] text-neutral-400 font-mono">
                   <div className="flex items-center gap-1.5 text-emerald-400">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -306,7 +306,7 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onN
             </div>
 
             {/* Right: Code or Live Interactive Canvas */}
-            <div className="lg:col-span-7 border border-white/10 rounded-2xl p-5 bg-[#1B1B1D] min-h-[340px] flex flex-col justify-between">
+            <div className="lg:col-span-7 border border-white/10 rounded-2xl p-5 bg-[#1B1B1C] min-h-[340px] flex flex-col justify-between">
               {previewTab === 'code' ? (
                 <div className="font-mono text-[12.5px] leading-relaxed text-neutral-300 space-y-2 overflow-x-auto">
                   <div className="flex items-center justify-between text-[11px] text-neutral-500 pb-2 border-b border-white/5">
@@ -334,20 +334,20 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onN
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="border border-white/10 rounded-xl p-4 bg-[#1B1B1D]">
+                    <div className="border border-white/10 rounded-xl p-4 bg-[#1B1B1C]">
                       <div className="text-[11px] text-neutral-400 mb-1">Monthly Recurring Revenue</div>
                       <div className="text-[26px] font-bold text-white tracking-tight">$28,400</div>
                       <div className="text-[11px] text-emerald-400 mt-1 font-medium">+34.2% this month</div>
                     </div>
 
-                    <div className="border border-white/10 rounded-xl p-4 bg-[#1B1B1D]">
+                    <div className="border border-white/10 rounded-xl p-4 bg-[#1B1B1C]">
                       <div className="text-[11px] text-neutral-400 mb-1">Active Subscribers</div>
                       <div className="text-[26px] font-bold text-white tracking-tight">1,420</div>
                       <div className="text-[11px] text-emerald-400 mt-1 font-medium">99.2% Retention rate</div>
                     </div>
                   </div>
 
-                  <div className="border border-white/10 rounded-xl p-4 bg-[#1B1B1D] text-[12px] text-neutral-300">
+                  <div className="border border-white/10 rounded-xl p-4 bg-[#1B1B1C] text-[12px] text-neutral-300">
                     <div className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider mb-2">Live Webhook Feed</div>
                     <div className="space-y-1.5 font-mono text-[11px]">
                       <div className="flex items-center justify-between text-neutral-400">
@@ -375,7 +375,7 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onN
       </section>
 
       {/* ─── Apple / Anthropic Billion-Dollar About Us Section (media_1788574144933.png & media_1788574168224.png) ─── */}
-      <section id="about-us" className="py-28 px-6 sm:px-12 max-w-7xl mx-auto border-t border-white/[0.08] bg-[#1B1B1D] text-left">
+      <section id="about-us" className="py-28 px-6 sm:px-12 max-w-7xl mx-auto border-t border-white/[0.08] bg-[#1B1B1C] text-left">
         
         {/* Anthropic-style Headline & Mission */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mb-20">
@@ -404,14 +404,14 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onN
         </div>
 
         {/* Video / Engineering Team Discussion Frame (Matching Anthropic Image 2) */}
-        <div className="w-full rounded-3xl border border-white/10 bg-[#1B1B1D] overflow-hidden p-3 sm:p-4 mb-20 shadow-2xl">
+        <div className="w-full rounded-3xl border border-white/10 bg-[#1B1B1C] overflow-hidden p-3 sm:p-4 mb-20 shadow-2xl">
           <div className="relative w-full rounded-2xl overflow-hidden bg-[#17150f] border border-white/5 aspect-[16/8] flex items-center justify-center group cursor-pointer">
             <img 
               src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1600&auto=format&fit=crop&q=80" 
               alt="Calvras Engineering Team" 
               className="w-full h-full object-cover opacity-60 group-hover:opacity-75 transition-opacity duration-500 scale-100 group-hover:scale-102"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#1B1B1D] via-transparent to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#1B1B1C] via-transparent to-transparent pointer-events-none" />
             
             {/* Center Play Button */}
             <div className="absolute w-16 h-16 rounded-full bg-white/10 border border-white/25 backdrop-blur-md flex items-center justify-center text-white group-hover:scale-110 group-hover:bg-white/20 transition-all shadow-2xl">
@@ -433,7 +433,7 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onN
 
         {/* 3 Apple-Style Core Architectural Pillars */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-24">
-          <div className="border border-white/10 rounded-3xl p-8 bg-[#1B1B1D] space-y-4 hover:border-white/25 transition-all">
+          <div className="border border-white/10 rounded-3xl p-8 bg-[#1B1B1C] space-y-4 hover:border-white/25 transition-all">
             <div className="w-10 h-10 rounded-xl border border-white/15 flex items-center justify-center text-white">
               <Code2 size={20} />
             </div>
@@ -443,7 +443,7 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onN
             </p>
           </div>
 
-          <div className="border border-white/10 rounded-3xl p-8 bg-[#1B1B1D] space-y-4 hover:border-white/25 transition-all">
+          <div className="border border-white/10 rounded-3xl p-8 bg-[#1B1B1C] space-y-4 hover:border-white/25 transition-all">
             <div className="w-10 h-10 rounded-xl border border-white/15 flex items-center justify-center text-white">
               <Cpu size={20} />
             </div>
@@ -453,7 +453,7 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onN
             </p>
           </div>
 
-          <div className="border border-white/10 rounded-3xl p-8 bg-[#1B1B1D] space-y-4 hover:border-white/25 transition-all">
+          <div className="border border-white/10 rounded-3xl p-8 bg-[#1B1B1C] space-y-4 hover:border-white/25 transition-all">
             <div className="w-10 h-10 rounded-xl border border-white/15 flex items-center justify-center text-white">
               <Lock size={20} />
             </div>
@@ -504,7 +504,7 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onN
         </div>
 
         {/* Big Bold Banner Matching Anthropic Image 3 */}
-        <div className="border border-white/10 rounded-3xl p-10 sm:p-16 bg-[#1B1B1D] text-center space-y-6 shadow-2xl">
+        <div className="border border-white/10 rounded-3xl p-10 sm:p-16 bg-[#1B1B1C] text-center space-y-6 shadow-2xl">
           <h2 className="text-[32px] sm:text-[46px] font-normal text-white tracking-tight">
             Want to build the future of software with Calvras?
           </h2>
@@ -525,7 +525,7 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onN
       </section>
 
       {/* ─── Perplexity-Style Pricing Section (2 Cards Only: $14 & $40, Image 4) ─── */}
-      <section id="pricing" className="py-24 px-6 sm:px-12 max-w-5xl mx-auto border-t border-white/[0.08] bg-[#1B1B1D] text-center">
+      <section id="pricing" className="py-24 px-6 sm:px-12 max-w-5xl mx-auto border-t border-white/[0.08] bg-[#1B1B1C] text-center">
         
         {/* Header (No free plan text, no annual toggle) */}
         <div className="max-w-xl mx-auto mb-14">
@@ -541,7 +541,7 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onN
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch max-w-4xl mx-auto mb-10 text-left">
           
           {/* Card 1: $14 Pro */}
-          <div className="flex flex-col bg-[#1B1B1D] rounded-3xl border border-white/20 p-8 hover:border-white/30 transition-all relative">
+          <div className="flex flex-col bg-[#1B1B1C] rounded-3xl border border-white/20 p-8 hover:border-white/30 transition-all relative">
             
             {/* Title & Badge */}
             <div className="flex items-center justify-between mb-2">
@@ -593,7 +593,7 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onN
           </div>
 
           {/* Card 2: $40 Max */}
-          <div className="flex flex-col bg-[#1B1B1D] rounded-3xl border border-white/15 p-8 hover:border-white/25 transition-all text-left">
+          <div className="flex flex-col bg-[#1B1B1C] rounded-3xl border border-white/15 p-8 hover:border-white/25 transition-all text-left">
             
             {/* Title */}
             <div className="flex items-center justify-between mb-2">
@@ -664,7 +664,7 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onN
       </section>
 
       {/* ─── Massive Cursor-Style 5-Column Footer (media_1788573780443.png) ─── */}
-      <footer className="py-24 px-6 sm:px-12 border-t border-white/[0.08] bg-[#1B1B1D] text-neutral-400 text-[13px]">
+      <footer className="py-24 px-6 sm:px-12 border-t border-white/[0.08] bg-[#1B1B1C] text-neutral-400 text-[13px]">
         
         {/* Top CTA Banner */}
         <div className="max-w-7xl mx-auto text-center mb-24 space-y-6">
