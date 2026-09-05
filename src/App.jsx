@@ -15,6 +15,8 @@ import PricingOnboarding from './components/PricingOnboarding';
 import LandingPage from './components/LandingPage';
 import ProjectsPage from './components/ProjectsPage';
 import DeveloperPage from './components/DeveloperPage';
+import SupportCenterPage from './pages/SupportCenterPage';
+import LegalDocumentPage from './pages/LegalDocumentPage';
 
 function getInitialRoute() {
   try {
@@ -25,6 +27,11 @@ function getInitialRoute() {
     if (path.startsWith('/pricing')) return 'pricing';
     if (path.startsWith('/auth') || path.startsWith('/login') || path.startsWith('/signup') ||
         hash.includes('login') || hash.includes('auth')) return 'auth';
+    if (path.startsWith('/privacy')) return 'privacy';
+    if (path.startsWith('/terms')) return 'terms';
+    if (path.startsWith('/refund') || path.startsWith('/shipping')) return 'refund';
+    if (path.startsWith('/about')) return 'about';
+    if (path.startsWith('/help') || path.startsWith('/support')) return 'help';
     if (path.startsWith('/chat') || path.startsWith('/app') || hash.includes('chat')) {
       const savedUser = localStorage.getItem('coded_user');
       return savedUser ? 'chat' : 'landing';
@@ -33,7 +40,7 @@ function getInitialRoute() {
 
     // For root "/" or unknown paths — restore from last saved route
     const saved = localStorage.getItem('malvos_current_route');
-    if (saved === 'pricing') return 'pricing';
+    if (['pricing', 'privacy', 'terms', 'refund', 'about', 'help'].includes(saved)) return saved;
     if (saved === 'chat') {
       const savedUser = localStorage.getItem('coded_user');
       return savedUser ? 'chat' : 'landing';
@@ -56,6 +63,10 @@ export default function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeNav, setActiveNav] = useState('home');
   const [currentRoute, setCurrentRoute] = useState(getInitialRoute);
+  const [previousRoute, setPreviousRoute] = useState(() => {
+    return localStorage.getItem('coded_user') ? 'chat' : 'pricing';
+  });
+  const [helpArticleId, setHelpArticleId] = useState(null);
   const [pendingUser, setPendingUser] = useState(() => {
     try {
       const saved = localStorage.getItem('coded_pending_user');
@@ -65,11 +76,25 @@ export default function App() {
     }
   });
 
-  const navigateTo = (route) => {
-    setCurrentRoute(route);
+  const navigateTo = (route, meta = null) => {
+    let target = route;
+    if (route === 'legal' && meta) {
+      target = meta;
+    }
+    if (target === 'help' && meta) {
+      setHelpArticleId(meta);
+    } else if (target !== 'help') {
+      setHelpArticleId(null);
+    }
+
+    if (!['privacy', 'terms', 'refund', 'about', 'help', 'support'].includes(currentRoute)) {
+      setPreviousRoute(currentRoute);
+    }
+
+    setCurrentRoute(target);
     try {
-      localStorage.setItem('malvos_current_route', route);
-      const url = route === 'chat' ? '/' : `/${route}`;
+      localStorage.setItem('malvos_current_route', target);
+      const url = target === 'chat' ? '/' : `/${target}`;
       window.history.pushState(null, '', url);
     } catch {}
   };
@@ -358,6 +383,35 @@ export default function App() {
     navigateTo('landing');
   };
 
+  // ─── Standalone Editorial Legal Pages (Privacy, Terms, Shipping & Refund, About) ───
+  if (['privacy', 'terms', 'refund', 'about'].includes(currentRoute)) {
+    return (
+      <LegalDocumentPage
+        documentType={currentRoute}
+        onBack={() => {
+          navigateTo(previousRoute || (user ? 'chat' : 'pricing'));
+        }}
+        onNavigateLegal={(doc) => navigateTo(doc)}
+        onNavigatePricing={() => navigateTo('pricing')}
+        onSignIn={() => navigateTo(user ? 'chat' : 'auth')}
+      />
+    );
+  }
+
+  // ─── Standalone Support Center Page (/help or /support) ───
+  if (currentRoute === 'help' || currentRoute === 'support') {
+    return (
+      <SupportCenterPage
+        initialArticleId={helpArticleId}
+        onBack={() => {
+          navigateTo(previousRoute || (user ? 'chat' : 'pricing'));
+        }}
+        onNavigateLegal={(doc) => navigateTo(doc)}
+        onNavigatePricing={() => navigateTo('pricing')}
+      />
+    );
+  }
+
   // ─── 0. Standalone Landing Page ───
   if (currentRoute === 'landing' || (!user && currentRoute !== 'auth' && currentRoute !== 'pricing')) {
     return (
@@ -365,6 +419,7 @@ export default function App() {
         onSignUp={() => navigateTo('auth')}
         onSignIn={() => navigateTo('auth')}
         onNavigatePricing={() => navigateTo('pricing')}
+        onNavigateLegal={(doc) => navigateTo(doc)}
       />
     );
   }
@@ -389,6 +444,8 @@ export default function App() {
           localStorage.setItem('coded_user', JSON.stringify(fallback));
           navigateTo('chat');
         }}
+        onNavigateLegal={(doc) => navigateTo(doc)}
+        onNavigateHelp={(articleId) => navigateTo('help', articleId)}
       />
     );
   }
@@ -403,6 +460,7 @@ export default function App() {
           // Always present the pricing and compliance page directly after onboarding
           navigateTo('pricing');
         }}
+        onNavigateLegal={(doc) => navigateTo(doc)}
       />
     );
   }
@@ -442,6 +500,7 @@ export default function App() {
           onOpenDeveloper={() => setActiveNav('developer')}
           onOpenAccount={() => navigateTo('pricing')}
           onOpenCustomerService={() => setIsFeedbackOpen(true)}
+          onOpenHelp={() => navigateTo('help')}
           onSignOut={handleSignOut}
           sessions={sessions}
           activeSession={activeSession}

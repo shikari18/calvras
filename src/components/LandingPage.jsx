@@ -15,9 +15,17 @@ function CalvrasLogoIcon({ className = "w-4 h-4 text-white" }) {
   );
 }
 
-export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing }) {
+export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onNavigateLegal }) {
   const [activeTab, setActiveTab] = useState('marketing');
   const [legalTab, setLegalTab] = useState(null);
+
+  const handleLegalClick = (tab) => {
+    if (onNavigateLegal) {
+      onNavigateLegal(tab);
+    } else {
+      setLegalTab(tab);
+    }
+  };
 
   const scrollToSection = (id) => {
     const el = document.getElementById(id);
@@ -516,11 +524,11 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing }) {
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-6 text-[12.5px]">
-            <button onClick={() => setLegalTab('about')} className="hover:text-white transition-colors cursor-pointer">About</button>
-            <button onClick={() => setLegalTab('refund')} className="hover:text-white transition-colors cursor-pointer">Shipping & Refunds</button>
-            <button onClick={() => setLegalTab('terms')} className="hover:text-white transition-colors cursor-pointer">Terms</button>
-            <button onClick={() => setLegalTab('privacy')} className="hover:text-white transition-colors cursor-pointer">Privacy</button>
-            <button onClick={() => setLegalTab('contact')} className="hover:text-white transition-colors cursor-pointer">Contact</button>
+            <button onClick={() => handleLegalClick('about')} className="hover:text-white transition-colors cursor-pointer">About</button>
+            <button onClick={() => handleLegalClick('refund')} className="hover:text-white transition-colors cursor-pointer">Shipping & Refunds</button>
+            <button onClick={() => handleLegalClick('terms')} className="hover:text-white transition-colors cursor-pointer">Terms</button>
+            <button onClick={() => handleLegalClick('privacy')} className="hover:text-white transition-colors cursor-pointer">Privacy</button>
+            <button onClick={() => handleLegalClick('help')} className="hover:text-white transition-colors cursor-pointer">Support</button>
             <button onClick={onNavigatePricing} className="text-emerald-400 hover:underline transition-colors cursor-pointer font-medium">Pricing & Plans</button>
             <button onClick={onSignIn} className="hover:text-white transition-colors cursor-pointer">Sign in</button>
             <button onClick={onSignUp} className="text-white hover:underline cursor-pointer font-medium">Sign Up</button>

@@ -9,7 +9,8 @@ import {
   CheckCircle2, 
   Sparkles,
   ShieldCheck,
-  Code2
+  Code2,
+  HelpCircle
 } from 'lucide-react';
 
 export default function Sidebar({ 
@@ -21,6 +22,7 @@ export default function Sidebar({
   onOpenUpgrade,
   onOpenAccount,
   onOpenCustomerService,
+  onOpenHelp,
   onSignOut,
   user
 }) {
@@ -142,6 +144,22 @@ export default function Sidebar({
           </div>
           {!collapsed && <span>Developer</span>}
         </button>
+
+        {/* Help Center Button */}
+        <button 
+          type="button"
+          onClick={() => {
+            if (onOpenHelp) onOpenHelp();
+            else if (onOpenCustomerService) onOpenCustomerService();
+          }}
+          className={`flex items-center gap-2.5 w-full px-2.5 py-2 rounded-xl text-[13.5px] font-medium transition-colors cursor-pointer text-neutral-300 hover:text-white hover:bg-white/[0.06] border border-transparent ${collapsed ? 'justify-center' : ''}`}
+          title="Get Help"
+        >
+          <div className="w-5 h-5 flex items-center justify-center">
+            <HelpCircle size={16} className="text-neutral-400" />
+          </div>
+          {!collapsed && <span>Get Help</span>}
+        </button>
       </div>
 
       {/* Spacer */}
@@ -196,13 +214,14 @@ export default function Sidebar({
                 type="button"
                 onClick={() => {
                   setUserMenuOpen(false);
-                  if (onOpenCustomerService) onOpenCustomerService();
+                  if (onOpenHelp) onOpenHelp();
+                  else if (onOpenCustomerService) onOpenCustomerService();
                 }}
                 className="group flex items-center justify-between w-full px-2.5 py-2 rounded-xl text-xs text-neutral-300 hover:text-white hover:bg-white/[0.08] transition-all cursor-pointer text-left"
               >
                 <div className="flex items-center gap-2">
-                  <Headphones size={14} className="text-neutral-400 group-hover:text-white transition-colors" />
-                  <span className="font-medium">Help & Support</span>
+                  <HelpCircle size={14} className="text-neutral-400 group-hover:text-white transition-colors" />
+                  <span className="font-medium">Get Help</span>
                 </div>
                 <span className="text-[9.5px] px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-medium">24/7</span>
               </button>

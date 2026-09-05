@@ -147,11 +147,29 @@ const REVIEWS = [
   },
 ];
 
-export default function PricingOnboarding({ user, onCompletePlan, onSkip }) {
+export default function PricingOnboarding({ user, onCompletePlan, onSkip, onNavigateLegal, onNavigateHelp }) {
   const [isAnnual, setIsAnnual] = useState(false);
   const [paymentPlan, setPaymentPlan] = useState(null);
   const [openFaq, setOpenFaq] = useState(null);
   const [legalModalTab, setLegalModalTab] = useState(null); // 'about' | 'refund' | 'terms' | 'privacy' | 'contact' | null
+
+  const handleOpenLegal = (tab) => {
+    if (onNavigateLegal) {
+      onNavigateLegal(tab);
+    } else {
+      setLegalModalTab(tab);
+    }
+  };
+
+  const handleOpenHelp = (articleId) => {
+    if (onNavigateHelp) {
+      onNavigateHelp(articleId);
+    } else if (onNavigateLegal) {
+      onNavigateLegal('help');
+    } else {
+      setLegalModalTab('contact');
+    }
+  };
 
   const handleSelect = (plan) => {
     if (plan.priceIsText) {
@@ -203,9 +221,11 @@ export default function PricingOnboarding({ user, onCompletePlan, onSkip }) {
             <button onClick={() => scrollTo('pricing-grid')} className="hover:text-white transition-colors cursor-pointer">Plans</button>
             <button onClick={() => scrollTo('faq-section')} className="hover:text-white transition-colors cursor-pointer">FAQs</button>
             <button onClick={() => scrollTo('reviews-section')} className="hover:text-white transition-colors cursor-pointer">Customer Reviews</button>
-            <button onClick={() => setLegalModalTab('about')} className="hover:text-white transition-colors cursor-pointer">About Us</button>
-            <button onClick={() => setLegalModalTab('refund')} className="hover:text-white transition-colors cursor-pointer">Shipping & Refunds</button>
-            <button onClick={() => setLegalModalTab('terms')} className="hover:text-white transition-colors cursor-pointer">Terms</button>
+            <button onClick={() => handleOpenLegal('about')} className="hover:text-white transition-colors cursor-pointer">About Us</button>
+            <button onClick={() => handleOpenLegal('refund')} className="hover:text-white transition-colors cursor-pointer">Shipping & Refunds</button>
+            <button onClick={() => handleOpenLegal('terms')} className="hover:text-white transition-colors cursor-pointer">Terms</button>
+            <button onClick={() => handleOpenLegal('privacy')} className="hover:text-white transition-colors cursor-pointer">Privacy</button>
+            <button onClick={() => handleOpenHelp()} className="hover:text-white transition-colors cursor-pointer">Support</button>
           </nav>
 
           <div className="flex items-center gap-3">
@@ -222,12 +242,6 @@ export default function PricingOnboarding({ user, onCompletePlan, onSkip }) {
 
       {/* ─── Main Pricing Hero ─── */}
       <main className="max-w-6xl mx-auto px-6 py-12 flex flex-col items-center">
-        
-        {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-4">
-          <ShieldCheck size={14} />
-          <span>Paystack Verified SaaS • 14-Day Money-Back Guarantee</span>
-        </div>
 
         {/* Headline */}
         <h1 className="text-center font-bold text-white tracking-tight mb-3 text-[32px] sm:text-[42px] md:text-[48px] leading-tight max-w-2xl">
@@ -372,6 +386,11 @@ export default function PricingOnboarding({ user, onCompletePlan, onSkip }) {
           })}
         </div>
 
+        {/* ─── Usage Limits Footnote ─── */}
+        <p className="text-center text-xs text-neutral-400 -mt-12 mb-16 max-w-xl">
+          *<button type="button" onClick={() => handleOpenHelp('usage-limits-best-practices')} className="underline text-neutral-300 hover:text-white transition-colors cursor-pointer">Usage limits apply.</button> Prices and plans are subject to change at Calvras's discretion.
+        </p>
+
         {/* ─── PAYSTACK COMPLIANCE SECTION 1: FAQ ─── */}
         <section id="faq-section" className="w-full max-w-4xl mb-20 border-t border-white/10 pt-16">
           <div className="text-center mb-10">
@@ -475,7 +494,7 @@ export default function PricingOnboarding({ user, onCompletePlan, onSkip }) {
               <p className="text-xs text-neutral-400 mt-0.5">Commercial SaaS Provider • Autonomous Full-Stack Development</p>
             </div>
             <button
-              onClick={() => setLegalModalTab('about')}
+              onClick={() => handleOpenLegal('about')}
               className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-semibold text-white border border-white/10 transition-colors cursor-pointer self-start sm:self-auto"
             >
               Read Full Company Profile →
@@ -514,11 +533,11 @@ export default function PricingOnboarding({ user, onCompletePlan, onSkip }) {
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-6 text-neutral-400">
-            <button onClick={() => setLegalModalTab('about')} className="hover:text-white transition-colors cursor-pointer">About Page</button>
-            <button onClick={() => setLegalModalTab('refund')} className="hover:text-white transition-colors cursor-pointer">Shipping & Refund Policy</button>
-            <button onClick={() => setLegalModalTab('terms')} className="hover:text-white transition-colors cursor-pointer">Terms of Service</button>
-            <button onClick={() => setLegalModalTab('privacy')} className="hover:text-white transition-colors cursor-pointer">Privacy Policy</button>
-            <button onClick={() => setLegalModalTab('contact')} className="hover:text-white transition-colors cursor-pointer">Contact Us</button>
+            <button onClick={() => handleOpenLegal('about')} className="hover:text-white transition-colors cursor-pointer">About Page</button>
+            <button onClick={() => handleOpenLegal('refund')} className="hover:text-white transition-colors cursor-pointer">Shipping & Refund Policy</button>
+            <button onClick={() => handleOpenLegal('terms')} className="hover:text-white transition-colors cursor-pointer">Terms of Service</button>
+            <button onClick={() => handleOpenLegal('privacy')} className="hover:text-white transition-colors cursor-pointer">Privacy Policy</button>
+            <button onClick={() => handleOpenHelp()} className="hover:text-white transition-colors cursor-pointer">Help Center & Support</button>
           </div>
         </div>
 

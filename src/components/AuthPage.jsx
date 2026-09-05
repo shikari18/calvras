@@ -241,7 +241,7 @@ function VerifyScreen({ email, onVerified, onBack }) {
 }
 
 // ─── Main Auth Page ───────────────────────────────────────────────────────────
-export default function AuthPage({ onAuthSuccess }) {
+export default function AuthPage({ onAuthSuccess, onNavigateLegal }) {
   const [step, setStep] = useState('auth'); // 'auth' | 'verify' | 'name' | 'onboarding'
   const [authMode, setAuthMode] = useState('signin');
   const [email, setEmail] = useState('');
@@ -423,10 +423,23 @@ export default function AuthPage({ onAuthSuccess }) {
           </form>
         </div>
 
-        <div className="w-full text-center text-[10.5px] text-neutral-500 pt-2">
-          By continuing, you agree to our{' '}
-          <span className="text-neutral-400 hover:text-white cursor-pointer underline">Terms</span> and{' '}
-          <span className="text-neutral-400 hover:text-white cursor-pointer underline">Privacy Policy</span>.
+        <div className="w-full text-center text-[11px] text-neutral-400 pt-3 leading-relaxed">
+          By continuing, you acknowledge Calvras's{' '}
+          <button
+            type="button"
+            onClick={() => onNavigateLegal ? onNavigateLegal('privacy') : null}
+            className="text-neutral-300 hover:text-white underline underline-offset-2 transition-colors cursor-pointer font-medium"
+          >
+            Privacy Policy
+          </button>
+          {' '}and{' '}
+          <button
+            type="button"
+            onClick={() => onNavigateLegal ? onNavigateLegal('terms') : null}
+            className="text-neutral-300 hover:text-white underline underline-offset-2 transition-colors cursor-pointer font-medium"
+          >
+            Terms of Service
+          </button>.
         </div>
       </div>
 
