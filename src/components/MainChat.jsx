@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Plus, 
   ChevronDown, 
+  ChevronUp, 
   Mic, 
   MicOff, 
   FileCode, 
@@ -710,70 +711,58 @@ function formatLiveInline(text) {
   });
 }
 
-function LiveActivityIndicator({ liveThinkingDuration, statusText, activeFile, hasCodeFiles, isCodePrompt }) {
-  const displayText = statusText && !statusText.includes('```') && !statusText.includes('export default') && !statusText.includes('import React') && statusText.length < 130
-    ? statusText.replace(/<think>[\s\S]*?<\/think>/gi, '').trim()
-    : null;
+function LiveActivityIndicator({ liveThinkingText, liveThinkingDuration, statusText, activeFile, hasCodeFiles }) {
+  const [isThinkingOpen, setIsThinkingOpen] = useState(true);
+  const thinkingScrollRef = useRef(null);
 
-  const activeLabel = displayText || (hasCodeFiles ? 'Compiling application & updating live preview…' : 'Analyzing design & building application…');
+  useEffect(() => {
+    if (thinkingScrollRef.current) {
+      thinkingScrollRef.current.scrollTop = thinkingScrollRef.current.scrollHeight;
+    }
+  }, [liveThinkingText]);
+
+  const hasThinking = Boolean(liveThinkingText && liveThinkingText.trim().length > 0);
+  const durationText = liveThinkingDuration ? `${liveThinkingDuration}s` : '1s';
 
   return (
-    <div className="w-full max-w-[660px] mx-auto py-2 px-4 text-left animate-in fade-in duration-150 select-none">
-      <div className="flex items-center gap-2.5 text-[13.5px] text-neutral-300">
-        <div className="w-4 h-4 rounded-full border-[2px] border-blue-400 border-t-transparent animate-spin flex-shrink-0" />
-        <span className="font-medium text-neutral-200">{activeLabel}</span>
-      </div>
+    <div className="w-full max-w-[660px] mx-auto py-2 px-4 text-left animate-in fade-in duration-150 select-none space-y-2">
+      {/* Real Live Thinking Accordion */}
+      {hasThinking && (
+        <div className="rounded-xl bg-[#18181c]/90 border border-neutral-800/80 overflow-hidden shadow-sm">
+          <div 
+            onClick={() => setIsThinkingOpen(prev => !prev)}
+            className="flex items-center justify-between px-3.5 py-2 bg-[#1f1f24]/70 border-b border-neutral-800/40 cursor-pointer hover:bg-[#25252b]/70 transition-colors"
+          >
+            <div className="flex items-center gap-2 text-neutral-300 text-[12.5px] font-medium">
+              <span className="text-sm">🧠</span>
+              <span className="text-neutral-200">Thinking</span>
+              <span className="text-neutral-500 font-mono text-[11px]">({durationText})</span>
+            </div>
+            <div className="flex items-center gap-1 text-[11px] text-neutral-400">
+              <span>{isThinkingOpen ? 'Hide' : 'Show'}</span>
+              {isThinkingOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+            </div>
+          </div>
+          {isThinkingOpen && (
+            <div 
+              ref={thinkingScrollRef}
+              className="p-3.5 max-h-[180px] overflow-y-auto text-[12px] font-mono text-neutral-300 leading-relaxed whitespace-pre-wrap bg-[#121215]/90 border-t border-neutral-800/40 scrollbar-thin scrollbar-thumb-neutral-700 select-text"
+            >
+              {liveThinkingText}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Real Live Activity / Status */}
+      {statusText && (
+        <div className="flex items-center gap-2.5 text-[13px] text-neutral-300 px-1 py-0.5">
+          <div className="w-3.5 h-3.5 rounded-full border-[2px] border-blue-400 border-t-transparent animate-spin flex-shrink-0" />
+          <span className="text-neutral-200 font-medium">{statusText}</span>
+        </div>
+      )}
     </div>
   );
-}
-
-// ─── Natural Done Summary Generator ────────────────────────────────────────
-function generateNaturalDoneSummary(query = '', fileNames = [], isEdit = false) {
-  const count = fileNames.length;
-  const appFile = fileNames.find(f => f.endsWith('App.tsx') || f.endsWith('App.jsx')) || fileNames[0] || 'App.tsx';
-  const cleanName = appFile.replace('Calvras/', '').replace('src/', '');
-
-  if (isEdit) {
-    return `Updated **${cleanName}** with the requested changes. Live preview is refreshed.`;
-  }
-
-  const topic = query.replace(/\b(build|create|make|duplicate|clone|recreate|implement|develop|code)\s+(me\s+)?(an?\s+)?/i, '').replace(/\s+/g, ' ').trim().slice(0, 60);
-
-  if (count === 0) {
-    return `Built the application based on your request. Live preview is active.`;
-  }
-
-  return `Built **${topic || 'the application'}** with ${count} file${count !== 1 ? 's' : ''}. The live preview is ready — let me know if you'd like any changes.`;
-}
-
-// ─── Human Readable Real-Time Progress Narrator (Never Exposes File Paths) ──
-function getHumanReadableProgress(content = '', hasImage = false) {
-  if (!content) {
-    return hasImage 
-      ? 'Analyzing image layout & visual components…' 
-      : 'Analyzing requirements & designing architecture…';
-  }
-  const lower = content.toLowerCase();
-  
-  if (lower.includes('export default') || content.length > 3500) {
-    return 'Polishing visual styling, responsive layouts & preview…';
-  }
-  if (lower.includes('usestate') || lower.includes('useeffect') || lower.includes('onclick') || lower.includes('handlesearch')) {
-    return 'Wiring reactive state, search filters & interactive events…';
-  }
-  if (lower.includes('images.unsplash.com') || lower.includes('pollinations') || lower.includes('avatar') || lower.includes('badge')) {
-    return 'Generating high-resolution visuals, cards & artwork…';
-  }
-  if (lower.includes('lucide-react') || lower.includes('<svg') || lower.includes('icon')) {
-    return 'Designing navigation, vector icons & brand elements…';
-  }
-  if (lower.includes('grid-cols') || lower.includes('flex-col') || lower.includes('navbar') || lower.includes('header')) {
-    return 'Structuring mobile-responsive layouts & component grid…';
-  }
-  if (hasImage) {
-    return 'Replicating visual design, colors & component structure…';
-  }
-  return 'Constructing fullstack components & responsive interface…';
 }
 
 // ─── Shared Running Tasks Header Dock (Persistent DOM — No Typing Interruptions) ─
@@ -1140,6 +1129,7 @@ export default function MainChat({
   const scrollRef = useRef(null);
   const latestTurnRef = useRef(null);
   const abortControllerRef = useRef(null);
+  const lastExecutedToolsRef = useRef([]);
 
   const handleStopGeneration = () => {
     if (abortControllerRef.current) {
@@ -1509,7 +1499,10 @@ export default function MainChat({
 
   // ── Calvras autonomous tool execution: parses <run_cmd> and <browse> tags ──
   const executeCalvrasTools = async (rawText) => {
-    if (!rawText) return rawText;
+    if (!rawText) {
+      lastExecutedToolsRef.current = [];
+      return rawText;
+    }
 
     // Collect all tool calls in order
     const toolPattern = /<(run_cmd|browse)>([\s\S]*?)<\/\1>/gi;
@@ -1518,12 +1511,17 @@ export default function MainChat({
     while ((match = toolPattern.exec(rawText)) !== null) {
       calls.push({ tag: match[0], type: match[1], value: match[2].trim(), index: match.index });
     }
-    if (calls.length === 0) return rawText;
+    if (calls.length === 0) {
+      lastExecutedToolsRef.current = [];
+      return rawText;
+    }
 
     let result = rawText;
+    const executed = [];
     for (const call of calls) {
       if (call.type === 'run_cmd') {
         setCalvrasAction({ type: 'cmd', text: call.value });
+        executed.push({ type: 'cmd', text: `Executed \`${call.value}\`` });
         try {
           const r = await fetch('http://localhost:3001/api/run-cmd', {
             method: 'POST',
@@ -1540,6 +1538,7 @@ export default function MainChat({
         setCalvrasAction(null);
       } else if (call.type === 'browse') {
         setCalvrasAction({ type: 'browse', text: call.value });
+        executed.push({ type: 'browse', text: `Browsed ${call.value}` });
         try {
           const r = await fetch('http://localhost:3001/api/browse', {
             method: 'POST',
@@ -1556,6 +1555,7 @@ export default function MainChat({
         setCalvrasAction(null);
       }
     }
+    lastExecutedToolsRef.current = executed;
     return result;
   };
 
@@ -2010,8 +2010,10 @@ CRITICAL:
             if (fileMatch) {
               setIsSplitScreen(true);
               setActiveWorkspaceTab('preview');
+              setStreamingText(`Generating ${fileMatch[1].replace('Calvras/', '')}…`);
+            } else {
+              setStreamingText('');
             }
-            setStreamingText(getHumanReadableProgress(full, false));
             const cmdMatch = full.match(/<run_cmd>([^<]{1,120})<\/run_cmd>/i);
             if (cmdMatch) setCalvrasAction({ type: 'cmd', text: cmdMatch[1].trim() });
             const bMatch = full.match(/<browse>([^<]{1,300})<\/browse>/i);
@@ -2022,29 +2024,79 @@ CRITICAL:
             const rawFull = await executeCalvrasTools(res.raw || res.content || '');
             const thinking = res?.thinking || '';
 
+            const prose = rawFull
+              .replace(/<run_cmd>[\s\S]*?<\/run_cmd>/gi, '')
+              .replace(/<browse>[\s\S]*?<\/browse>/gi, '')
+              .replace(/\[Terminal:.*?\]\n[\s\S]*?Exit code: -?\d+\n/g, '')
+              .replace(/\[Browsed:.*?\]\n[\s\S]{0,6100}/g, '')
+              .replace(/```[\s\S]*?```/g, '')
+              .replace(/<[^>]+>/g, '')
+              .replace(/\n{3,}/g, '\n\n')
+              .trim();
+
             if (isUrlDuplicateRequest) {
               const files = extractFilesFromAIResponse(rawFull, query);
-              if (Object.keys(files).length > 0) {
-                const mainFile = Object.keys(files).find(f => f.endsWith('App.tsx') || f.endsWith('App.jsx') || f.endsWith('index.html')) || Object.keys(files)[0];
+              const fileList = Object.keys(files);
+              if (fileList.length > 0) {
+                const mainFile = fileList.find(f => f.endsWith('App.tsx') || f.endsWith('App.jsx') || f.endsWith('index.html')) || fileList[0];
                 setWorkspaceFiles(files);
                 setActiveFileName(mainFile);
                 setIsSplitScreen(true);
                 setActiveWorkspaceTab('preview');
                 setPreviewReloadTrigger(p => p + 1);
               }
-              const summary = generateNaturalDoneSummary(query, Object.keys(files), false);
-              setMessages(prev => [...prev, { id: `msg-resp-${Date.now()}`, role: 'assistant', content: summary, thinking, thoughtDuration: getThoughtDuration(), mode: activeBuildMode, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+
+              const realActions = [];
+              if (thinking) {
+                const firstThought = thinking.split('\n').map(l => l.trim()).find(l => l.length > 8 && !l.startsWith('#') && !l.startsWith('`') && !l.startsWith('*'));
+                realActions.push({ icon: '🧠', text: firstThought ? firstThought.slice(0, 65) : 'Reasoned through architecture & UI duplication' });
+              }
+              if (lastExecutedToolsRef.current && lastExecutedToolsRef.current.length > 0) {
+                for (const t of lastExecutedToolsRef.current) {
+                  realActions.push({ icon: t.type === 'cmd' ? '>_' : '🌐', text: t.text });
+                }
+              }
+              for (const fn of fileList) {
+                realActions.push({ icon: '📝', text: `Wrote ${fn.replace('Calvras/', '')}` });
+              }
+              if (fileList.length > 0) {
+                realActions.push({ icon: '✓', text: 'Mounted live preview sandbox', highlight: true });
+              }
+
+              const finalSummary = prose || (fileList.length > 0 
+                ? `Built the application with ${fileList.map(f => f.replace('Calvras/', '')).join(', ')}. The live preview is ready.` 
+                : 'Completed duplicating the page.');
+
+              setMessages(prev => [...prev, { 
+                id: `msg-resp-${Date.now()}`, 
+                role: 'assistant', 
+                content: finalSummary, 
+                thinking, 
+                thoughtDuration: getThoughtDuration(), 
+                actions: realActions,
+                mode: activeBuildMode, 
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+              }]);
             } else {
-              const prose = rawFull
-                .replace(/<run_cmd>[\s\S]*?<\/run_cmd>/gi, '')
-                .replace(/<browse>[\s\S]*?<\/browse>/gi, '')
-                .replace(/\[Terminal:.*?\]\n[\s\S]*?Exit code: -?\d+\n/g, '')
-                .replace(/\[Browsed:.*?\]\n[\s\S]{0,6100}/g, '')
-                .replace(/```[\s\S]*?```/g, '')
-                .replace(/<[^>]+>/g, '')
-                .replace(/\n{3,}/g, '\n\n')
-                .trim();
-              setMessages(prev => [...prev, { id: `msg-resp-${Date.now()}`, role: 'assistant', content: prose, thinking, thoughtDuration: getThoughtDuration(), mode: activeBuildMode, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+              const realActions = [];
+              if (thinking) {
+                realActions.push({ icon: '🧠', text: 'Reasoned through response' });
+              }
+              if (lastExecutedToolsRef.current && lastExecutedToolsRef.current.length > 0) {
+                for (const t of lastExecutedToolsRef.current) {
+                  realActions.push({ icon: t.type === 'cmd' ? '>_' : '🌐', text: t.text });
+                }
+              }
+              setMessages(prev => [...prev, { 
+                id: `msg-resp-${Date.now()}`, 
+                role: 'assistant', 
+                content: prose, 
+                thinking, 
+                thoughtDuration: getThoughtDuration(), 
+                actions: realActions,
+                mode: activeBuildMode, 
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+              }]);
             }
             setIsThinking(false);
             setIsStreaming(false);
@@ -2330,31 +2382,19 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
           setIsThinking(true);
           setIsStreaming(false);
           setLiveThinkingText(fullThinking);
-          // Extract last meaningful thought as brief status — never show code
-          const lines = fullThinking.split('\n').map(l => l.trim()).filter(l =>
-            l.length > 8 && l.length < 100 &&
-            !l.startsWith('<') && !l.startsWith('`') &&
-            !l.includes('{') && !l.includes('import ') && !l.includes('function ')
-          );
-          const last = lines[lines.length - 1] || '';
-          if (last) {
-            let hint = last.replace(/^(I\s+(?:will|need|should|want|think|plan|am going to|'ll)\s+)/i, '');
-            hint = hint.charAt(0).toUpperCase() + hint.slice(1);
-            if (!hint.endsWith('…') && !hint.endsWith('.')) hint += '…';
-            setStreamingText(hint.slice(0, 80));
-          } else {
-            setStreamingText('Analyzing requirements & designing architecture…');
-          }
+          setStreamingText('');
         },
         onContentChunk: (token, fullContent) => {
           setIsThinking(false);
           setIsStreaming(true);
-          const hasCodeBlock = /```[a-zA-Z0-9_-]*/.test(fullContent);
-          if (hasCodeBlock) {
+          const fileMatch = fullContent.match(/```[a-zA-Z0-9_-]*\s+(?:file=|filename=)([^\s\n]+)/i);
+          if (fileMatch) {
             setIsSplitScreen(true);
             setActiveWorkspaceTab('preview');
+            setStreamingText(`Generating ${fileMatch[1].replace('Calvras/', '')}…`);
+          } else {
+            setStreamingText('');
           }
-          setStreamingText(getHumanReadableProgress(fullContent, hasImageAttachment));
 
           // Show run_cmd in progress
           const cmdMatch = fullContent.match(/<run_cmd>([^<]{1,120})<\/run_cmd>/i);
@@ -2501,53 +2541,46 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
               // Conversational — show cleaned prose
               chatContent = chatContent || finalContent.replace(/```[\s\S]*?```/g, '').replace(/<[^>]+>/g, '').trim();
             } else {
-              // Files were written — talk directly to the user in past tense
+              // Files were written — keep the model's actual conversational explanation
               let prose = chatContent.replace(/```[\s\S]*?```/g, '').replace(/<[^>]+>/g, '').trim();
 
-              // Strip technical file references like "Writing src/App.tsx..."
-              prose = prose
-                .replace(/(?:writing|wrote|generating|updating)\s+[`']?[a-zA-Z0-9_\-./\\]+\.[a-zA-Z0-9]+[`']?[….]?/gi, '')
-                .replace(/file=[^\s\n]+/gi, '')
-                .trim();
-
-              let firstProse = prose.split(/\.\s+/).slice(0, 2).join('. ').trim();
-              if (firstProse) {
-                firstProse = firstProse
-                  .replace(/^building\s+/i, "I've built ")
-                  .replace(/^creating\s+/i, "I've created ")
-                  .replace(/^developing\s+/i, "I've developed ")
-                  .replace(/^implementing\s+/i, "I've implemented ")
-                  .replace(/^recreating\s+/i, "I've recreated ")
-                  .replace(/^duplicating\s+/i, "I've duplicated ")
-                  .replace(/^cloning\s+/i, "I've cloned ")
-                  .replace(/^updating\s+/i, "I've updated ")
-                  .replace(/^adding\s+/i, "I've added ")
-                  .replace(/^i am building\s+/i, "I've built ")
-                  .replace(/^i will build\s+/i, "I've built ");
-                if (!firstProse.endsWith('.')) firstProse += '.';
+              if (!prose || prose.length < 10) {
+                prose = isWorkspaceEdit
+                  ? `Updated ${fileNames.map(f => f.replace('Calvras/', '')).join(', ')}. The live preview is ready.`
+                  : `Built the application with ${fileNames.map(f => f.replace('Calvras/', '')).join(', ')}. The live preview is ready.`;
               }
-
-              if (isPreviewFix) {
-                chatContent = (firstProse && firstProse.length > 20 && !firstProse.includes('pixel-perfect Dribbble'))
-                  ? firstProse
-                  : `I've diagnosed the live preview, resolved the rendering entrypoint, and refreshed the live sandbox. The complete application with high-resolution visual artwork and mobile-responsive layout is now actively rendering in the preview on the right.`;
-              } else if (isWorkspaceEdit) {
-                chatContent = firstProse && firstProse.length > 15
-                  ? firstProse
-                  : `I've updated the application with your requested changes, visual artwork, and mobile responsiveness. You can test it in the live preview on the right.`;
-              } else {
-                chatContent = firstProse && firstProse.length > 20
-                  ? firstProse
-                  : generateNaturalDoneSummary(query, fileNames, false);
-              }
+              chatContent = prose;
             }
 
             guaranteedMessage = chatContent;
+
+            // Dynamically construct REAL actions based on what actually occurred
+            const realActions = [];
+            if (finalThinking) {
+              const firstLine = finalThinking
+                .split('\n')
+                .map(l => l.trim())
+                .find(l => l.length > 8 && !l.startsWith('#') && !l.startsWith('`') && !l.startsWith('*') && !l.startsWith('-'));
+              realActions.push({ icon: '🧠', text: firstLine ? firstLine.slice(0, 65) : 'Reasoned through architecture & design' });
+            }
+            if (lastExecutedToolsRef.current && lastExecutedToolsRef.current.length > 0) {
+              for (const t of lastExecutedToolsRef.current) {
+                realActions.push({ icon: t.type === 'cmd' ? '>_' : '🌐', text: t.text });
+              }
+            }
+            for (const fn of fileNames) {
+              realActions.push({ icon: '📝', text: `Wrote ${fn.replace('Calvras/', '')}` });
+            }
+            if (fileNames.length > 0) {
+              realActions.push({ icon: '✓', text: 'Mounted live preview sandbox', highlight: true });
+            }
 
             setMessages(prev => [...prev, {
               id: `msg-resp-${Date.now()}`,
               role: 'assistant',
               content: guaranteedMessage,
+              thinking: finalThinking,
+              actions: realActions,
               mode: activeBuildMode,
               thoughtDuration: getThoughtDuration(),
               time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })

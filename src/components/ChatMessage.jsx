@@ -660,22 +660,27 @@ export default function ChatMessage({ message, onRegenerate, onOpenDetails, onOp
       return message.actions;
     }
     const acts = [];
+    if (thoughtContent) {
+      const firstLine = thoughtContent.split('\n').map(l => l.trim()).find(l => l.length > 8 && !l.startsWith('#') && !l.startsWith('`') && !l.startsWith('*'));
+      acts.push({ icon: '🧠', text: firstLine ? firstLine.slice(0, 65) : 'Reasoned through requirements' });
+    }
     if (hasCode) {
-      acts.push({ icon: '📖', text: 'Opened workspace file scaffold' });
-      acts.push({ icon: '>_', text: 'Configured React 18 TypeScript components & imports' });
-      acts.push({ icon: '🧠', text: 'Synthesized design layout, color palette & typography' });
-      acts.push({ icon: '🛠️', text: 'Wired interactive state, Lucide vector icons & card filters' });
-      acts.push({ icon: '✓', text: 'Transpiled bundle & mounted live preview sandbox', highlight: true });
-    } else if (thoughtContent) {
-      acts.push({ icon: '🧠', text: 'Analyzed query & requirements' });
-      acts.push({ icon: '✓', text: 'Synthesized comprehensive solution', highlight: true });
+      const fileMatches = [...rawContent.matchAll(/```[a-zA-Z0-9_-]*\s+(?:file=|filename=)([^\s\n]+)/gi)];
+      if (fileMatches.length > 0) {
+        for (const m of fileMatches) {
+          acts.push({ icon: '📝', text: `Wrote ${m[1].replace('Calvras/', '')}` });
+        }
+      } else {
+        acts.push({ icon: '📝', text: 'Generated application code' });
+      }
+      acts.push({ icon: '✓', text: 'Mounted live preview sandbox', highlight: true });
     }
     return acts;
   })();
 
   const mainActionLabel = message.actionLabel || (
-    hasCode 
-      ? 'Adapted components into workspace scaffold' 
+    actionsList.length > 0
+      ? (actionsList.find(a => a.icon === '📝')?.text || actionsList[0]?.text || 'Reasoned through response')
       : (thoughtContent ? 'Reasoned through response' : null)
   );
 
