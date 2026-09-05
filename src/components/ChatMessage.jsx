@@ -115,19 +115,32 @@ export default function ChatMessage({ message, onRegenerate, onOpenDetails, onOp
           )}
 
           {/* Clean User text bubble */}
-          {message.content && (
-            <div
-              ref={userBubbleRef}
-              onClick={() => isLongMessage && setIsUserExpanded(p => !p)}
-              className={`relative bg-[#262626] text-neutral-200 px-5 py-3.5 rounded-2xl text-[15.5px] font-normal shadow-sm break-all break-words max-w-full overflow-hidden whitespace-pre-wrap leading-relaxed transition-all hover:bg-[#2c2c2c] ${isLongMessage ? 'cursor-pointer' : ''} ${isLongMessage && !isUserExpanded ? 'max-h-[82px] overflow-hidden' : 'max-h-none'}`}
-              title={isLongMessage ? (isUserExpanded ? "Click to collapse" : "Click to expand message") : undefined}
-            >
-              {renderUserTextWithLinks(message.content)}
-              {isLongMessage && !isUserExpanded && (
-                <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#262626] via-[#262626]/85 to-transparent pointer-events-none rounded-b-2xl" />
-              )}
-            </div>
-          )}
+          {message.content && (() => {
+            const cleanUserDisplay = (text) => {
+              if (!text) return '';
+              if (/^you are an? (?:elite|autonomous|senior|ai)/i.test(text.trim())) {
+                const taskMatch = text.match(/(?:your task is to|please|build|create|design|implement|code)\s+([\s\S]+)/i);
+                if (taskMatch) {
+                  return (taskMatch[0].charAt(0).toUpperCase() + taskMatch[0].slice(1)).trim();
+                }
+              }
+              return text;
+            };
+            const displayText = cleanUserDisplay(message.content);
+            return (
+              <div
+                ref={userBubbleRef}
+                onClick={() => isLongMessage && setIsUserExpanded(p => !p)}
+                className={`relative bg-[#18183E] text-neutral-200 px-5 py-3.5 rounded-2xl text-[15.5px] font-normal shadow-sm break-all break-words max-w-full overflow-hidden whitespace-pre-wrap leading-relaxed transition-all hover:bg-[#1E1E4C] border border-white/[0.08] ${isLongMessage ? 'cursor-pointer' : ''} ${isLongMessage && !isUserExpanded ? 'max-h-[82px] overflow-hidden' : 'max-h-none'}`}
+                title={isLongMessage ? (isUserExpanded ? "Click to collapse" : "Click to expand message") : undefined}
+              >
+                {renderUserTextWithLinks(displayText)}
+                {isLongMessage && !isUserExpanded && (
+                  <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#18183E] via-[#18183E]/85 to-transparent pointer-events-none rounded-b-2xl" />
+                )}
+              </div>
+            );
+          })()}
           <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 pr-1 pt-0.5">
             <button
               type="button"
@@ -375,6 +388,33 @@ export default function ChatMessage({ message, onRegenerate, onOpenDetails, onOp
 
       // Strip solitary orphan backticks or closing artifacts
       if (trimmed === '```' || trimmed === '````' || trimmed === '`' || trimmed === ').') {
+        return;
+      }
+
+      // Markdown Image ![alt](url)
+      const imgMatch = trimmed.match(/^!\[(.*?)\]\((https?:\/\/[^\s)]+)\)$/);
+      if (imgMatch) {
+        elements.push(
+          <div key={lIdx} className="my-3.5 rounded-2xl overflow-hidden border border-white/[0.12] bg-[#141436] shadow-2xl max-w-full group">
+            <div className="relative aspect-[16/9] w-full bg-[#0E0E24] overflow-hidden">
+              <img
+                src={imgMatch[2]}
+                alt={imgMatch[1] || 'Web Preview'}
+                className="w-full h-full object-cover object-top group-hover:scale-[1.02] transition-transform duration-500"
+                loading="lazy"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            </div>
+            {imgMatch[1] && (
+              <div className="px-4 py-2 bg-[#16163A] border-t border-white/[0.08] flex items-center justify-between text-xs text-neutral-300 select-none">
+                <span className="font-medium truncate max-w-[400px]">{imgMatch[1]}</span>
+                <span className="text-[10px] uppercase font-bold text-blue-400 tracking-wider bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">Live Snapshot</span>
+              </div>
+            )}
+          </div>
+        );
         return;
       }
 

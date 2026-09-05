@@ -108,10 +108,10 @@ export default function PricingOnboarding({
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#1B1B1C] text-white font-sans selection:bg-white selection:text-black flex flex-col items-center">
+    <div className="min-h-screen w-full bg-[#121232] text-white font-sans selection:bg-white selection:text-black flex flex-col items-center">
       
       {/* ─── Clean Header: Only Close on top right ─── */}
-      <header className="w-full bg-[#1B1B1C] px-6 py-4 flex items-center justify-end">
+      <header className="w-full bg-[#121232] px-6 py-4 flex items-center justify-end">
         <button
           onClick={handleCloseToFree}
           className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-all cursor-pointer font-medium"
@@ -122,23 +122,23 @@ export default function PricingOnboarding({
       </header>
 
       {/* ─── Main Content ─── */}
-      <main className="w-full max-w-6xl mx-auto px-6 py-8 sm:py-12 flex flex-col items-center text-center">
+      <main className="flex-1 w-full max-w-6xl px-6 py-8 flex flex-col items-center justify-center">
         
-        {/* Header */}
-        <div className="max-w-xl mx-auto mb-12">
-          <h1 className="text-[36px] sm:text-[46px] font-serif font-normal text-white tracking-tight mb-2.5">
-            Select your plan
+        {/* Title */}
+        <div className="text-center mb-12">
+          <h1 className="text-[32px] sm:text-[40px] font-bold tracking-tight text-white mb-3">
+            Choose your plan
           </h1>
-          <p className="text-[14px] text-neutral-400">
-            Upgrade for a broader search experience and premium AI models.
+          <p className="text-[15px] text-neutral-400 max-w-md mx-auto">
+            Build, code, and deploy with autonomous intelligence. Upgrade anytime.
           </p>
         </div>
 
-        {/* ─── 3 Cards Grid (Free $0, Pro $14, Max $40) ─── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch w-full max-w-5xl mb-10 text-left">
+        {/* 3 Pricing Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl mb-12">
           
           {/* Card 0: $0 Free */}
-          <div className="flex flex-col p-8 rounded-3xl bg-[#141416] border border-white/10 hover:border-white/20 transition-all">
+          <div className="flex flex-col p-8 rounded-3xl bg-[#16163A] border border-white/10 hover:border-white/20 transition-all">
             <h3 className="text-[18px] font-semibold text-white mb-1">calvras free</h3>
             <p className="text-[12px] text-neutral-400 mb-6">Explore the power of Calvras</p>
             <div className="flex items-baseline gap-1 mb-6">
@@ -178,7 +178,7 @@ export default function PricingOnboarding({
           </div>
 
           {/* Card 1: $14 Pro */}
-          <div className="flex flex-col bg-[#12110E] rounded-3xl border border-white/25 p-7 hover:border-white/35 transition-all relative shadow-xl">
+          <div className="flex flex-col bg-[#16163A] rounded-3xl border border-white/25 p-7 hover:border-white/35 transition-all relative shadow-xl">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-[22px] font-bold text-white tracking-tight">calvras <span className="font-normal text-white">pro</span></h2>
               <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-white/10 text-white border border-white/20">
@@ -226,7 +226,7 @@ export default function PricingOnboarding({
           </div>
 
           {/* Card 2: $40 Max */}
-          <div className="flex flex-col bg-[#12110E] rounded-3xl border border-white/15 p-7 hover:border-white/25 transition-all text-left">
+          <div className="flex flex-col bg-[#16163A] rounded-3xl border border-white/15 p-7 hover:border-white/25 transition-all text-left">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-[22px] font-bold text-white tracking-tight">calvras <span className="font-normal text-white">max</span></h2>
             </div>

@@ -34,7 +34,7 @@ export default function ProjectsPage({
   );
 
   return (
-    <div className="flex-1 h-full overflow-y-auto bg-[#1B1B1C] text-white p-6 sm:p-10 select-none">
+    <div className="flex-1 h-full overflow-y-auto bg-[#121232] text-white p-6 sm:p-10 select-none">
       <div className="max-w-6xl mx-auto space-y-7">
         
         {/* Page Header matching reference */}
@@ -47,7 +47,7 @@ export default function ProjectsPage({
         {/* Toolbar: Search input, Sort, Create Project Button */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           {/* Search bar */}
-          <div className="flex items-center gap-2.5 bg-[#17171d] border border-white/[0.08] rounded-xl px-3.5 py-2 w-full sm:max-w-md focus-within:border-neutral-500 transition-colors">
+          <div className="flex items-center gap-2.5 bg-[#16163A] border border-white/[0.08] rounded-xl px-3.5 py-2 w-full sm:max-w-md focus-within:border-neutral-500 transition-colors">
             <Search size={16} className="text-neutral-400 flex-shrink-0" />
             <input
               type="text"
@@ -61,7 +61,7 @@ export default function ProjectsPage({
           {/* Right controls */}
           <div className="flex items-center gap-2.5 self-end sm:self-auto">
             {/* Sort selector */}
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#17171d] border border-white/[0.08] text-xs text-neutral-300 cursor-pointer hover:bg-[#1e1e26] transition-colors">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#16163A] border border-white/[0.08] text-xs text-neutral-300 cursor-pointer hover:bg-[#1f1f4a] transition-colors">
               <span>Last edited</span>
               <ChevronDown size={14} className="text-neutral-400" />
             </div>
@@ -108,10 +108,10 @@ export default function ProjectsPage({
               <div
                 key={project.id}
                 onClick={() => onSelectProject(project)}
-                className="group flex flex-col rounded-2xl bg-[#141419] border border-white/[0.06] hover:border-white/20 transition-all cursor-pointer overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.015] relative"
+                className="group flex flex-col rounded-2xl bg-[#16163A] border border-white/[0.06] hover:border-white/20 transition-all cursor-pointer overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.015] relative"
               >
                 {/* Thumbnail Container */}
-                <div className="relative w-full aspect-[16/10] bg-[#1a1a22] overflow-hidden flex items-center justify-center">
+                <div className="relative w-full aspect-[16/10] bg-[#0D0D24] overflow-hidden flex items-center justify-center">
                   {project.thumbnail ? (
                     <img
                       src={project.thumbnail}
@@ -119,7 +119,7 @@ export default function ProjectsPage({
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#181820] to-[#121217]">
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#16163A] to-[#0D0D24]">
                       <span className="text-4xl font-serif italic font-bold text-neutral-600/70 group-hover:text-neutral-400 transition-colors">
                         b
                       </span>

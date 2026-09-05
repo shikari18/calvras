@@ -51,7 +51,7 @@ export default function Sidebar({
 
   return (
     <aside 
-      className={`relative flex flex-col h-full bg-[#1E1E1F] text-[#b4b4b8] border-r border-white/[0.04] transition-all duration-200 z-30 select-none overflow-hidden ${
+      className={`relative flex flex-col h-full bg-[#0D0D24] text-[#b4b4b8] border-r border-white/[0.04] transition-all duration-200 z-30 select-none overflow-hidden ${
         collapsed ? 'w-14' : 'w-[230px]'
       }`}
     >
@@ -188,11 +188,11 @@ export default function Sidebar({
       <div className="flex-1" />
 
       {/* ── Bottom User Profile Card & Redesigned Dropdown Popover ── */}
-      <div ref={userMenuRef} className="relative p-2.5 border-t border-white/[0.06] bg-[#1E1E1F]">
+      <div ref={userMenuRef} className="relative p-2.5 border-t border-white/[0.06] bg-[#0D0D24]">
         
         {/* Exact Claude-Style Floating User Menu */}
         {userMenuOpen && (
-          <div className="fixed bottom-16 left-3 w-[240px] rounded-2xl bg-[#1E1E1F] border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.85)] p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150 select-none text-[13px] text-neutral-200">
+          <div className="fixed bottom-16 left-3 w-[240px] rounded-2xl bg-[#141436] border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.85)] p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150 select-none text-[13px] text-neutral-200">
             {/* Top user email header */}
             <div className="px-3 py-2 text-[12px] text-neutral-400 font-normal truncate border-b border-white/[0.08] mb-1">
               {user?.email || 'user@calvras.ai'}
@@ -264,7 +264,7 @@ export default function Sidebar({
               {learnMoreOpen && (
                 <div 
                   onMouseLeave={() => setLearnMoreOpen(false)}
-                  className="sm:absolute sm:left-full sm:bottom-0 sm:ml-1.5 w-full sm:w-[220px] rounded-2xl bg-[#1E1E1F] border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.85)] p-1.5 space-y-0.5 z-50 animate-in fade-in zoom-in-95 duration-100"
+                  className="sm:absolute sm:left-full sm:bottom-0 sm:ml-1.5 w-full sm:w-[220px] rounded-2xl bg-[#141436] border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.85)] p-1.5 space-y-0.5 z-50 animate-in fade-in zoom-in-95 duration-100"
                 >
                   <button
                     type="button"

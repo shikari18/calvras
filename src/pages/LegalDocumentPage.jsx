@@ -11,10 +11,10 @@ export default function LegalDocumentPage({ documentType = 'privacy', onBack, on
   }, [documentType]);
 
   return (
-    <div className="min-h-screen w-full bg-[#1B1B1C] text-white font-sans selection:bg-white selection:text-black flex flex-col">
+    <div className="min-h-screen w-full bg-[#121232] text-white font-sans selection:bg-white selection:text-black flex flex-col">
       
-      {/* ─── Top Header on #1B1B1C ─── */}
-      <header className="sticky top-0 z-40 bg-[#1B1B1C] border-b border-white/10 px-6 py-4">
+      {/* ─── Top Header on #121232 ─── */}
+      <header className="sticky top-0 z-40 bg-[#121232] border-b border-white/10 px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           
           <div className="flex items-center gap-4">

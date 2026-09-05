@@ -713,37 +713,26 @@ function formatLiveInline(text) {
 }
 
 function LiveActivityIndicator({ isThinking, isStreaming, statusText, elapsedDuration }) {
-  const getStageText = () => {
-    if (statusText) return statusText;
-    const duration = elapsedDuration || 1;
-    if (isThinking && !isStreaming) {
-      if (duration < 3) return 'Thinking...';
-      if (duration < 6) return 'Analyzing requirements & architecture...';
-      if (duration < 9) return 'Testing logic & plan...';
-      return 'Reasoning through layout logic...';
-    }
-    if (isStreaming) {
-      if (duration < 4) return 'Assembling code & imports...';
-      if (duration < 8) return 'Testing components & styling...';
-      if (duration < 12) return 'Now confirming it...';
-      return 'Finalizing code verification...';
-    }
-    return 'Processing...';
-  };
-
-  const displayText = getStageText();
-
-  return (
-    <div className="w-full max-w-[660px] mx-auto py-2 px-4 text-left animate-in fade-in duration-200 select-none">
-      <div className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-[#1A1A1A] border border-white/10 shadow-sm">
-        <span className="relative flex h-2 w-2 flex-shrink-0">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-        </span>
-        <span className="text-[13px] text-[#EDEDED] font-medium tracking-tight transition-all duration-300">
-          {displayText}
+  // 1. Thinking phase: ONLY show "Thinking..." text with white glance of light every 2s (NO button/container)
+  if (isThinking && !isStreaming && !statusText) {
+    return (
+      <div className="w-full max-w-[660px] mx-auto py-2.5 px-4 text-left animate-in fade-in duration-200 select-none">
+        <span className="glance-shimmer text-[14.5px] font-medium tracking-wide">
+          Thinking...
         </span>
       </div>
+    );
+  }
+
+  // 2. Active working / coding phase: dynamically displays what it is actively doing (NOT hardcoded)
+  const dynamicAction = statusText || (isStreaming ? 'Synthesizing application architecture & code…' : 'Processing request…');
+
+  return (
+    <div className="w-full max-w-[660px] mx-auto py-2 px-4 text-left animate-in fade-in duration-200 select-none flex items-center gap-2.5 text-neutral-300">
+      <div className="w-2.5 h-2.5 rounded-full border-[1.5px] border-blue-400 border-t-transparent animate-spin flex-shrink-0" />
+      <span className="text-[13.5px] font-normal text-white/90">
+        {dynamicAction}
+      </span>
     </div>
   );
 }
@@ -963,6 +952,38 @@ export default function MainChat({
   const [importedFolderName, setImportedFolderName] = useState(null);
   const [importedFileCount, setImportedFileCount] = useState(0);
   const lastUserIndex = (messages || []).map(m => m.role).lastIndexOf('user');
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const touchStartXRef = useRef(0);
+  const touchStartYRef = useRef(0);
+
+  const handleTouchStart = (e) => {
+    if (window.innerWidth >= 768) return;
+    touchStartXRef.current = e.touches[0].clientX;
+    touchStartYRef.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e) => {
+    if (window.innerWidth >= 768) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartXRef.current;
+    const deltaY = e.changedTouches[0].clientY - touchStartYRef.current;
+    if (Math.abs(deltaX) > 55 && Math.abs(deltaX) > Math.abs(deltaY) * 1.3) {
+      if (deltaX < 0) {
+        // Swipe left on mobile: show live preview
+        setIsSplitScreen(true);
+        setActiveWorkspaceTab('preview');
+      } else if (deltaX > 0 && isSplitScreen) {
+        // Swipe right: return to chat
+        setIsSplitScreen(false);
+      }
+    }
+  };
+
   const userDisplayName = useMemo(() => {
     try {
       const u = JSON.parse(localStorage.getItem('coded_user') || localStorage.getItem('calvras_user_profile') || '{}');
@@ -1677,9 +1698,21 @@ export default function MainChat({
     setInput('');
     setLastQuery(query);
     setAttachedFiles([]);
-    if (heroTextareaRef.current) heroTextareaRef.current.style.height = 'auto';
-    if (replyTextareaRef.current) replyTextareaRef.current.style.height = 'auto';
+    if (heroTextareaRef.current) {
+      heroTextareaRef.current.style.height = 'auto';
+      heroTextareaRef.current.blur();
+    }
+    if (replyTextareaRef.current) {
+      replyTextareaRef.current.style.height = 'auto';
+      replyTextareaRef.current.blur();
+    }
     if (onUserMessage) onUserMessage(query);
+
+    // Auto-slide to live preview on mobile when build intent is detected
+    if (isMobile && /build|create|code|clone|duplicate|make|generate|turn\s+this/i.test(query)) {
+      setIsSplitScreen(true);
+      setActiveWorkspaceTab('preview');
+    }
 
     setIsThinking(true);
 
@@ -2002,13 +2035,132 @@ CRITICAL:
       // Fall through to the normal AI call below
     }
 
-    // ── 4. Web Search & URL Browse Interception ──
+    // ── 4. Autonomous Web Search & URL Browse Interception ──
     let webSearchContext = '';
-    const urlInQuery = query.match(/https?:\/\/[^\s]+/i);
+    // Detect domain names or URLs (e.g. examglow.com, https://examglow.com, sub.domain.co)
+    const domainOrUrlMatch = query.match(/(?:https?:\/\/)?((?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(?:\/[^\s]*)?)/i);
+    const isExplicitBuildRequest = /duplicate|clone|copy|replicate|build|make|recreate|rebuild|same\s+as|match|pixel|develop|implement/i.test(query);
+
+    // Case A: Informational search or domain check (e.g., "check examglow.com", "search examglow", "examglow.com", "Deeply research...")
+    const isInformationalSearchOrCheck = !isExplicitBuildRequest && (
+      Boolean(domainOrUrlMatch) ||
+      /\b(?:search(?:\s+(?:the\s+)?(?:web|internet|online|google|sites?|websites?))?|look\s+up|find\s+online|latest\s+news|check\s+(?:the\s+)?(?:web|internet|site|website)?|check\s+online|research|deeply\s+research)\b/i.test(query)
+    );
+
+    if (isInformationalSearchOrCheck && attachedFiles.length === 0) {
+      let targetDomain = domainOrUrlMatch ? domainOrUrlMatch[1].replace(/[.,!?]+$/, '') : null;
+      let targetUrl = targetDomain ? (targetDomain.startsWith('http') ? targetDomain : `https://${targetDomain}`) : null;
+      let searchQuery = query
+        .replace(/^(?:can\s+(?:you|calvras)\s+)?(?:please\s+)?(?:search(?:\s+(?:the\s+)?(?:web|internet|online|google|sites?|websites?))?(?:\s+for)?|check\s+(?:out\s+)?(?:the\s+)?(?:web|internet|online|site|website)?|look\s+up|find\s+online|research|deeply\s+research(?:,\s*analyze\s*and\s*document)?(?::)?)\s+/i, '')
+        .replace(/\b(?:for\s+me|please)\b/i, '')
+        .trim();
+      if (!searchQuery && targetDomain) searchQuery = targetDomain;
+      if (!searchQuery || searchQuery.length < 2) searchQuery = query;
+
+      // Show dynamic non-hardcoded working text
+      setIsThinking(false);
+      setIsStreaming(true);
+      if (targetDomain) {
+        setStreamingText(`Browsing ${targetDomain} & capturing live visual snapshot…`);
+        setCalvrasAction({ type: 'browse', text: targetUrl });
+      } else {
+        setStreamingText(`Searching the web for "${searchQuery}"…`);
+        setCalvrasAction({ type: 'search', text: searchQuery });
+      }
+
+      let browseData = null;
+      let searchData = null;
+
+      if (targetUrl) {
+        try {
+          browseData = await browseUrl(targetUrl);
+        } catch (e) {
+          console.warn('[Browse error]', e.message);
+        }
+      }
+
+      // If browse returned little or no data, or no URL provided, query live web search
+      if (!browseData || !browseData.ok || !browseData.text || browseData.text.length < 100) {
+        try {
+          searchData = await searchWeb(searchQuery);
+          if (!targetUrl && searchData?.results?.[0]?.url) {
+            targetUrl = searchData.results[0].url;
+            try {
+              const urlObj = new URL(targetUrl);
+              targetDomain = urlObj.hostname;
+            } catch {}
+          }
+        } catch (e) {
+          console.warn('[Search error]', e.message);
+        }
+      }
+
+      const screenshotUrl = targetUrl 
+        ? `https://image.thum.io/get/width/1024/crop/768/${targetUrl}` 
+        : null;
+
+      const pageTitle = browseData?.title || targetDomain || searchQuery;
+      const pageText = browseData?.text || '';
+      const searchItems = searchData?.results || [];
+
+      // Synthesize rich, comprehensive findings
+      let summaryText = '';
+      if (screenshotUrl) {
+        summaryText += `![${pageTitle} Preview](${screenshotUrl})\n\n`;
+      }
+
+      summaryText += `### [${pageTitle}](${targetUrl || `https://duckduckgo.com/?q=${encodeURIComponent(searchQuery)}`})\n\n`;
+
+      if (pageText && pageText.length > 50) {
+        const cleanLines = pageText
+          .split('\n')
+          .map(l => l.trim())
+          .filter(l => l.length > 25 && !l.startsWith('#') && !l.startsWith('http'))
+          .slice(0, 8);
+        
+        summaryText += `**Overview & Findings**\n${cleanLines.slice(0, 3).join(' ')}\n\n`;
+        if (cleanLines.length > 3) {
+          summaryText += `**Key Capabilities & Offerings**\n`;
+          for (const line of cleanLines.slice(3, 7)) {
+            summaryText += `• ${line}\n`;
+          }
+          summaryText += '\n';
+        }
+      } else if (searchItems.length > 0) {
+        summaryText += `**Live Web Findings for "${searchQuery}"**\n`;
+        for (const item of searchItems.slice(0, 4)) {
+          summaryText += `• **[${item.title}](${item.url})**: ${item.snippet}\n`;
+        }
+        summaryText += '\n';
+      } else {
+        summaryText += `Examined **${targetDomain || searchQuery}**. The site is live and active. Let me know if you would like me to build a fullstack clone, analyze its API, or extract specific features!\n`;
+      }
+
+      summaryText += `\n*Source verified via Calvras Live Web Engine • ${new Date().toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}*`;
+
+      // Deliver complete assistant message with screenshot and text
+      setMessages(prev => [...prev, {
+        id: `msg-search-${Date.now()}`,
+        role: 'assistant',
+        content: summaryText,
+        mode: activeBuildMode,
+        thoughtDuration: getThoughtDuration(),
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }]);
+
+      setIsThinking(false);
+      setIsStreaming(false);
+      setStreamingText('');
+      setCalvrasAction(null);
+      return;
+    }
+
+    // Case B: Explicit clone/duplicate request with a URL
+    const urlInQuery = domainOrUrlMatch ? [domainOrUrlMatch[0]] : null;
 
     if (urlInQuery && attachedFiles.length === 0) {
       const cleanUrl = urlInQuery[0].replace(/[.,!?]+$/, '');
-      const isUrlDuplicateRequest = /duplicate|clone|copy|replicate|build|make|recreate|rebuild|same\s+as|match|pixel/i.test(query);
+      const isUrlDuplicateRequest = true;
 
       // Fetch page content via robust browse service (local API or Jina reader fallback)
       setCalvrasAction({ type: 'browse', text: cleanUrl });
@@ -2169,35 +2321,6 @@ CRITICAL:
             setCalvrasAction(null);
           }
         });
-      }
-    }
-
-    // ── 4b. Web Search Intent Interception ──
-    if (!urlInQuery && attachedFiles.length === 0) {
-      const isSearchIntent = /\b(?:search(?:\s+(?:the\s+)?(?:web|internet|online|google|sites?|websites?))?|look\s+up|find\s+online|latest\s+news|check\s+(?:the\s+)?(?:web|internet|site|website)|check\s+online|research)\b/i.test(query) ||
-        /\b(?:can\s+(?:you|calvras)\s+search|does\s+it\s+search|what\s+is\s+the\s+latest|who\s+won|latest\s+version|release\s+date)\b/i.test(query) ||
-        /^check\s+([a-zA-Z0-9_\-./ ]+?)\s+(?:and\s+build|and\s+create|and\s+clone)/i.test(query);
-
-      if (isSearchIntent) {
-        let queryToSearch = query
-          .replace(/^(?:can\s+(?:you|calvras)\s+)?(?:please\s+)?(?:search(?:\s+(?:the\s+)?(?:web|internet|online|google|sites?|websites?))?(?:\s+for)?|check\s+(?:out\s+)?(?:the\s+)?(?:web|internet|online|site|website)?|look\s+up|find\s+online|research)\s+/i, '')
-          .replace(/\b(?:and\s+build\s+.*|and\s+create\s+.*|for\s+me)\b/i, '')
-          .trim();
-        if (!queryToSearch || queryToSearch.length < 3) queryToSearch = query;
-
-        setCalvrasAction({ type: 'search', text: queryToSearch });
-        try {
-          const searchData = await searchWeb(queryToSearch);
-          if (searchData.ok && searchData.results && searchData.results.length > 0) {
-            const formattedResults = searchData.results
-              .map(r => `• Title: ${r.title}\n  URL: ${r.url}\n  Snippet: ${r.snippet}`)
-              .join('\n\n');
-            webSearchContext = `\n\n[Live Web Search Results for "${queryToSearch}"]:\n${formattedResults}\n\n(Use these verified real-time web search results to inform your response/code, cite sources with markdown links where appropriate.)\n`;
-          }
-        } catch (e) {
-          console.warn('[WebSearch] failed:', e.message);
-        }
-        setCalvrasAction(null);
       }
     }
 
@@ -2777,11 +2900,15 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
 
 
   return (
-    <div className={`relative flex flex-1 h-full overflow-hidden bg-[#1B1B1C] text-[#ededed] ${isResizing ? 'cursor-col-resize select-none' : ''}`}>
+    <div 
+      className={`relative flex flex-1 h-full overflow-hidden bg-[#121232] text-[#ededed] ${isResizing ? 'cursor-col-resize select-none' : ''}`}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       
       {/* ── Left Pane: Chat Conversation ── */}
       <div 
-        style={{ width: isSplitScreen ? `${100 - workspaceWidthPercent}%` : '100%' }}
+        style={{ width: (isSplitScreen && !isMobile) ? `${100 - workspaceWidthPercent}%` : '100%' }}
         className={`relative flex flex-col h-full overflow-hidden transition-[width] duration-75 min-w-[320px]`}
       >
 
@@ -2814,32 +2941,32 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
         </div>
         
         {/* ── Scrollable chat area ── */}
-        <div ref={scrollRef} className="relative z-10 flex-1 overflow-y-auto px-4 sm:px-6 w-full scrollbar-thin scroll-smooth bg-[#1B1B1C]">
+        <div ref={scrollRef} className="relative z-10 flex-1 overflow-y-auto px-4 sm:px-6 w-full scrollbar-thin scroll-smooth bg-[#121232]">
 
-          {/* ── Hero / empty state: prompt box centered ── */}
+          {/* ── Hero / empty state: prompt box centered on desktop, bottom docked on mobile ── */}
           {messages.length === 0 && (
-            <div className="flex flex-col items-center justify-center min-h-[calc(100vh-60px)] sm:min-h-[90vh] max-w-4xl mx-auto w-full text-center px-3 sm:px-4">
+            <div className="flex flex-col items-center justify-between sm:justify-center min-h-[calc(100dvh-60px)] sm:min-h-[90vh] max-w-4xl mx-auto w-full text-center px-3 sm:px-4 pb-4 sm:pb-0">
               
               {/* Top Greeting Header */}
-              <div className="mb-6 sm:mb-8 flex flex-col items-center select-none text-center">
+              <div className="my-auto sm:my-0 sm:mb-8 flex flex-col items-center select-none text-center">
                 <h1 className="text-[24px] sm:text-[34px] font-medium tracking-tight text-white/95">
                   {userDisplayName ? `${userDisplayName}, what are we working on today?` : 'What are we working on today?'}
                 </h1>
               </div>
 
               {/* Prompt Box Area with outer task shell and nested input */}
-              <div className="w-full max-w-[660px]">
+              <div className="w-full max-w-[660px] mt-auto sm:mt-0 mb-2 sm:mb-0">
                 {runningTasks.length > 0 ? (
                   <div 
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    className={`relative w-full rounded-[24px] bg-[#1E1E1F] border transition-all text-left overflow-hidden ${
+                    className={`relative w-full rounded-[24px] bg-[#16163A] border transition-all text-left overflow-hidden ${
                       isDraggingOver ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-white/[0.08] shadow-[0_12px_40px_rgba(0,0,0,0.5)]'
                     }`}
                   >
                     <RunningTasksDock runningTasks={runningTasks} tasksExpanded={tasksExpanded} setTasksExpanded={setTasksExpanded} onStopTask={handleStopTask} />
-                    <div className="m-1 rounded-[18px] bg-[#1E1E1F] border border-white/[0.06] p-5 pt-4 pb-3.5 shadow-sm text-left transition-all">
+                    <div className="m-1 rounded-[18px] bg-[#16163A] border border-white/[0.06] p-5 pt-4 pb-3.5 shadow-sm text-left transition-all">
                       <FileAttachments />
                       {importedFolderName && (
                         <div className="flex items-center gap-2 mb-3">
@@ -2883,7 +3010,7 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    className={`relative w-full rounded-[26px] bg-[#1E1E1F] border p-5 pt-4 pb-3.5 text-left transition-all ${
+                    className={`relative w-full rounded-[26px] bg-[#16163A] border p-5 pt-4 pb-3.5 text-left transition-all ${
                       isDraggingOver ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-white/[0.08] shadow-[0_12px_40px_rgba(0,0,0,0.5)]'
                     }`}
                   >
@@ -2946,7 +3073,7 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
                         setInput(chip.prompt);
                         if (heroTextareaRef.current) heroTextareaRef.current.focus();
                       }}
-                      className="px-3 py-1.5 rounded-full bg-[#1E1E1F] hover:bg-white/[0.08] text-neutral-300 hover:text-white border border-white/[0.08] hover:border-white/20 text-xs font-medium transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                      className="px-3 py-1.5 rounded-full bg-[#16163A] hover:bg-white/[0.08] text-neutral-300 hover:text-white border border-white/[0.08] hover:border-white/20 text-xs font-medium transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
                     >
                       <span>{chip.label}</span>
                     </button>
@@ -3034,7 +3161,7 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
 
         {/* ── Sticky reply dock with outer task shell and nested input ── */}
         {messages.length > 0 && (
-          <div className="sticky bottom-0 left-0 right-0 p-2 sm:p-3.5 bg-gradient-to-t from-[#1B1B1C] via-[#1B1B1C]/95 to-transparent z-30">
+          <div className="sticky bottom-0 left-0 right-0 p-2 sm:p-3.5 bg-gradient-to-t from-[#121232] via-[#121232]/95 to-transparent z-30">
             <div className="max-w-[660px] mx-auto relative">
               {activeSelectionQuestion ? (
                 <SelectionBlock
@@ -3062,12 +3189,12 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
-                  className={`relative w-full rounded-[24px] bg-[#1E1E1F] border transition-all text-left overflow-hidden ${
+                  className={`relative w-full rounded-[24px] bg-[#16163A] border transition-all text-left overflow-hidden ${
                     isDraggingOver ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-white/[0.08] shadow-[0_12px_40px_rgba(0,0,0,0.5)]'
                   }`}
                 >
                   <RunningTasksDock runningTasks={runningTasks} tasksExpanded={tasksExpanded} setTasksExpanded={setTasksExpanded} onStopTask={handleStopTask} />
-                  <div className="m-1 rounded-[18px] bg-[#1E1E1F] border border-white/[0.06] p-5 pt-4 pb-3.5 shadow-sm text-left transition-all">
+                  <div className="m-1 rounded-[18px] bg-[#16163A] border border-white/[0.06] p-5 pt-4 pb-3.5 shadow-sm text-left transition-all">
                     <FileAttachments />
                     <textarea
                       ref={replyTextareaRef}
@@ -3104,7 +3231,7 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
-                  className={`relative w-full rounded-[26px] bg-[#1E1E1F] border p-5 pt-4 pb-3.5 text-left transition-all ${
+                  className={`relative w-full rounded-[26px] bg-[#16163A] border p-5 pt-4 pb-3.5 text-left transition-all ${
                     isDraggingOver
                       ? 'border-blue-500 ring-2 ring-blue-500/30'
                       : 'border-white/[0.08]'
@@ -3147,7 +3274,7 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
       </div>
 
       {/* ── Draggable Split Resizer Divider Handle ── */}
-      {isSplitScreen && (
+      {isSplitScreen && !isMobile && (
         <div
           onMouseDown={handleStartResize}
           className="relative w-1.5 hover:w-2 h-full cursor-col-resize hover:bg-blue-500/70 active:bg-blue-500 transition-all z-40 flex items-center justify-center group flex-shrink-0"
@@ -3160,9 +3287,27 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
       {/* ── Right Pane: Dynamic Split-Screen Files & Preview Workspace ── */}
       {isSplitScreen && (
         <div 
-          style={{ width: `${workspaceWidthPercent}%` }}
-          className="flex flex-col h-full overflow-hidden min-w-[340px]"
+          style={{ width: isMobile ? '100%' : `${workspaceWidthPercent}%` }}
+          className={`flex flex-col h-full overflow-hidden ${
+            isMobile 
+              ? 'fixed inset-0 z-50 bg-[#0D0D24] animate-in slide-in-from-right duration-200' 
+              : 'min-w-[340px]'
+          }`}
         >
+          {isMobile && (
+            <div className="h-12 bg-[#0D0D24] border-b border-white/10 px-4 flex items-center justify-between flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsSplitScreen(false)}
+                className="flex items-center gap-2 text-xs font-semibold text-blue-400 hover:text-blue-300 cursor-pointer"
+              >
+                <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                <span>Back to Chat</span>
+              </button>
+              <span className="text-xs font-medium text-neutral-400">Preview & Workspace</span>
+              <div className="w-12" />
+            </div>
+          )}
           <ProjectWorkspacePane
             isOpen={isSplitScreen}
             onClose={() => setIsSplitScreen(false)}

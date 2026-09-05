@@ -1791,10 +1791,10 @@ export default function ProjectWorkspacePane({
         />
       )}
 
-      <div className="flex flex-col h-[calc(100%-12px)] w-[calc(100%-6px)] my-1.5 mr-1.5 bg-[#1E1E1F] text-[#ececed] rounded-tl-2xl rounded-bl-2xl border-l border-t border-b border-white/[0.08] select-none overflow-hidden font-sans shadow-2xl">
+      <div className="flex flex-col h-[calc(100%-12px)] w-[calc(100%-6px)] my-1.5 mr-1.5 bg-[#0D0D24] text-[#ececed] rounded-tl-2xl rounded-bl-2xl border-l border-t border-b border-white/[0.08] select-none overflow-hidden font-sans shadow-2xl">
 
         {/* ── Top Header ── */}
-        <div className="flex items-center justify-between px-3.5 py-2 border-b border-white/[0.08] bg-[#1E1E1F] flex-shrink-0">
+        <div className="flex items-center justify-between px-3.5 py-2 border-b border-white/[0.08] bg-[#0D0D24] flex-shrink-0">
 
           {/* Left: View Tabs */}
           <div className="flex items-center gap-1.5">

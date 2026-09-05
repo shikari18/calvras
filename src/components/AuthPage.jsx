@@ -17,7 +17,7 @@ function parseJwt(token) {
 function NameStep({ defaultName = '', onComplete }) {
   const [name, setName] = useState(defaultName);
   return (
-    <div className="min-h-screen w-full bg-[#1B1B1C] text-white flex items-center justify-center p-6 font-sans select-none">
+    <div className="min-h-screen w-full bg-[#121232] text-white flex items-center justify-center p-6 font-sans select-none">
       <div className="w-full max-w-[380px] text-center">
         <img src="/sidebar-logo.jpeg" alt="Calvras" className="w-10 h-10 rounded-xl object-contain mx-auto mb-4" />
         <div className="text-[26px] font-black tracking-tight mb-1">Welcome to Calvras</div>
@@ -94,7 +94,7 @@ function OnboardingFlow({ pendingUser, onComplete }) {
   };
 
   return (
-    <div className="h-screen w-full bg-[#1B1B1C] text-white flex font-sans overflow-hidden">
+    <div className="h-screen w-full bg-[#121232] text-white flex font-sans overflow-hidden">
       {/* Left */}
       <div className="flex-1 flex flex-col px-10 py-8 min-w-0">
         <div className="flex items-center gap-2 mb-0">
@@ -372,7 +372,7 @@ export default function AuthPage({ onAuthSuccess, onNavigateLegal }) {
   if (step === 'onboarding') return <OnboardingFlow pendingUser={pendingUser} onComplete={handleOnboardingComplete} />;
 
   return (
-    <div className="min-h-screen w-full bg-[#1B1B1C] text-[#ececed] select-none flex items-center justify-between p-4 md:p-5 font-sans overflow-hidden">
+    <div className="min-h-screen w-full bg-[#121232] text-[#ececed] select-none flex items-center justify-between p-4 md:p-5 font-sans overflow-hidden">
       {/* Left auth form */}
       <div className="flex-1 flex flex-col justify-between max-w-[480px] h-[calc(100vh-40px)] px-6 md:px-12 py-6 overflow-y-auto">
         <div className="flex items-center gap-2">

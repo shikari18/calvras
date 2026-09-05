@@ -56,7 +56,7 @@ export default function DeveloperPage() {
   };
 
   return (
-    <div className="flex-1 h-full overflow-y-auto bg-[#1B1B1C] text-white p-6 sm:p-10 select-none">
+    <div className="flex-1 h-full overflow-y-auto bg-[#121232] text-white p-6 sm:p-10 select-none">
       <div className="max-w-5xl mx-auto space-y-8">
         
         {/* Header */}
@@ -75,7 +75,7 @@ export default function DeveloperPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 bg-[#17171d] border border-white/[0.08] rounded-xl p-1 text-xs">
+          <div className="flex items-center gap-2 bg-[#16163A] border border-white/[0.08] rounded-xl p-1 text-xs">
             <button
               type="button"
               onClick={() => setActiveTab('keys')}
@@ -93,7 +93,7 @@ export default function DeveloperPage() {
                 activeTab === 'quickstart' ? 'bg-[#0084ff] text-white font-medium shadow-sm' : 'text-neutral-400 hover:text-white'
               }`}
             >
-              <Terminal size={14} />
+              <FileCode size={14} />
               <span>Quickstart</span>
             </button>
             <button
@@ -113,7 +113,7 @@ export default function DeveloperPage() {
         {activeTab === 'keys' && (
           <div className="space-y-6">
             {/* Create Key Box */}
-            <div className="p-5 rounded-2xl bg-[#141419] border border-white/[0.08] space-y-3">
+            <div className="p-5 rounded-2xl bg-[#16163A] border border-white/[0.08] space-y-3">
               <h3 className="text-sm font-semibold text-white">Create New Secret API Key</h3>
               <p className="text-xs text-neutral-400">
                 Keys grant programmatic access to the Calvras AI inference and autonomous coding endpoints. Keep them safe.
@@ -124,7 +124,7 @@ export default function DeveloperPage() {
                   placeholder="Key name (e.g. Production Backend)"
                   value={newKeyName}
                   onChange={(e) => setNewKeyName(e.target.value)}
-                  className="flex-1 bg-[#1c1c24] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-white placeholder-neutral-500 outline-none focus:border-neutral-500 transition-colors"
+                  className="flex-1 bg-[#0D0D24] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-white placeholder-neutral-500 outline-none focus:border-neutral-500 transition-colors"
                 />
                 <button
                   type="button"
@@ -139,7 +139,7 @@ export default function DeveloperPage() {
             </div>
 
             {/* Keys List */}
-            <div className="rounded-2xl bg-[#141419] border border-white/[0.08] overflow-hidden">
+            <div className="rounded-2xl bg-[#16163A] border border-white/[0.08] overflow-hidden">
               <div className="p-4 border-b border-white/[0.08] flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">Active Keys ({apiKeys.length})</span>
                 <span className="text-[11px] text-neutral-500">Prefix: calvras_sk_live_</span>
@@ -207,7 +207,7 @@ export default function DeveloperPage() {
         {/* Tab 2: Quickstart */}
         {activeTab === 'quickstart' && (
           <div className="space-y-6">
-            <div className="p-5 rounded-2xl bg-[#141419] border border-white/[0.08] space-y-3">
+            <div className="p-5 rounded-2xl bg-[#16163A] border border-white/[0.08] space-y-3">
               <h3 className="text-sm font-semibold text-white">cURL API Call</h3>
               <pre className="p-4 rounded-xl bg-black/60 font-mono text-xs text-neutral-300 overflow-x-auto border border-white/[0.06]">
 {`curl https://calvras.com/api/v1/chat/completions \\
@@ -222,7 +222,7 @@ export default function DeveloperPage() {
               </pre>
             </div>
 
-            <div className="p-5 rounded-2xl bg-[#141419] border border-white/[0.08] space-y-3">
+            <div className="p-5 rounded-2xl bg-[#16163A] border border-white/[0.08] space-y-3">
               <h3 className="text-sm font-semibold text-white">Python (OpenAI SDK)</h3>
               <pre className="p-4 rounded-xl bg-black/60 font-mono text-xs text-neutral-300 overflow-x-auto border border-white/[0.06]">
 {`from openai import OpenAI
@@ -246,7 +246,7 @@ print(response.choices[0].message.content)`}
 
         {/* Tab 3: Connectors */}
         {activeTab === 'connectors' && (
-          <div className="p-12 rounded-2xl bg-[#141419] border border-white/[0.08] text-center space-y-3">
+          <div className="p-12 rounded-2xl bg-[#16163A] border border-white/[0.08] text-center space-y-3">
             <div className="w-12 h-12 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-neutral-400 mx-auto">
               <Layers size={22} />
             </div>
