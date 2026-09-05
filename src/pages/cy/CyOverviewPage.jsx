@@ -1,7 +1,15 @@
 import React from 'react';
 import { ArrowRight, Hash } from 'lucide-react';
+import { useMarketing } from '../../context/MarketingContext';
 
-export const CyOverviewPage = ({ onSelectTab, userName = 'User', threadTitle = 'Help Making Product Popular' }) => {
+export const CyOverviewPage = ({ onSelectTab, userName = 'User', threadTitle = null }) => {
+  const { connectedSocials, chatThreads, campaigns, contentList } = useMarketing();
+  const latestThread = chatThreads && chatThreads.length > 0 ? chatThreads[0] : null;
+  const activeTitle = threadTitle || latestThread?.title || 'New Marketing Strategy';
+  const toolsCount = (connectedSocials || []).length;
+  const threadsCount = (chatThreads || []).length;
+  const campaignsCount = (campaigns || []).length;
+  const contentCount = (contentList || []).length;
   return (
     <div className="flex-1 min-h-screen bg-[#1c1c1c] text-[#f4f4ee] p-6 sm:p-10 font-sans antialiased text-white select-none text-left overflow-y-auto">
       
@@ -25,34 +33,34 @@ export const CyOverviewPage = ({ onSelectTab, userName = 'User', threadTitle = '
               CONNECTORS
             </span>
             <h3 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight">
-              2
+              {toolsCount}
             </h3>
             <span className="text-xs text-neutral-400 block font-normal">
-              of 1093 available
+              active connections
             </span>
           </div>
 
           <div className="bg-[#282828] border border-white/10 rounded-2xl p-5 shadow-2xs space-y-1 hover:border-neutral-400 transition">
             <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider block">
-              FLOWS
+              CAMPAIGNS
             </span>
             <h3 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight">
-              0
+              {campaignsCount}
             </h3>
             <span className="text-xs text-neutral-400 block font-normal">
-              published
+              active campaigns
             </span>
           </div>
 
           <div className="bg-[#282828] border border-white/10 rounded-2xl p-5 shadow-2xs space-y-1 hover:border-neutral-400 transition">
             <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider block">
-              RUNS
+              CONTENT ASSETS
             </span>
             <h3 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight">
-              1
+              {contentCount}
             </h3>
             <span className="text-xs text-neutral-400 block font-normal">
-              last 24h
+              generated creatives
             </span>
           </div>
 
@@ -61,10 +69,10 @@ export const CyOverviewPage = ({ onSelectTab, userName = 'User', threadTitle = '
               THREADS
             </span>
             <h3 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight">
-              1
+              {threadsCount}
             </h3>
             <span className="text-xs text-neutral-400 block font-normal">
-              across 2 channels
+              active sessions
             </span>
           </div>
 
@@ -86,15 +94,15 @@ export const CyOverviewPage = ({ onSelectTab, userName = 'User', threadTitle = '
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="w-4 h-4 rounded-full border border-neutral-300 shrink-0" />
                 <span className="text-[11px] font-medium text-neutral-400 bg-neutral-100 px-1.5 py-0.5 rounded">
-                  #general
+                  #strategy
                 </span>
                 <span className="text-xs font-medium text-white truncate">
-                  {threadTitle}
+                  {activeTitle}
                 </span>
               </div>
 
               <span className="text-[11px] text-neutral-400 font-normal shrink-0">
-                1m ago
+                {latestThread?.updatedAt || 'Recent'}
               </span>
             </div>
           </div>
@@ -112,7 +120,7 @@ export const CyOverviewPage = ({ onSelectTab, userName = 'User', threadTitle = '
               </div>
               <div className="flex items-center justify-between py-1 border-b border-white/5">
                 <span className="text-neutral-400 font-normal">Connected tools</span>
-                <span className="font-semibold text-white">2</span>
+                <span className="font-semibold text-white">{toolsCount}</span>
               </div>
             </div>
 
