@@ -147,7 +147,7 @@ const REVIEWS = [
   },
 ];
 
-export default function PricingOnboarding({ user, onCompletePlan, onSkip, onNavigateLegal, onNavigateHelp }) {
+export default function PricingOnboarding({ user, onCompletePlan, onSkip, onNavigateLegal, onNavigateHelp, onBack }) {
   const [isAnnual, setIsAnnual] = useState(false);
   const [paymentPlan, setPaymentPlan] = useState(null);
   const [openFaq, setOpenFaq] = useState(null);
@@ -204,31 +204,32 @@ export default function PricingOnboarding({ user, onCompletePlan, onSkip, onNavi
   };
 
   return (
-    <div className="min-h-screen w-screen bg-[#0f0f0e] text-[#e5e5e5] font-sans selection:bg-white selection:text-black overflow-y-auto">
+    <div className="min-h-screen w-full bg-[#0f0f0e] text-[#e5e5e5] font-sans selection:bg-white selection:text-black">
       
-      {/* ─── Top Header Navigation ─── */}
-      <header className="sticky top-0 z-40 bg-[#0f0f0e]/90 backdrop-blur-md border-b border-white/[0.07] px-6 py-3.5">
+      {/* ─── Top Header Navigation (Clean, minimal like Cursor) ─── */}
+      <header className="sticky top-0 z-40 bg-[#0f0f0e]/95 backdrop-blur-md border-b border-white/[0.07] px-6 py-3.5">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src="/sidebar-logo.jpeg" alt="Calvras" className="w-7 h-7 rounded-lg object-contain border border-white/10" />
+          <div 
+            onClick={onBack}
+            className="flex items-center gap-3 cursor-pointer select-none group"
+          >
+            <img src="/sidebar-logo.jpeg" alt="Calvras" className="w-7 h-7 rounded-lg object-contain border border-white/10 group-hover:border-white/30 transition-colors" />
             <span className="font-bold text-base text-white tracking-tight">Calvras</span>
             <span className="hidden sm:inline-block text-[11px] font-mono text-neutral-400 bg-white/5 px-2 py-0.5 rounded border border-white/10">
-              Pricing & Compliance
+              Pricing
             </span>
           </div>
 
-          <nav className="hidden md:flex items-center gap-6 text-xs text-neutral-400 font-medium">
-            <button onClick={() => scrollTo('pricing-grid')} className="hover:text-white transition-colors cursor-pointer">Plans</button>
-            <button onClick={() => scrollTo('faq-section')} className="hover:text-white transition-colors cursor-pointer">FAQs</button>
-            <button onClick={() => scrollTo('reviews-section')} className="hover:text-white transition-colors cursor-pointer">Customer Reviews</button>
-            <button onClick={() => handleOpenLegal('about')} className="hover:text-white transition-colors cursor-pointer">About Us</button>
-            <button onClick={() => handleOpenLegal('refund')} className="hover:text-white transition-colors cursor-pointer">Shipping & Refunds</button>
-            <button onClick={() => handleOpenLegal('terms')} className="hover:text-white transition-colors cursor-pointer">Terms</button>
-            <button onClick={() => handleOpenLegal('privacy')} className="hover:text-white transition-colors cursor-pointer">Privacy</button>
-            <button onClick={() => handleOpenHelp()} className="hover:text-white transition-colors cursor-pointer">Support</button>
-          </nav>
-
           <div className="flex items-center gap-3">
+            {onBack && (
+              <button
+                type="button"
+                onClick={onBack}
+                className="text-xs text-neutral-400 hover:text-white px-3 py-1.5 rounded-full border border-white/10 hover:border-white/25 transition-colors cursor-pointer"
+              >
+                ← Back
+              </button>
+            )}
             <button
               type="button"
               onClick={onSkip || (() => handleSelect(PRICING_PLANS[0]))}

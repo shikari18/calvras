@@ -446,6 +446,7 @@ export default function App() {
         }}
         onNavigateLegal={(doc) => navigateTo(doc)}
         onNavigateHelp={(articleId) => navigateTo('help', articleId)}
+        onBack={() => navigateTo(previousRoute || 'landing')}
       />
     );
   }

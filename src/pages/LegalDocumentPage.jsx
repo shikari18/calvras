@@ -11,7 +11,7 @@ export default function LegalDocumentPage({ documentType = 'privacy', onBack, on
   }, [documentType]);
 
   return (
-    <div className="min-h-screen w-screen bg-[#faf9f5] text-[#1f1e1d] font-sans selection:bg-[#1f1e1d] selection:text-white flex flex-col overflow-x-hidden">
+    <div className="min-h-screen w-full bg-[#faf9f5] text-[#1f1e1d] font-sans selection:bg-[#1f1e1d] selection:text-white flex flex-col">
       
       {/* ─── Top Header (Matching Anthropic Legal Header) ─── */}
       <header className="sticky top-0 z-40 bg-[#faf9f5]/95 backdrop-blur-md border-b border-[#e5e3dc] px-6 py-4">

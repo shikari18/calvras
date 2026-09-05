@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   ArrowRight, Sparkles, Code2, Megaphone, Zap, Shield, 
-  Terminal, BarChart3, Globe, Cpu, Check, Layers, Play
+  Terminal, BarChart3, Globe, Cpu, Check, Layers, Play, ChevronDown
 } from 'lucide-react';
 import { PRICING_PLANS } from './PricingOnboarding';
 import LegalAndComplianceModal from './LegalAndComplianceModal';
@@ -18,6 +18,7 @@ function CalvrasLogoIcon({ className = "w-4 h-4 text-white" }) {
 export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onNavigateLegal }) {
   const [activeTab, setActiveTab] = useState('marketing');
   const [legalTab, setLegalTab] = useState(null);
+  const [resourcesOpen, setResourcesOpen] = useState(false);
 
   const handleLegalClick = (tab) => {
     if (onNavigateLegal) {
@@ -35,54 +36,108 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onN
   };
 
   return (
-    <div className="min-h-screen w-screen bg-[rgb(15,15,17)] text-white font-sans overflow-x-hidden selection:bg-white selection:text-black">
+    <div className="min-h-screen w-full bg-[rgb(15,15,17)] text-white font-sans selection:bg-white selection:text-black">
       
-      {/* ─── Floating Pill Navigation Bar (Exact Replica) ─── */}
-      <header className="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-[860px]">
-        <div className="bg-[#1c1c1e]/90 backdrop-blur-md border border-white/10 rounded-full px-5 py-2 flex items-center justify-between shadow-2xl shadow-black/60">
+      {/* ─── Top Header (Cursor.com Style with Resources Dropdown) ─── */}
+      <header className="sticky top-0 z-50 w-full bg-[#0f0f11]/92 backdrop-blur-xl border-b border-white/[0.08] px-6 py-3.5 select-none">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
           
           {/* Left: Brand Logo & Title */}
           <div 
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="flex items-center gap-2.5 cursor-pointer select-none"
+            className="flex items-center gap-2.5 cursor-pointer select-none group"
           >
-            <div className="w-7 h-7 rounded-lg bg-[#27272a] border border-white/10 flex items-center justify-center shadow-inner">
+            <div className="w-7 h-7 rounded-lg bg-[#222226] border border-white/10 flex items-center justify-center shadow-inner group-hover:border-white/30 transition-colors">
               <CalvrasLogoIcon className="w-4 h-4 text-white" />
             </div>
-            <span className="text-[15px] font-semibold text-white tracking-tight">
+            <span className="text-[15px] font-bold text-white tracking-tight">
               Calvras
             </span>
           </div>
 
-          {/* Middle: Links */}
-          <nav className="hidden md:flex items-center gap-7">
+          {/* Middle: Cursor Navigation Links */}
+          <nav className="hidden md:flex items-center gap-8 text-[13.5px] font-normal text-neutral-300">
             <button 
-              onClick={() => scrollToSection('about')}
-              className="text-[13.5px] font-medium text-neutral-400 hover:text-white transition-colors cursor-pointer"
+              onClick={() => scrollToSection('models')}
+              className="hover:text-white transition-colors cursor-pointer"
             >
-              About
+              Models
             </button>
             <button 
               onClick={() => scrollToSection('products')}
-              className="text-[13.5px] font-medium text-neutral-400 hover:text-white transition-colors cursor-pointer"
+              className="hover:text-white transition-colors cursor-pointer"
             >
-              Products
+              Product
             </button>
             <button 
-              onClick={() => scrollToSection('usecases')}
-              className="text-[13.5px] font-medium text-neutral-400 hover:text-white transition-colors cursor-pointer"
+              onClick={() => scrollToSection('enterprise')}
+              className="hover:text-white transition-colors cursor-pointer"
             >
-              Use Cases
+              Enterprise
             </button>
             <button 
-              onClick={() => onNavigatePricing ? onNavigatePricing() : scrollToSection('pricing')}
-              className="text-[13.5px] font-medium text-neutral-400 hover:text-white transition-colors cursor-pointer"
+              onClick={onNavigatePricing || (() => scrollToSection('pricing'))}
+              className="hover:text-white transition-colors cursor-pointer"
             >
               Pricing
             </button>
+
+            {/* Resources with Hover Dropdown (Matching Screenshot media_1788572146733.png) */}
+            <div 
+              className="relative py-2"
+              onMouseEnter={() => setResourcesOpen(true)}
+              onMouseLeave={() => setResourcesOpen(false)}
+            >
+              <button 
+                type="button"
+                className="flex items-center gap-1 hover:text-white transition-colors cursor-pointer"
+              >
+                <span>Resources</span>
+              </button>
+
+              {/* Floating Dropdown Card */}
+              {resourcesOpen && (
+                <div className="absolute top-full left-1/2 -translate-x-1/2 w-[340px] pt-1 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="bg-[#141416]/98 backdrop-blur-2xl border border-white/10 rounded-2xl p-5 shadow-[0_25px_60px_rgba(0,0,0,0.85)] grid grid-cols-2 gap-x-6 gap-y-3 text-left">
+                    {/* Column 1 */}
+                    <div className="space-y-3">
+                      <button onClick={() => scrollToSection('changelog')} className="block w-full text-left text-xs text-neutral-300 hover:text-white transition-colors cursor-pointer font-medium">
+                        Changelog
+                      </button>
+                      <button onClick={() => handleLegalClick('about')} className="block w-full text-left text-xs text-neutral-300 hover:text-white transition-colors cursor-pointer font-medium">
+                        Docs
+                      </button>
+                      <button onClick={() => handleLegalClick('help')} className="block w-full text-left text-xs text-emerald-400 hover:text-emerald-300 transition-colors cursor-pointer font-medium flex items-center justify-between">
+                        <span>Help</span>
+                        <span className="text-[9.5px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded font-mono">Center</span>
+                      </button>
+                      <button onClick={() => scrollToSection('faq')} className="block w-full text-left text-xs text-neutral-300 hover:text-white transition-colors cursor-pointer font-medium">
+                        Forum
+                      </button>
+                    </div>
+
+                    {/* Column 2 */}
+                    <div className="space-y-3">
+                      <button onClick={() => scrollToSection('about')} className="block w-full text-left text-xs text-neutral-300 hover:text-white transition-colors cursor-pointer font-medium">
+                        Blog
+                      </button>
+                      <button onClick={() => scrollToSection('usecases')} className="block w-full text-left text-xs text-neutral-300 hover:text-white transition-colors cursor-pointer font-medium">
+                        Community
+                      </button>
+                      <button onClick={() => handleLegalClick('refund')} className="block w-full text-left text-xs text-neutral-300 hover:text-white transition-colors cursor-pointer font-medium">
+                        Workshops
+                      </button>
+                      <button onClick={() => handleLegalClick('about')} className="block w-full text-left text-xs text-neutral-300 hover:text-white transition-colors cursor-pointer font-medium">
+                        Careers
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </nav>
 
-          {/* Right: Action Buttons */}
+          {/* Right: Action Buttons (Cursor style) */}
           <div className="flex items-center gap-4">
             <button
               type="button"
@@ -94,22 +149,22 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onN
             <button
               type="button"
               onClick={onSignUp}
-              className="bg-white text-black font-semibold text-[13px] px-4 py-1.5 rounded-full hover:bg-neutral-200 transition-all shadow-sm active:scale-95 cursor-pointer"
+              className="text-[13px] font-medium text-white px-4 py-1.5 rounded-full border border-white/20 bg-white/[0.06] hover:bg-white/[0.12] transition-all cursor-pointer shadow-sm active:scale-95"
             >
-              Sign Up
+              Contact
             </button>
           </div>
         </div>
       </header>
 
       {/* ─── Hero Section ─── */}
-      <section className="relative pt-36 pb-20 px-6 sm:px-10 flex flex-col items-center justify-center text-center max-w-5xl mx-auto">
+      <section className="relative pt-20 pb-20 px-6 sm:px-10 flex flex-col items-center justify-center text-center max-w-5xl mx-auto">
         
         {/* Ambient Glow */}
         <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[550px] h-[300px] bg-gradient-to-tr from-blue-600/15 via-indigo-500/20 to-purple-600/15 blur-[120px] rounded-full pointer-events-none" />
 
         {/* Announcement Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.06] border border-white/10 text-[12px] font-medium text-neutral-300 mb-8 backdrop-blur-sm animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <div id="changelog" className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.06] border border-white/10 text-[12px] font-medium text-neutral-300 mb-8 backdrop-blur-sm animate-in fade-in slide-in-from-bottom-2 duration-300">
           <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
           <span>Calvras AI 2.0 is Live</span>
           <span className="text-neutral-500">•</span>
@@ -146,7 +201,7 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onN
         </div>
 
         {/* Interactive Dual AI Showcase Window */}
-        <div className="w-full max-w-4xl rounded-2xl bg-[#18181b]/80 border border-white/10 p-2 sm:p-3 shadow-2xl shadow-black/80 backdrop-blur-xl">
+        <div id="models" className="w-full max-w-4xl rounded-2xl bg-[#18181b]/80 border border-white/10 p-2 sm:p-3 shadow-2xl shadow-black/80 backdrop-blur-xl">
           
           {/* Showcase Tabs */}
           <div className="flex items-center justify-between px-3 py-2 border-b border-white/5 mb-3">
@@ -314,8 +369,8 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onN
             </ul>
           </div>
 
-          {/* Card 3 */}
-          <div className="bg-[#18181b] rounded-2xl p-7 border border-white/5 flex flex-col justify-between hover:border-white/15 transition-all">
+          {/* Card 3: Enterprise */}
+          <div id="enterprise" className="bg-[#18181b] rounded-2xl p-7 border border-white/5 flex flex-col justify-between hover:border-white/15 transition-all">
             <div>
               <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-5 text-emerald-400">
                 <Zap size={20} />
