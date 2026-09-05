@@ -602,7 +602,36 @@ app.post('/api/v1/chat/completions', async (req, res) => {
     const isTroubleshootingOrFeedback = 
       /\b(?:this is what im seeing|still the same|not working|blank|empty|broken|not showing|cant see|cannot see|error|issue|problem|repeating|whats wrong|what is wrong|fix it|why is it|stuck)\b/i.test(userQuery);
 
-    if (isTroubleshootingOrFeedback) {
+    const hasPreviousCode = messages.some(m => m.role === 'assistant' && (m.content || '').includes('```tsx file=src/App.tsx'));
+    const isCropOrPartialEdit = hasPreviousCode && !isTroubleshootingOrFeedback && (
+      /\b(?:change this part|change this section|crop|cropped|this part|this section|update this|modify this|fix this button|change the|change only|replace this|style this|make this look like|restyle)\b/i.test(userQuery) ||
+      (/\b(?:this|it)\b/i.test(userQuery) && /\b(?:change|update|make|fix|edit|style|look)\b/i.test(userQuery))
+    );
+
+    if (isCropOrPartialEdit) {
+      const SURGICAL_EDIT_PROMPT = `You are Calvras autonomous software engineer performing a SURGICAL EDIT on an existing website.
+The user has provided a cropped screenshot or image showing a SPECIFIC COMPONENT, SECTION, OR ELEMENT they want changed or restyled in their EXISTING application.
+CRITICAL MANDATES:
+1. DO NOT discard, redesign, or regenerate the rest of the application into something else!
+2. Read the existing src/App.tsx provided in conversation history. PRESERVE all existing navigation, hero sections, sidebars, cards, state, and structure.
+3. SURGICALLY UPDATE ONLY the targeted component, section, or styling in src/App.tsx to match the user's cropped image and request.
+4. Output the complete updated src/App.tsx in:
+\`\`\`tsx file=src/App.tsx
+// Complete updated code preserving the entire application with the surgical edit applied
+\`\`\`
+5. Lucide icons must always be imported from 'lucide-react' (never render icon names as plain text strings).`;
+
+      let hasSys = false;
+      for (let i = 0; i < messages.length; i++) {
+        if (messages[i].role === 'system') {
+          messages[i].content = SURGICAL_EDIT_PROMPT;
+          hasSys = true;
+        }
+      }
+      if (!hasSys) {
+        messages.unshift({ role: 'system', content: SURGICAL_EDIT_PROMPT });
+      }
+    } else if (isTroubleshootingOrFeedback) {
       const DEBUGGER_VISION_PROMPT = `You are Calvras autonomous debugger and software engineer.
 The user is providing a screenshot of their preview, application error, or broken screen.
 CRITICAL INSTRUCTIONS:
@@ -636,17 +665,19 @@ When given an image or screenshot of a website or application to clone, duplicat
 \`\`\`tsx file=src/App.tsx
 // Complete, working React 18 TypeScript code with all imports, Lucide icons, Tailwind CSS classes, state, and interactive components
 \`\`\`
-3. STRICT MANDATE FOR IMAGES & CARDS:
+3. STRICT MANDATE FOR ICONS:
+   - NEVER EVER render icon names as plain text strings (e.g. NEVER write "Plus", "Monitor", "Files", "Database", "Search" as text)! Always import and use Lucide icon components from 'lucide-react' (e.g. <Plus size={16} />, <Search size={16} />, <Monitor size={16} />).
+4. STRICT MANDATE FOR IMAGES & CARDS:
    - NEVER EVER use numbered placeholders (e.g. 1, 2, 3, 4, 5, 6, 7, 8), blank gray boxes, or empty rectangles for cards or preview items!
    - Every single card, item, or visual showcase MUST have a real, high-resolution Unsplash image (e.g. https://images.unsplash.com/photo-... with ?w=800&auto=format&fit=crop&q=80) or dynamic Pollinations image matching the theme.
    - Every card author/creator MUST have a real avatar image from Unsplash (e.g. https://images.unsplash.com/photo-... with ?w=100).
    - Ensure rich visual density: titles, authors, PRO/Team badges, like counts with heart icons, view counts, and hover zoom effects.
-4. STRICT MANDATE FOR MOBILE RESPONSIVENESS:
+5. STRICT MANDATE FOR MOBILE RESPONSIVENESS:
    - Every single website, page, and component MUST be 100% mobile-responsive across phone, tablet, and desktop viewports.
    - Use Tailwind responsive classes: grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 for all card grids.
    - Header navigation must include a mobile toggle (hamburger menu with Lucide Menu/X icons) so it collapses cleanly on mobile screens.
    - Use responsive padding (px-4 sm:px-6 lg:px-8) so content never clips screen borders.
-5. NO ESSAYS OR BULLET LISTS: Do not output long introductory essays or bullet lists before the code. Start writing the code immediately.`;
+6. NO ESSAYS OR BULLET LISTS: Do not output long introductory essays or bullet lists before the code. Start writing the code immediately.`;
 
       let hasSys = false;
       for (let i = 0; i < messages.length; i++) {

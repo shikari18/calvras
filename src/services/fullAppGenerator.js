@@ -409,11 +409,9 @@ import {
   Library, 
   Plus, 
   ArrowRight, 
-  Paperclip, 
   Globe, 
   Cpu, 
   BookOpen, 
-  Youtube, 
   Share2, 
   Copy, 
   Check, 
@@ -421,8 +419,17 @@ import {
   ChevronDown,
   RotateCcw,
   SlidersHorizontal,
-  Flame,
-  ArrowUp
+  ArrowUp,
+  MessageSquare,
+  Settings,
+  Clock,
+  Bell,
+  Monitor,
+  Mic,
+  AudioLines,
+  Download,
+  Menu,
+  LayoutGrid
 } from 'lucide-react';
 
 interface SearchResult {
@@ -433,23 +440,18 @@ interface SearchResult {
 }
 
 export default function App() {
-  const [activeNav, setActiveNav] = useState<'home' | 'discover' | 'library'>('home');
+  const [activeNav, setActiveNav] = useState('home');
   const [query, setQuery] = useState('');
-  const [isPro, setIsPro] = useState(false);
-  const [focus, setFocus] = useState('All');
+  const [focus, setFocus] = useState('Search');
   const [showFocusMenu, setShowFocusMenu] = useState(false);
+  const [selectedModel, setSelectedModel] = useState('Sonar');
+  const [showModelMenu, setShowModelMenu] = useState(false);
   const [activeResult, setActiveResult] = useState<SearchResult | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const focusOptions = ['All', 'Academic', 'Writing', 'YouTube', 'Reddit', 'Finance'];
-
-  const quickPrompts = [
-    { title: 'Explain quantum computing simply', tag: 'Science' },
-    { title: 'Compare React 19 vs Next.js 15 features', tag: 'Tech' },
-    { title: 'Top breakthrough AI models of 2026', tag: 'AI' },
-    { title: 'How does high-frequency trading work?', tag: 'Finance' }
-  ];
+  const focusOptions = ['Search', 'Academic', 'Writing', 'YouTube', 'Reddit', 'Finance'];
+  const modelOptions = ['Sonar', 'Claude 3.7', 'GPT-4o', 'DeepSeek R1', 'o3-mini'];
 
   const handleSearch = (searchQuery?: string) => {
     const q = searchQuery || query;
@@ -486,95 +488,107 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-[#191a1a] text-neutral-200 font-sans antialiased selection:bg-teal-500/30 selection:text-white">
-      {/* Left Vertical Icon Rail */}
-      <aside className="w-16 md:w-56 border-r border-[#262828] bg-[#141515] flex flex-col justify-between p-3 shrink-0">
-        <div className="space-y-6">
+      {/* Left Slim Vertical Icon Rail */}
+      <aside className="w-14 border-r border-[#262828] bg-[#141515] flex flex-col justify-between items-center py-3.5 shrink-0 select-none">
+        <div className="flex flex-col items-center space-y-4">
           {/* Logo */}
-          <div className="flex items-center gap-3 px-2 py-1.5 cursor-pointer">
-            <div className="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400 font-bold text-lg">
-              ✻
-            </div>
-            <span className="hidden md:inline font-semibold text-white tracking-tight text-base font-serif">
-              perplexity
-            </span>
+          <div className="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400 font-bold text-lg cursor-pointer hover:bg-teal-500/20 transition-colors">
+            ✻
           </div>
 
-          {/* New Thread Button */}
-          <button 
-            onClick={() => { setActiveResult(null); setQuery(''); }}
-            className="w-full flex items-center justify-center md:justify-between px-2.5 py-2 rounded-xl bg-[#202222] hover:bg-[#282a2a] border border-white/5 text-xs text-neutral-300 transition-colors cursor-pointer"
-          >
-            <div className="flex items-center gap-2">
-              <Plus size={16} className="text-neutral-400" />
-              <span className="hidden md:inline font-medium">New Thread</span>
-            </div>
-            <span className="hidden md:inline text-[10px] font-mono text-neutral-500 border border-neutral-700 px-1.5 py-0.5 rounded">Ctrl K</span>
-          </button>
-
-          {/* Nav Items */}
-          <nav className="space-y-1">
+          {/* Nav Icons */}
+          <div className="flex flex-col items-center space-y-2 pt-2">
             <button 
-              onClick={() => setActiveNav('home')}
-              className={\`w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer \${activeNav === 'home' ? 'bg-white/10 text-white' : 'text-neutral-400 hover:text-white hover:bg-white/5'}\`}
+              onClick={() => { setActiveResult(null); setQuery(''); }}
+              title="New Thread" 
+              className="p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
             >
-              <Search size={16} />
-              <span className="hidden md:inline">Home</span>
+              <Plus size={18} />
             </button>
             <button 
-              onClick={() => setActiveNav('discover')}
-              className={\`w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer \${activeNav === 'discover' ? 'bg-white/10 text-white' : 'text-neutral-400 hover:text-white hover:bg-white/5'}\`}
+              onClick={() => setActiveNav('threads')}
+              title="Threads" 
+              className={\`p-2 rounded-xl transition-colors cursor-pointer \${activeNav === 'threads' ? 'text-white bg-white/10' : 'text-neutral-400 hover:text-white hover:bg-white/5'}\`}
             >
-              <Compass size={16} />
-              <span className="hidden md:inline">Discover</span>
+              <MessageSquare size={18} />
             </button>
             <button 
               onClick={() => setActiveNav('library')}
-              className={\`w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer \${activeNav === 'library' ? 'bg-white/10 text-white' : 'text-neutral-400 hover:text-white hover:bg-white/5'}\`}
+              title="Library" 
+              className={\`p-2 rounded-xl transition-colors cursor-pointer \${activeNav === 'library' ? 'text-white bg-white/10' : 'text-neutral-400 hover:text-white hover:bg-white/5'}\`}
             >
-              <Library size={16} />
-              <span className="hidden md:inline">Library</span>
+              <Library size={18} />
             </button>
-          </nav>
+            <button 
+              onClick={() => setActiveNav('settings')}
+              title="Settings" 
+              className={\`p-2 rounded-xl transition-colors cursor-pointer \${activeNav === 'settings' ? 'text-white bg-white/10' : 'text-neutral-400 hover:text-white hover:bg-white/5'}\`}
+            >
+              <Settings size={18} />
+            </button>
+            <button 
+              onClick={() => setActiveNav('download')}
+              title="Download App" 
+              className="p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+            >
+              <Download size={18} />
+            </button>
+            <button 
+              onClick={() => setActiveNav('history')}
+              title="History" 
+              className="p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+            >
+              <Clock size={18} />
+            </button>
+          </div>
         </div>
 
-        {/* Bottom User Area */}
-        <div className="space-y-3">
-          <div className="hidden md:flex items-center justify-between p-2 rounded-xl bg-[#202222]/70 border border-white/5 text-xs">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[11px] text-neutral-400">Free plan</span>
-            </div>
-            <button className="text-[11px] font-semibold text-teal-400 hover:text-teal-300">Upgrade</button>
-          </div>
-          <div className="flex items-center gap-2 px-1 py-1">
-            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-teal-500 to-emerald-400 text-black font-bold text-xs flex items-center justify-center">
-              U
-            </div>
-            <div className="hidden md:block">
-              <p className="text-xs font-medium text-white leading-none">Developer</p>
-              <p className="text-[10px] text-neutral-500 mt-0.5">Pro Active</p>
-            </div>
+        {/* Bottom Rail Actions */}
+        <div className="flex flex-col items-center space-y-3">
+          <button className="p-2 text-neutral-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors">
+            <ArrowUp size={16} />
+          </button>
+          <button className="p-2 text-neutral-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors">
+            <Bell size={16} />
+          </button>
+          <div className="w-7 h-7 rounded-full bg-emerald-600 text-white font-semibold text-xs flex items-center justify-center cursor-pointer shadow">
+            S
           </div>
         </div>
       </aside>
 
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto flex flex-col justify-between">
+        {/* Top Bar */}
+        <header className="px-6 py-3.5 flex items-center justify-between border-b border-transparent">
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#202222] border border-white/5 text-xs text-neutral-300">
+            <span className="text-neutral-400">Free plan</span>
+            <span className="text-neutral-600">•</span>
+            <button className="text-teal-400 hover:text-teal-300 font-medium cursor-pointer">Upgrade</button>
+          </div>
+          <div className="flex items-center gap-2 text-neutral-400">
+            <button className="p-1.5 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+              <LayoutGrid size={16} />
+            </button>
+            <button className="p-1.5 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+              <Menu size={16} />
+            </button>
+          </div>
+        </header>
+
         <div className="max-w-3xl w-full mx-auto px-4 py-8 md:py-16 flex-1 flex flex-col justify-center">
           {!activeResult ? (
             /* Home Landing State */
-            <div className="space-y-8 animate-in fade-in duration-300">
+            <div className="space-y-6 animate-in fade-in duration-300">
               <div className="text-center space-y-2">
+                <p className="text-xs font-semibold text-neutral-400 tracking-wider">Search</p>
                 <h1 className="text-3xl md:text-4xl font-serif font-normal text-white tracking-tight">
                   What do you want to know?
                 </h1>
-                <p className="text-xs md:text-sm text-neutral-400">
-                  Search the web, synthesize answers, and explore real-time knowledge.
-                </p>
               </div>
 
               {/* Main Search Input Box */}
-              <div className="rounded-2xl bg-[#202222] border border-white/10 shadow-2xl p-3.5 space-y-3 focus-within:border-teal-500/50 transition-all">
+              <div className="rounded-2xl bg-[#202222] border border-neutral-800 shadow-2xl p-3.5 space-y-3 focus-within:border-neutral-700 transition-all">
                 <textarea
                   value={query}
                   onChange={e => setQuery(e.target.value)}
@@ -585,22 +599,26 @@ export default function App() {
                     }
                   }}
                   rows={2}
-                  placeholder="Ask anything or search the web..."
-                  className="w-full bg-transparent border-none outline-none text-white placeholder-neutral-500 text-sm md:text-base resize-none"
+                  placeholder="Type / for search modes"
+                  className="w-full bg-transparent border-none outline-none text-white placeholder-neutral-500 text-sm md:text-base resize-none leading-relaxed"
                 />
 
                 {/* Bottom Bar Inside Input */}
                 <div className="flex items-center justify-between pt-2 border-t border-white/5 text-xs text-neutral-400">
                   <div className="flex items-center gap-2">
-                    {/* Focus Pill */}
+                    <button className="p-1.5 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors cursor-pointer">
+                      <Plus size={15} />
+                    </button>
+
+                    {/* Focus / Search Pill */}
                     <div className="relative">
                       <button 
                         onClick={() => setShowFocusMenu(!showFocusMenu)}
-                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#2a2c2c] hover:bg-[#343636] text-neutral-300 transition-colors"
+                        className="flex items-center gap-1 px-3 py-1 rounded-full bg-[#2a2c2c] hover:bg-[#343636] text-neutral-300 transition-colors cursor-pointer text-xs font-medium"
                       >
-                        <Globe size={13} className="text-teal-400" />
+                        <Search size={13} className="text-neutral-400" />
                         <span>{focus}</span>
-                        <ChevronDown size={11} />
+                        <ChevronDown size={11} className="text-neutral-500" />
                       </button>
                       {showFocusMenu && (
                         <div className="absolute left-0 bottom-8 w-32 bg-[#252727] border border-white/10 rounded-xl shadow-xl py-1 z-30">
@@ -617,29 +635,51 @@ export default function App() {
                       )}
                     </div>
 
-                    {/* Attach Pill */}
-                    <button className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#2a2c2c] hover:bg-[#343636] text-neutral-300 transition-colors">
-                      <Paperclip size={13} />
-                      <span className="hidden sm:inline">Attach</span>
-                    </button>
-
-                    {/* Pro Toggle */}
-                    <button 
-                      onClick={() => setIsPro(!isPro)}
-                      className={\`flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-colors \${isPro ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30' : 'bg-[#2a2c2c] text-neutral-400 hover:text-neutral-300'}\`}
-                    >
-                      <Sparkles size={13} className={isPro ? 'text-teal-400' : ''} />
-                      <span>Pro</span>
+                    {/* Computer Pill */}
+                    <button className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#2a2c2c] hover:bg-[#343636] text-neutral-300 transition-colors text-xs font-medium cursor-pointer">
+                      <Monitor size={13} className="text-neutral-400" />
+                      <span>Computer</span>
                     </button>
                   </div>
 
-                  <button 
-                    onClick={() => handleSearch()}
-                    disabled={!query.trim() || isSearching}
-                    className="w-8 h-8 rounded-full bg-teal-500 hover:bg-teal-400 disabled:opacity-30 disabled:hover:bg-teal-500 text-black flex items-center justify-center transition-all cursor-pointer shadow-md"
-                  >
-                    <ArrowUp size={16} strokeWidth={2.5} />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {/* Model Pill */}
+                    <div className="relative">
+                      <button 
+                        onClick={() => setShowModelMenu(!showModelMenu)}
+                        className="flex items-center gap-1 px-2.5 py-1 text-neutral-400 hover:text-white transition-colors cursor-pointer text-xs"
+                      >
+                        <span>{selectedModel}</span>
+                        <ChevronDown size={11} />
+                      </button>
+                      {showModelMenu && (
+                        <div className="absolute right-0 bottom-8 w-36 bg-[#252727] border border-white/10 rounded-xl shadow-xl py-1 z-30">
+                          {modelOptions.map(m => (
+                            <button
+                              key={m}
+                              onClick={() => { setSelectedModel(m); setShowModelMenu(false); }}
+                              className="w-full text-left px-3 py-1.5 text-xs text-neutral-300 hover:bg-white/5 hover:text-white"
+                            >
+                              {m}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Mic button */}
+                    <button className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-full transition-colors cursor-pointer">
+                      <Mic size={15} />
+                    </button>
+
+                    {/* Voice audio wave button */}
+                    <button 
+                      onClick={() => handleSearch()}
+                      className="p-1.5 rounded-full bg-white text-black hover:bg-neutral-200 transition-colors cursor-pointer shadow-md"
+                    >
+                      <AudioLines size={14} />
+                    </button>
+                  </div>
                 </div>
               </div>
 

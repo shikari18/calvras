@@ -15,7 +15,13 @@ import {
   ChevronRight,
   RotateCcw,
   Pencil,
-  Code
+  Code,
+  ExternalLink,
+  Terminal,
+  BookOpen,
+  Clock,
+  ChevronUp,
+  Layout
 } from 'lucide-react';
 import { splitThinkingAndContent } from '../services/aiService';
 import { generateLivePreviewSrcdoc } from './ProjectWorkspacePane';
@@ -647,15 +653,117 @@ export default function ChatMessage({ message, onRegenerate, onOpenDetails, onOp
 
   const thoughtDuration = message.thoughtDuration || '1s';
 
+  const hasCode = Boolean(rawContent && (rawContent.includes('```tsx') || rawContent.includes('```jsx') || rawContent.includes('```html') || rawContent.includes('export default function')));
+
+  const actionsList = (() => {
+    if (message.actions && Array.isArray(message.actions) && message.actions.length > 0) {
+      return message.actions;
+    }
+    const acts = [];
+    if (hasCode) {
+      acts.push({ icon: '📖', text: 'Opened workspace file scaffold' });
+      acts.push({ icon: '>_', text: 'Configured React 18 TypeScript components & imports' });
+      acts.push({ icon: '🧠', text: 'Synthesized design layout, color palette & typography' });
+      acts.push({ icon: '🛠️', text: 'Wired interactive state, Lucide vector icons & card filters' });
+      acts.push({ icon: '✓', text: 'Transpiled bundle & mounted live preview sandbox', highlight: true });
+    } else if (thoughtContent) {
+      acts.push({ icon: '🧠', text: 'Analyzed query & requirements' });
+      acts.push({ icon: '✓', text: 'Synthesized comprehensive solution', highlight: true });
+    }
+    return acts;
+  })();
+
+  const mainActionLabel = message.actionLabel || (
+    hasCode 
+      ? 'Adapted components into workspace scaffold' 
+      : (thoughtContent ? 'Reasoned through response' : null)
+  );
+
+  const appName = (() => {
+    if (cleanContent) {
+      const h1Match = cleanContent.match(/#+\s+([^\n]+)/);
+      if (h1Match && h1Match[1].length < 40) return h1Match[1].replace(/[*`_]/g, '').trim();
+      const boldMatch = cleanContent.match(/\*\*([^\n*]+)\*\*/);
+      if (boldMatch && boldMatch[1].length < 40 && !boldMatch[1].includes('Updated') && !boldMatch[1].includes('Built')) return boldMatch[1].trim();
+    }
+    return 'Application Workspace';
+  })();
+
   return (
     <div className="w-full max-w-[660px] mx-auto px-4 py-2.5 text-left font-sans animate-message-in">
-      {/* ── Working and Seconds Only ── */}
-      <div className="flex items-center gap-1.5 text-neutral-400 font-normal text-[13px] mb-2 select-none">
-        <span>Worked for {thoughtDuration}</span>
-      </div>
+      {/* ── Lovable/Bolt-style Action & Thinking Accordion ── */}
+      {(hasCode || thoughtContent || actionsList.length > 0) && mainActionLabel && (
+        <div className="mb-3.5 rounded-xl bg-[#18181c]/70 border border-neutral-800/80 overflow-hidden text-xs select-none shadow-sm">
+          <div className="flex items-center justify-between px-3 py-2 bg-[#1f1f24]/60 border-b border-neutral-800/40">
+            <div className="flex items-center gap-2 text-neutral-300 font-medium">
+              <span className="text-sm">🧠</span>
+              <span className="text-[12.5px] text-neutral-200">{mainActionLabel}</span>
+            </div>
+            <button
+              onClick={() => setIsThinkingExpanded(!isThinkingExpanded)}
+              className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-1 text-[11px] text-neutral-400 bg-neutral-900 px-1.5 py-0.5 rounded border border-neutral-800">
+                <Terminal size={10} className="text-blue-400" />
+                <BookOpen size={10} className="text-amber-400" />
+                <span>{actionsList.length} actions</span>
+              </div>
+              <span className="text-[11px] font-normal">{isThinkingExpanded ? 'Show less' : 'Show more'}</span>
+              {isThinkingExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+            </button>
+          </div>
+
+          {isThinkingExpanded && (
+            <div className="p-3 space-y-2.5 bg-[#121215]/80">
+              <div className="space-y-1.5 pl-1">
+                {actionsList.map((act, i) => (
+                  <div key={i} className="flex items-center gap-2 text-[12px] text-neutral-400">
+                    <span className="text-neutral-500 font-mono text-[11px]">{act.icon}</span>
+                    <span className={act.highlight ? 'text-neutral-200 font-medium' : ''}>{act.text}</span>
+                  </div>
+                ))}
+              </div>
+
+              {thoughtContent && (
+                <div className="mt-2 pt-2.5 border-t border-neutral-800/60">
+                  <div className="text-[11px] font-semibold text-neutral-400 mb-1.5 flex items-center gap-1.5">
+                    <Sparkles size={11} className="text-amber-400" />
+                    <span>Model Reasoning</span>
+                  </div>
+                  <div className="text-[12px] text-neutral-300 font-mono leading-relaxed bg-black/40 p-3 rounded-xl border border-neutral-800/60 max-h-48 overflow-y-auto whitespace-pre-wrap">
+                    {thoughtContent}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Interactive Artifact Card (Website / Preview link) ── */}
+      {hasCode && (
+        <div className="mb-3.5 flex items-center justify-between p-3 rounded-xl bg-[#18181f] border border-neutral-800 shadow-md hover:border-neutral-700 transition-all">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 flex-shrink-0">
+              <Layout size={16} />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-white tracking-wide">{appName}</p>
+              <p className="text-[10px] text-neutral-400">Website • Live Preview</p>
+            </div>
+          </div>
+          <button
+            onClick={onOpenPreview}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-medium transition-colors border border-neutral-700 cursor-pointer shadow-sm"
+          >
+            <span>Open</span>
+            <ExternalLink size={12} />
+          </button>
+        </div>
+      )}
 
       {/* Main Response Content */}
-      <div className="text-[15.5px] leading-relaxed text-[#ededed] font-normal mb-2.5 space-y-2.5">
+      <div className="text-[15px] leading-relaxed text-[#ededed] font-normal mb-2.5 space-y-2.5">
         {renderFormattedContent(cleanContent || rawContent)}
       </div>
 
@@ -682,8 +790,13 @@ export default function ChatMessage({ message, onRegenerate, onOpenDetails, onOp
       )}
 
       {/* Bottom Action Bar */}
-      <div className="flex items-center justify-between pt-1 text-neutral-500 select-none">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between pt-1 text-neutral-500 select-none text-xs">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 text-neutral-400 font-normal text-[11.5px]">
+            <Clock size={12} className="text-neutral-500" />
+            <span>Worked for {thoughtDuration}</span>
+          </div>
+          <div className="h-3 w-[1px] bg-neutral-800" />
           <button
             onClick={() => copyContent(message.content)}
             className="p-1 hover:text-neutral-200 transition-colors"

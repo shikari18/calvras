@@ -269,17 +269,52 @@ export default function App() {
     window.dispatchEvent(new CustomEvent('malvos_reset_workspace'));
   };
 
+  const handleSaveWorkspaceFiles = (files, activeFile) => {
+    if (!files || Object.keys(files).length === 0) return;
+    if (activeSession) {
+      setSessions(prev => prev.map(s => s.id === activeSession ? {
+        ...s,
+        workspaceFiles: files,
+        activeFileName: activeFile || s.activeFileName || 'src/App.tsx',
+        updatedAt: Date.now()
+      } : s));
+      try {
+        localStorage.setItem(`calvras_session_files_${activeSession}`, JSON.stringify(files));
+        localStorage.setItem('malvos_active_workspace_files', JSON.stringify(files));
+      } catch {}
+    }
+  };
+
   const handleSelectSession = (sessionId) => {
     const sess = sessions.find(s => s.id === sessionId);
     if (sess) {
       setActiveSession(sessionId);
       setMessages(sess.messages || []);
       setSidebarCollapsed(true);
+      let filesToRestore = sess.workspaceFiles || null;
+      if (!filesToRestore) {
+        try {
+          const raw = localStorage.getItem(`calvras_session_files_${sessionId}`);
+          if (raw) filesToRestore = JSON.parse(raw);
+        } catch {}
+      }
+      if (filesToRestore && Object.keys(filesToRestore).length > 0) {
+        try {
+          localStorage.setItem('malvos_active_workspace_files', JSON.stringify(filesToRestore));
+          if (sess.activeFileName) localStorage.setItem('malvos_active_file_name', sess.activeFileName);
+        } catch {}
+        window.dispatchEvent(new CustomEvent('calvras_restore_workspace', {
+          detail: { files: filesToRestore, activeFile: sess.activeFileName || 'src/App.tsx' }
+        }));
+      }
     }
   };
 
   const handleDeleteSession = (sessionId) => {
     setSessions(prev => prev.filter(s => s.id !== sessionId));
+    try {
+      localStorage.removeItem(`calvras_session_files_${sessionId}`);
+    } catch {}
     if (activeSession === sessionId) {
       handleNewChat();
     }
@@ -449,6 +484,8 @@ export default function App() {
               setMessages={setMessages}
               sidebarCollapsed={sidebarCollapsed}
               setSidebarCollapsed={setSidebarCollapsed}
+              activeSessionId={activeSession}
+              onSaveWorkspaceFiles={handleSaveWorkspaceFiles}
               onBrowseAll={() => setIsCodeStudioOpen(true)}
               onUserMessage={handleUserMessage}
             />

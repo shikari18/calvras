@@ -955,6 +955,9 @@ export default function MainChat({
   setMessages,
   sidebarCollapsed,
   setSidebarCollapsed,
+  activeSessionId,
+  onSaveWorkspaceFiles,
+  onBrowseAll,
   onUserMessage
 }) {
   const [input, setInput] = useState('');
@@ -967,15 +970,34 @@ export default function MainChat({
   const [importedFileCount, setImportedFileCount] = useState(0);
   const lastUserIndex = (messages || []).map(m => m.role).lastIndexOf('user');
 
-  // Dynamic Workspace Files State with localStorage persistence across refreshes
+  // Dynamic Workspace Files State with robust localStorage persistence across refreshes & sessions
   const [workspaceFiles, setWorkspaceFiles] = useState(() => {
-    // Never rehydrate full file content from localStorage — it causes quota errors on large projects.
-    // Files are only loaded fresh via import or AI generation.
+    try {
+      if (activeSessionId) {
+        const sessFiles = localStorage.getItem(`calvras_session_files_${activeSessionId}`);
+        if (sessFiles) {
+          const parsed = JSON.parse(sessFiles);
+          if (parsed && Object.keys(parsed).length > 0) return parsed;
+        }
+      }
+      const saved = localStorage.getItem('malvos_active_workspace_files');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && Object.keys(parsed).length > 0) return parsed;
+      }
+      if (messages && messages.length > 0) {
+        const assistantMsgs = messages.filter(m => m.role === 'assistant');
+        for (let i = assistantMsgs.length - 1; i >= 0; i--) {
+          const extracted = extractFilesFromAIResponse(assistantMsgs[i].content);
+          if (extracted && Object.keys(extracted).length > 0) return extracted;
+        }
+      }
+    } catch {}
     return {};
   });
   const [activeFileName, setActiveFileName] = useState(() => {
     if (!messages || messages.length === 0) return null;
-    return localStorage.getItem('malvos_active_file_name') || null;
+    return localStorage.getItem('malvos_active_file_name') || 'src/App.tsx';
   });
   const [terminalLogs, setTerminalLogs] = useState([]);
   const [previewPort, setPreviewPort] = useState(null);
@@ -988,7 +1010,7 @@ export default function MainChat({
     try {
       const savedFiles = localStorage.getItem('malvos_active_workspace_files');
       const parsed = savedFiles ? JSON.parse(savedFiles) : {};
-      return Object.keys(parsed).length > 0 && localStorage.getItem('malvos_split_screen') === 'true';
+      return Object.keys(parsed).length > 0 || localStorage.getItem('malvos_split_screen') === 'true';
     } catch {
       return false;
     }
@@ -998,6 +1020,76 @@ export default function MainChat({
   });
   const [workspaceWidthPercent, setWorkspaceWidthPercent] = useState(52);
   const [isResizing, setIsResizing] = useState(false);
+
+  // Restore workspace files from external session change event
+  useEffect(() => {
+    const handleRestore = (e) => {
+      if (e.detail?.files && Object.keys(e.detail.files).length > 0) {
+        setWorkspaceFiles(e.detail.files);
+        if (e.detail.activeFile) setActiveFileName(e.detail.activeFile);
+        setIsSplitScreen(true);
+        setActiveWorkspaceTab('preview');
+      }
+    };
+    window.addEventListener('calvras_restore_workspace', handleRestore);
+    return () => window.removeEventListener('calvras_restore_workspace', handleRestore);
+  }, []);
+
+  // When activeSessionId or messages change and workspaceFiles is empty, rehydrate automatically
+  useEffect(() => {
+    if (Object.keys(workspaceFiles).length === 0 && messages && messages.length > 0) {
+      try {
+        if (activeSessionId) {
+          const sessFiles = localStorage.getItem(`calvras_session_files_${activeSessionId}`);
+          if (sessFiles) {
+            const parsed = JSON.parse(sessFiles);
+            if (parsed && Object.keys(parsed).length > 0) {
+              setWorkspaceFiles(parsed);
+              setIsSplitScreen(true);
+              return;
+            }
+          }
+        }
+        const saved = localStorage.getItem('malvos_active_workspace_files');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && Object.keys(parsed).length > 0) {
+            setWorkspaceFiles(parsed);
+            setIsSplitScreen(true);
+            return;
+          }
+        }
+        const assistantMsgs = messages.filter(m => m.role === 'assistant');
+        for (let i = assistantMsgs.length - 1; i >= 0; i--) {
+          const extracted = extractFilesFromAIResponse(assistantMsgs[i].content);
+          if (extracted && Object.keys(extracted).length > 0) {
+            setWorkspaceFiles(extracted);
+            setIsSplitScreen(true);
+            break;
+          }
+        }
+      } catch {}
+    }
+  }, [activeSessionId, messages]);
+
+  // Sync workspaceFiles to localStorage and parent session whenever it changes
+  useEffect(() => {
+    if (workspaceFiles && Object.keys(workspaceFiles).length > 0) {
+      try {
+        localStorage.setItem('malvos_active_workspace_files', JSON.stringify(workspaceFiles));
+        if (activeSessionId) {
+          localStorage.setItem(`calvras_session_files_${activeSessionId}`, JSON.stringify(workspaceFiles));
+        }
+        if (onSaveWorkspaceFiles) {
+          onSaveWorkspaceFiles(workspaceFiles, activeFileName);
+        }
+        localStorage.setItem('malvos_split_screen', 'true');
+        if (activeFileName) localStorage.setItem('malvos_active_file_name', activeFileName);
+      } catch (e) {
+        console.warn('Workspace files persistence error:', e);
+      }
+    }
+  }, [workspaceFiles, activeSessionId, activeFileName]);
 
   // Reset workspace when starting fresh or on reset event
   useEffect(() => {
@@ -1024,27 +1116,6 @@ export default function MainChat({
       } catch {}
     }
   }, [messages]);
-
-  // Sync workspace metadata (NOT full content) to localStorage — avoids quota errors on large projects
-  useEffect(() => {
-    try {
-      if (messages && messages.length > 0 && Object.keys(workspaceFiles).length > 0) {
-        // Only store a lightweight file-path index, not full content
-        const index = Object.keys(workspaceFiles).map(k => ({ path: k, size: workspaceFiles[k]?.length || 0 }));
-        localStorage.setItem('malvos_workspace_index', JSON.stringify({ mainFile: activeFileName, index }));
-        if (activeFileName) localStorage.setItem('malvos_active_file_name', activeFileName);
-        localStorage.setItem('malvos_split_screen', 'true');
-        // Remove old full-content key if present
-        localStorage.removeItem('malvos_active_workspace_files');
-      } else if (!messages || messages.length === 0) {
-        localStorage.removeItem('malvos_workspace_index');
-        localStorage.removeItem('malvos_active_workspace_files');
-        localStorage.removeItem('malvos_active_file_name');
-        localStorage.removeItem('malvos_split_screen');
-      }
-      localStorage.setItem('malvos_active_workspace_tab', activeWorkspaceTab);
-    } catch {}
-  }, [workspaceFiles, activeFileName, isSplitScreen, activeWorkspaceTab, messages]);
 
   // Floating Tasks Dock above input (starts empty, populated only dynamically when tasks run)
   const [runningTasks, setRunningTasks] = useState([]);
@@ -2043,8 +2114,14 @@ CRITICAL:
     const isPreviewFix = 
       /\b(?:this is what im seeing|still the same|same thing|not working|not fixing|isnt fixing|isn't fixing|just repeating|repeating|repeats|whats wrong|what is wrong|why is it|not previewing|cant see|can't see|cannot see|not showing|fix the preview|fix it|broken|blank|white screen|black screen|nothing is showing|invisible|stuck)\b/i.test(trimmedQuery) ||
       (/\b(?:preview|screen|canvas|iframe|view|ui|app|code)\b/i.test(trimmedQuery) &&
-       /\b(?:can'?t\s+see|cannot\s+see|not\s+showing|not\s+working|broken|blank|white|black|empty|fix|issue|problem|not\s+previewing|nothing|invisible|where|repair|repeat|repeating)\b/i.test(trimmedQuery)) ||
-      (hasExistingWorkspace && hasImageAttachment && !/\b(?:new project|start over|build something else|brand new)\b/i.test(trimmedQuery));
+       /\b(?:can'?t\s+see|cannot\s+see|not\s+showing|not\s+working|broken|blank|white|black|empty|fix|issue|problem|not\s+previewing|nothing|invisible|where|repair|repeat|repeating)\b/i.test(trimmedQuery));
+
+    // 2b. Crop or Partial Surgical Edit of existing workspace
+    const isCropOrPartialEdit = hasExistingWorkspace && !isPreviewFix && (
+      /\b(?:change this part|change this section|crop|cropped|this part|this section|update this|modify this|fix this button|change the|change only|replace this|style this|make this look like|restyle|re-style)\b/i.test(trimmedQuery) ||
+      (/\b(?:this|it)\b/i.test(trimmedQuery) && /\b(?:change|update|make|fix|edit|style|look)\b/i.test(trimmedQuery)) ||
+      (hasImageAttachment && /\b(?:change|update|modify|edit|replace|make|fix|style|part|section|button|bar|header|footer)\b/i.test(trimmedQuery))
+    );
 
     // 3. Explicit build/clone/duplicate words or UI duplication with image (ONLY when not troubleshooting)
     const hasBuildKeyword = !isPreviewFix && (
@@ -2059,7 +2136,7 @@ CRITICAL:
 
     // 5. Conversational question — ONLY when user is asking a purely explanatory question without build intent
     const isConversationalQuestion =
-      !isPreviewFix && (
+      !isPreviewFix && !isCropOrPartialEdit && (
         isPastedImageOnly ||
         (!hasBuildKeyword && (
           trimmedQuery.endsWith('?') ||
@@ -2069,14 +2146,15 @@ CRITICAL:
       );
 
     // 6. In-place surgical edit or preview repair of existing workspace
-    const isWorkspaceEdit = (isPreviewFix || hasExistingWorkspace) && !isConversationalQuestion && !isPromptContext && (
+    const isWorkspaceEdit = (isPreviewFix || isCropOrPartialEdit || hasExistingWorkspace) && !isConversationalQuestion && !isPromptContext && (
       isPreviewFix ||
+      isCropOrPartialEdit ||
       (/\b(?:change|update|modify|edit|fix|adjust|style|color|button|navbar|header|footer|sidebar|make\s+it|make\s+this|remove|replace|add|better|responsive|mobile|align|numbers|image|images)\b/i.test(trimmedQuery) &&
       !/\b(?:rebuild\s+from\s+scratch|start\s+over|new\s+project|brand\s+new)\b/i.test(trimmedQuery))
     );
 
     // 7. Explicit build — triggered by hasBuildKeyword or image with build request
-    const isExplicitBuild = !isPreviewFix && (hasBuildKeyword || (hasImageAttachment && !hasExistingWorkspace && !isConversationalQuestion && !isPastedImageOnly)) && !isWorkspaceEdit && !isPromptContext;
+    const isExplicitBuild = !isPreviewFix && !isCropOrPartialEdit && (hasBuildKeyword || (hasImageAttachment && !hasExistingWorkspace && !isConversationalQuestion && !isPastedImageOnly)) && !isWorkspaceEdit && !isPromptContext;
 
     const isCodePrompt = isWorkspaceEdit || isExplicitBuild;
 
@@ -2201,11 +2279,28 @@ CRITICAL FIX & REPAIR INSTRUCTIONS FOR CALVRAS:
           .map(([k, v]) => `File: ${k.replace('Calvras/', '')}\n\`\`\`\n${v}\n\`\`\``)
           .join('\n\n');
 
+        const editPrompt = isCropOrPartialEdit
+          ? `The user is requesting a SURGICAL EDIT to a specific part/section of their active application: "${query}".
+
+Active Project Files:
+${filesContext}
+
+CRITICAL MANDATES FOR SURGICAL EDIT:
+1. DO NOT discard, redesign, or regenerate the rest of the application into something else! The rest of the site (pages, cards, layout, navigation) is already working and must remain completely intact.
+2. Read the existing src/App.tsx above carefully. Identify the exact component or section the user wants updated based on their prompt and/or attached image crop.
+3. Apply the modification ONLY to that specific part in src/App.tsx, while preserving all existing styles, layouts, sidebars, and data.
+4. Output the complete updated src/App.tsx in:
+\`\`\`tsx file=src/App.tsx
+// Complete updated code
+\`\`\`
+5. Lucide icons must always be imported from 'lucide-react' (never output icon names as plain text strings).`
+          : `The user wants to make a modification to their active project codebase.\n\nUser Change Request:\n"${query}"\n\nActive Project Files:\n${filesContext}\n\nCRITICAL INSTRUCTIONS FOR CALVRAS:\n1. Implement the requested modification: "${query}".\n2. Output the FULL, COMPLETE src/App.tsx (and any other modified files) wrapped in standard code blocks with file headers (e.g. \`\`\`tsx file=src/App.tsx).\n3. Every file MUST be 100% complete and self-contained with all imports, state, components, and export default. NEVER return partial snippets or placeholders.\n4. If 1 to 4 images are attached: inspect each image carefully. If multiple images are different pages of the app (e.g. Home, Dashboard, Settings, etc.), build the multi-page application with a navigation bar linking all pages. If an image is an error or settings mockup, apply the fix to the active UI.`;
+
         messagesForAI = [
           ...history.slice(0, -1),
           {
             role: 'user',
-            content: `The user wants to make a modification to their active project codebase.\n\nUser Change Request:\n"${query}"\n\nActive Project Files:\n${filesContext}\n\nCRITICAL INSTRUCTIONS FOR CALVRAS:\n1. Implement the requested modification: "${query}".\n2. Output the FULL, COMPLETE src/App.tsx (and any other modified files) wrapped in standard code blocks with file headers (e.g. \`\`\`tsx file=src/App.tsx).\n3. Every file MUST be 100% complete and self-contained with all imports, state, components, and export default. NEVER return partial snippets or placeholders.\n4. If 1 to 4 images are attached: inspect each image carefully. If multiple images are different pages of the app (e.g. Home, Dashboard, Settings, etc.), build the multi-page application with a navigation bar linking all pages. If an image is an error or settings mockup, apply the fix to the active UI.`,
+            content: editPrompt,
             files: currentAttachedFiles
           }
         ];
