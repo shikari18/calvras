@@ -881,31 +881,58 @@ function InputToolbar({
   );
 }
 
-// ─── Dynamic Action Synthesizer (Describes What It Is Doing, Not Raw File Paths) ───
-function deriveActionDescription(filePath, content = '') {
-  const clean = (filePath || '').toLowerCase();
-  if (clean.includes('app.tsx') || clean.includes('app.jsx') || clean.includes('index.html')) {
-    if (content.includes('fetch(') || content.includes('openrouter') || content.includes('api') || content.includes('sk-or-v1')) {
-      return 'Connecting API endpoints & streaming handlers…';
+// ─── Live Streaming Action Extractor (Zero Hardcoded Presets) ───────────────────
+function extractLiveActionDescription(fullContent = '', liveThinking = '', userQuery = '') {
+  // 1. First priority: Extract the latest live sentence from the AI's actual thinking stream
+  if (liveThinking && liveThinking.trim()) {
+    const thoughtLines = liveThinking
+      .replace(/<(?:think_plan|think)>/gi, '')
+      .split(/[.\n]+/)
+      .map(s => s.trim().replace(/^[-*•#\s]+/, ''))
+      .filter(s => s.length > 8 && s.length < 90 && !/^(?:ok|now|so|let's|let me|first|then)\b/i.test(s));
+    
+    if (thoughtLines.length > 0) {
+      const latestThought = thoughtLines[thoughtLines.length - 1];
+      return latestThought.charAt(0).toUpperCase() + latestThought.slice(1) + '…';
     }
-    return 'Architecting interface layout & component structure…';
   }
-  if (clean.includes('style') || clean.includes('.css') || clean.includes('tailwind')) {
-    return 'Applying responsive theme tokens & visual styling…';
+
+  // 2. Second priority: Extract the active code symbol or comment currently streaming
+  if (fullContent && fullContent.trim()) {
+    // Check for inline code comments explaining the active section
+    const commentMatches = [...fullContent.matchAll(/\/\/\s*([A-Za-z0-9\s,._-]{5,60})/g)];
+    if (commentMatches.length > 0) {
+      const activeComment = commentMatches[commentMatches.length - 1][1].trim();
+      return `Implementing: ${activeComment}…`;
+    }
+
+    // Check for active React component being constructed
+    const compMatches = [...fullContent.matchAll(/(?:export\s+default\s+function|function|const)\s+([A-Z][a-zA-Z0-9_]+)/g)];
+    if (compMatches.length > 0) {
+      const activeComp = compMatches[compMatches.length - 1][1].trim();
+      return `Building ${activeComp} component…`;
+    }
+
+    // Check for active hook or state store
+    const stateMatches = [...fullContent.matchAll(/const\s+\[([a-zA-Z0-9_]{3,25}),\s*set[a-zA-Z0-9_]+\]\s*=\s*useState/g)];
+    if (stateMatches.length > 0) {
+      const activeState = stateMatches[stateMatches.length - 1][1].trim();
+      return `Wiring ${activeState} state…`;
+    }
   }
-  if (clean.includes('auth') || clean.includes('login') || clean.includes('user')) {
-    return 'Implementing authentication & user session state…';
+
+  // 3. Third priority: Derive from user's actual prompt request
+  if (userQuery && userQuery.trim()) {
+    const cleanGoal = userQuery
+      .replace(/^(?:please\s+)?(?:build|create|make|code|design|implement|duplicate|clone)\s+(?:an?\s+)?/i, '')
+      .replace(/\s+(?:for\s+me|with\s+tailwind|using\s+react).*$/i, '')
+      .trim();
+    if (cleanGoal.length > 2 && cleanGoal.length < 50) {
+      return `Building ${cleanGoal}…`;
+    }
   }
-  if (clean.includes('route') || clean.includes('server') || clean.includes('api') || clean.includes('db')) {
-    return 'Constructing backend routing & database schema…';
-  }
-  if (clean.includes('hook') || clean.includes('context') || clean.includes('state') || clean.includes('store')) {
-    return 'Wiring state management & reactive data stores…';
-  }
-  if (clean.includes('component')) {
-    return 'Composing reusable UI elements & interactions…';
-  }
-  return 'Synthesizing application components & logic…';
+
+  return 'Writing application code…';
 }
 
 // ─── Calvras Action Status (shows terminal/browse actions above input, invisible to user controls) ─
@@ -2253,7 +2280,7 @@ DIRECTIVES FOR WIRING THIS KEY IN USER APP:
             if (fileMatch) {
               setIsSplitScreen(true);
               setActiveWorkspaceTab('preview');
-              setStreamingText(deriveActionDescription(fileMatch[1], full));
+              setStreamingText(extractLiveActionDescription(full, liveThinkingText, query));
             } else {
               setStreamingText('');
             }
@@ -2645,7 +2672,7 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
           if (fileMatch) {
             setIsSplitScreen(true);
             setActiveWorkspaceTab('preview');
-            setStreamingText(deriveActionDescription(fileMatch[1], fullContent));
+            setStreamingText(extractLiveActionDescription(fullContent, liveThinkingText, query));
           } else {
             setStreamingText('');
           }
