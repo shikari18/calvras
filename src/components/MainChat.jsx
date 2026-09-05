@@ -900,10 +900,16 @@ function extractLiveActionDescription(fullContent = '', liveThinking = '', userQ
   // 2. Second priority: Extract the active code symbol or comment currently streaming
   if (fullContent && fullContent.trim()) {
     // Check for inline code comments explaining the active section
-    const commentMatches = [...fullContent.matchAll(/\/\/\s*([A-Za-z0-9\s,._-]{5,60})/g)];
+    const commentMatches = [...fullContent.matchAll(/\/\/\s*([^\n\r]{4,80})/g)];
     if (commentMatches.length > 0) {
-      const activeComment = commentMatches[commentMatches.length - 1][1].trim();
-      return `Implementing: ${activeComment}…`;
+      const rawComment = commentMatches[commentMatches.length - 1][1].trim();
+      if (/https?:|\bpollinations\b|\.ai\/|\.(?:png|jpg|jpeg|svg|webp|gif)\b/i.test(rawComment)) {
+        return 'Generating dynamic visual assets…';
+      }
+      const cleanComment = rawComment.replace(/[/{}\[\];]+.*$/, '').trim();
+      if (cleanComment.length > 4 && cleanComment.length < 50 && !/^(?:import|export|const|let|var|return)\b/i.test(cleanComment)) {
+        return `Implementing: ${cleanComment}…`;
+      }
     }
 
     // Check for active React component being constructed
@@ -921,18 +927,90 @@ function extractLiveActionDescription(fullContent = '', liveThinking = '', userQ
     }
   }
 
-  // 3. Third priority: Derive from user's actual prompt request
+  // 3. Third priority: Derive dynamically from user's actual prompt request
   if (userQuery && userQuery.trim()) {
+    const qLower = userQuery.toLowerCase();
+    if (qLower.includes('chatbot') || qLower.includes('assistant')) return 'Architecting chatbot interface & conversation flow…';
+    if (qLower.includes('dashboard') || qLower.includes('analytics')) return 'Engineering metrics layout & data visualizations…';
+    if (qLower.includes('landing') || qLower.includes('website') || qLower.includes('site')) return 'Constructing responsive page sections…';
+    if (qLower.includes('clone') || qLower.includes('duplicate')) return 'Synthesizing layout structure & UI design…';
+    if (qLower.includes('fix') || qLower.includes('error') || qLower.includes('repair')) return 'Applying surgical repair to code…';
     const cleanGoal = userQuery
       .replace(/^(?:please\s+)?(?:build|create|make|code|design|implement|duplicate|clone)\s+(?:an?\s+)?/i, '')
       .replace(/\s+(?:for\s+me|with\s+tailwind|using\s+react).*$/i, '')
       .trim();
     if (cleanGoal.length > 2 && cleanGoal.length < 50) {
-      return `Building ${cleanGoal}…`;
+      return `Engineering ${cleanGoal}…`;
     }
   }
 
   return 'Writing application code…';
+}
+
+function isUnderspecifiedBuildRequest(query = '', attachedFiles = []) {
+  if (attachedFiles && attachedFiles.length > 0) return false;
+  const q = query.trim().toLowerCase().replace(/[.!?]+$/, '');
+
+  // If query is longer than 85 characters, assume the user gave initial context
+  if (q.length > 85) return false;
+
+  // Specific domains or details that indicate the user already provided context
+  const hasSpecificContext = /\b(?:crypto|bitcoin|real\s*estate|restaurant|gym|fitness|workout|hotel|ecommerce|e-commerce|shoes|clothing|fashion|crm|kanban|weather|calculator|music|spotify|netflix|streaming|uber|airbnb|inventory|invoice|calendar|booking|blog|portfolio|forum|resume|quiz|game|notes?|task|chat\s*app|messenger|whatsapp|slack)\b/i.test(q);
+  if (hasSpecificContext) return false;
+
+  const genericPatterns = [
+    /^(?:can\s+you\s+)?(?:please\s+)?(?:build|create|make|design|code|develop)\s+(?:me\s+)?(?:a|an)\s+(?:new\s+)?(?:ai\s+)?(?:chatbot|bot|assistant|website|web\s*site|site|web\s*app|app|application|dashboard|platform|landing\s*page|tool|saas|portal)(?:\s+(?:for\s+me|please|for\s+my\s+business|for\s+a\s+business|for\s+work))?$/i,
+    /^(?:i\s+want|i\s+need|give\s+me)\s+(?:a|an)\s+(?:new\s+)?(?:ai\s+)?(?:chatbot|bot|assistant|website|web\s*site|site|web\s*app|app|application|dashboard|platform|landing\s*page|tool|saas|portal)(?:\s+(?:for\s+me|please|for\s+my\s+business|for\s+a\s+business|for\s+work))?$/i,
+    /^(?:build|create|make)\s+(?:chatbot|bot|assistant|website|web\s*site|site|web\s*app|app|dashboard|platform|landing\s*page)$/i,
+    /^(?:chatbot|bot|assistant|website|web\s*site|site|web\s*app|app|dashboard|platform)$/i
+  ];
+
+  return genericPatterns.some(p => p.test(q));
+}
+
+function getClarificationResponse(query = '') {
+  const q = query.toLowerCase();
+  const isChatbot = /\b(?:chatbot|bot|assistant)\b/i.test(q);
+  const isWebsite = /\b(?:website|web\s*site|site|landing\s*page)\b/i.test(q);
+  const isDashboard = /\b(?:dashboard|portal|analytics)\b/i.test(q);
+
+  if (isChatbot) {
+    return `I would be glad to build this chatbot for you! To make sure I craft the exact application you need rather than making assumptions, could you clarify a few details?
+
+1. **What is the chatbot's primary purpose or role?** (e.g., customer support assistant, AI tutor, sales consultant, general conversational AI)
+2. **Which key features do you need?** (e.g., live streaming responses, chat history, custom system persona, preset prompt suggestions, file upload)
+3. **What visual style or branding would you prefer?** (e.g., modern dark theme, clean minimalist light theme, specific accent colors)
+
+Once you let me know, I will architect and generate the complete, ready-to-run application!`;
+  }
+
+  if (isWebsite) {
+    return `I would love to build this website for you! To ensure I build exactly what fits your vision rather than guessing, could you share a few specifics?
+
+1. **What type of website is this?** (e.g., SaaS landing page, portfolio, business showcase, e-commerce storefront, blog)
+2. **What sections or pages should be included?** (e.g., hero section with CTA, features grid, pricing tier cards, testimonials, contact form)
+3. **Do you have a preferred design aesthetic or color scheme?** (e.g., sleek dark tech, modern minimal light, bold vibrant, corporate blue)
+
+Once you share your preferences, I will build out the full responsive website with interactive components!`;
+  }
+
+  if (isDashboard) {
+    return `I would be happy to build this dashboard for you! To ensure it meets your workflow requirements, could you clarify:
+
+1. **What data or metrics should this dashboard track?** (e.g., revenue & sales analytics, user activity, server uptime, project tasks)
+2. **What interactive components do you need?** (e.g., line & bar charts, filterable data tables, stats summary cards, quick-action modals)
+3. **What layout or theme style do you envision?** (e.g., dark mode sidebar navigation, clean light layout, compact data density)
+
+Let me know what you prefer and I will construct the complete interactive dashboard!`;
+  }
+
+  return `I would be happy to build this application for you! To make sure I tailor it to your exact requirements rather than making assumptions, could you clarify a few details?
+
+1. **What is the core functionality or goal of the application?** (e.g., task manager, booking system, calculator, community portal)
+2. **What are the key features or views you need?** (e.g., multi-step forms, interactive cards, search & filter, export capabilities)
+3. **What visual design or theme do you prefer?** (e.g., modern dark aesthetic, clean minimalist light, specific brand colors)
+
+Share your thoughts and I will immediately build the complete, production-ready app for you!`;
 }
 
 // ─── Calvras Action Status (shows terminal/browse actions above input, invisible to user controls) ─
@@ -1222,7 +1300,10 @@ export default function MainChat({
     }
     setIsThinking(false);
     setIsStreaming(false);
+    setStreamingText('');
+    setLiveStreamContent('');
     setRunningTasks([]);
+    setCalvrasAction(null);
   };
 
   const isHeroMode = messages.length === 0;
@@ -2221,7 +2302,7 @@ CRITICAL:
 DIRECTIVES FOR WIRING THIS KEY IN USER APP:
 1. Connect this key directly in the user app (src/App.tsx) fetch call to https://openrouter.ai/api/v1/chat/completions.
 2. MODEL SELECTION: ${isFreeTier ? 'This key is free tier. You MUST use verified free models: "google/gemini-2.0-flash-exp:free", "meta-llama/llama-3.3-70b-instruct:free", or "qwen/qwen-2.5-72b-instruct:free". Do NOT call paid models like Claude 3.5 or GPT-4o without credits!' : 'Use "openai/gpt-4o" or "anthropic/claude-3.5-sonnet".'}
-3. SYSTEM PROMPT: Include a dedicated system prompt suited for the specific app (e.g. for Shi: "You are Shi, a fast, knowledgeable, and helpful AI assistant..."). NEVER hardcode Calvras prompt!
+3. SYSTEM PROMPT: Include a dedicated system prompt suited for the specific app purpose and persona. NEVER hardcode Calvras prompt!
 4. ERROR HANDLING: If OpenRouter returns any error, render the actual HTTP status and error text in the chat bubble so the user can see it. NEVER use fake silent fallbacks ("Based on my analysis...").]`;
         } else {
           apiKeyVerificationContext = `\n\n[LIVE VERIFICATION STATUS: OpenRouter returned HTTP ${vRes.status} (${vRes.statusText}). Report this exact status code to the user directly instead of guessing.]`;
@@ -2564,6 +2645,34 @@ DIRECTIVES FOR WIRING THIS KEY IN USER APP:
     const hasExistingWorkspace = Object.keys(workspaceFiles).length > 0;
     const trimmedQuery = (query || '').trim();
 
+    // Check if the conversation has already asked for clarification
+    const hasAlreadyAskedClarification = messages.some(m =>
+      m.role === 'assistant' && (
+        m.content.includes('rather than making assumptions') ||
+        m.content.includes('rather than guessing') ||
+        m.content.includes('fits your vision')
+      )
+    );
+
+    // If generic build request with no prior clarification and no workspace files, ask clarifying questions first
+    if (!hasExistingWorkspace && !hasAlreadyAskedClarification && isUnderspecifiedBuildRequest(trimmedQuery, currentAttachedFiles)) {
+      const clarificationText = getClarificationResponse(trimmedQuery);
+      setMessages(prev => [...prev, {
+        id: `msg-clarify-${Date.now()}`,
+        role: 'assistant',
+        content: clarificationText,
+        mode: activeBuildMode,
+        thoughtDuration: getThoughtDuration(),
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }]);
+      setIsThinking(false);
+      setIsStreaming(false);
+      setStreamingText('');
+      setLiveStreamContent('');
+      setRunningTasks([]);
+      return;
+    }
+
     // 1. Pasted image only (no text) → ask what they want, never auto-build
     const isPastedImageOnly = hasImageAttachment && trimmedQuery.length === 0;
 
@@ -2648,15 +2757,19 @@ DIRECTIVES FOR WIRING THIS KEY IN USER APP:
     }
 
     try {
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
+      const dynamicTaskName = trimmedQuery.length > 55 ? `${trimmedQuery.slice(0, 52)}...` : trimmedQuery;
       if (isExplicitBuild) {
         setActiveFileName('src/App.tsx');
         setIsSplitScreen(true);
         setActiveWorkspaceTab('preview');
-        setRunningTasks([{ id: 'init', name: 'Analyzing requirements & designing system architecture...', canStop: false }]);
+        setRunningTasks([{ id: 'init', name: `Architecting & building: ${dynamicTaskName}`, canStop: false }]);
       } else if (isWorkspaceEdit) {
         setIsSplitScreen(true);
         setActiveWorkspaceTab('preview');
-        setRunningTasks([{ id: 'patch', name: isPreviewFix ? 'Diagnosing and repairing live preview...' : 'Inspecting workspace files & applying updates...', canStop: false }]);
+        setRunningTasks([{ id: 'patch', name: isPreviewFix ? 'Diagnosing and repairing live preview...' : `Updating workspace: ${dynamicTaskName}`, canStop: false }]);
       } else {
         setRunningTasks([]);
       }
@@ -2783,7 +2896,7 @@ DO NOT EVER output only conversational text saying "Surgical fix: add X" or "I w
           ...history.slice(0, -1),
           {
             role: 'user',
-            content: `${query}\n\nCRITICAL INSTRUCTIONS FOR CALVRAS:\n1. State in 1 concise line what application you are building, then IMMEDIATELY output the complete code in \`\`\`tsx file=src/App.tsx.\n2. DO NOT output long bulleted outlines or essays before the code. Start writing code immediately.\n3. EXACT AI-GENERATED IMAGES IN WORKSPACE: If screenshots or designs are provided, inspect every photo, artwork, album art, banner, card, and avatar. Generate each exact matching image directly in the workspace code using: https://image.pollinations.ai/prompt/{encoded_description}?width=800&height=800&nologo=true. NEVER output standalone images in the chat — embed them directly in the workspace code.\n4. Output real, production-ready React 18 TypeScript code using Tailwind CSS and Lucide icons. Every file must be self-contained and complete with export default.`,
+            content: `${query}\n\nCRITICAL INSTRUCTIONS FOR CALVRAS:\n1. State in 1 concise line what application you are constructing, then IMMEDIATELY output the complete code in \`\`\`tsx file=src/App.tsx. DO NOT claim the application is built or finished before or during code output.\n2. DO NOT output long bulleted outlines or essays before the code. Start writing code immediately.\n3. EXACT AI-GENERATED IMAGES IN WORKSPACE: If screenshots or designs are provided, inspect every photo, artwork, album art, banner, card, and avatar. Generate each exact matching image directly in the workspace code using: https://image.pollinations.ai/prompt/{encoded_description}?width=800&height=800&nologo=true. NEVER output standalone images in the chat — embed them directly in the workspace code.\n4. Output real, production-ready React 18 TypeScript code using Tailwind CSS and Lucide icons. Every file must be self-contained and complete with export default.`,
             files: currentAttachedFiles
           }
         ];
@@ -2791,6 +2904,7 @@ DO NOT EVER output only conversational text saying "Surgical fix: add X" or "I w
 
       await streamAIResponse({
         messages: messagesForAI,
+        signal: controller.signal,
         onThinkingChunk: (token, fullThinking) => {
           setIsThinking(true);
           setIsStreaming(false);
@@ -2809,15 +2923,25 @@ DO NOT EVER output only conversational text saying "Surgical fix: add X" or "I w
             setStreamingText('');
           }
 
-          const cleanProse = fullContent
-            .replace(/<(?:think_plan|think)>[\s\S]*?<\/(?:think_plan|think)>/gi, '')
-            .replace(/<run_cmd>[\s\S]*?<\/run_cmd>/gi, '')
-            .replace(/<browse>[\s\S]*?<\/browse>/gi, '')
-            .replace(/<search>[\s\S]*?<\/search>/gi, '')
-            .replace(/```[\s\S]*?```/g, '')
-            .replace(/```[\s\S]*$/g, '')
-            .trim();
-          setLiveStreamContent(cleanProse);
+          // If code blocks are actively being written, suppress completion prose in the chat bubble!
+          // Only show what is being built in the LiveActivityIndicator until onDone mounts files.
+          if (fileMatch || fullContent.includes('```')) {
+            setLiveStreamContent('');
+          } else {
+            const cleanProse = fullContent
+              .replace(/<(?:think_plan|think)>[\s\S]*?<\/(?:think_plan|think)>/gi, '')
+              .replace(/<run_cmd>[\s\S]*?<\/run_cmd>/gi, '')
+              .replace(/<browse>[\s\S]*?<\/browse>/gi, '')
+              .replace(/<search>[\s\S]*?<\/search>/gi, '')
+              .replace(/```[\s\S]*$/g, '')
+              .trim();
+            // Suppress premature past-tense completion claims while streaming
+            if (/^(?:Built|I have built|I built|Created|Engineered|Finished|Completed|Wired)\b/i.test(cleanProse)) {
+              setLiveStreamContent('');
+            } else {
+              setLiveStreamContent(cleanProse);
+            }
+          }
 
           // Show run_cmd in progress
           const cmdMatch = fullContent.match(/<run_cmd>([^<]{1,120})<\/run_cmd>/i);
@@ -3037,8 +3161,10 @@ DO NOT EVER output only conversational text saying "Surgical fix: add X" or "I w
           setIsThinking(false);
           setIsStreaming(false);
           setLiveStreamContent('');
+          setStreamingText('');
           setRunningTasks([]);
           setCalvrasAction(null);
+          if (controller.signal.aborted) return;
           setMessages(prev => [...prev, {
             id: `msg-err-${Date.now()}`,
             role: 'assistant',
@@ -3054,8 +3180,10 @@ DO NOT EVER output only conversational text saying "Surgical fix: add X" or "I w
       setIsThinking(false);
       setIsStreaming(false);
       setLiveStreamContent('');
+      setStreamingText('');
       setRunningTasks([]);
       setCalvrasAction(null);
+      if (abortControllerRef.current?.signal.aborted) return;
       setMessages(prev => [...prev, {
         id: `msg-err-${Date.now()}`,
         role: 'assistant',
@@ -3064,6 +3192,8 @@ DO NOT EVER output only conversational text saying "Surgical fix: add X" or "I w
         thoughtDuration: getThoughtDuration(),
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }]);
+    } finally {
+      abortControllerRef.current = null;
     }
   };
 

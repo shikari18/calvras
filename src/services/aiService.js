@@ -65,7 +65,7 @@ CORE COMPETENCIES:
     - Wire the API key and system prompt directly in src/App.tsx using direct client-side fetch to https://openrouter.ai/api/v1/chat/completions so the preview chat app actually sends and receives real responses.
     - MODEL SELECTION COMPLIANCE: If the OpenRouter key is on the free tier, wire it to verified free models: google/gemini-2.0-flash-exp:free, meta-llama/llama-3.3-70b-instruct:free, qwen/qwen-2.5-72b-instruct:free, or deepseek/deepseek-chat:free.
     - ZERO FAKE FALLBACKS: NEVER generate code that silently falls back to generic hardcoded responses (e.g. "Based on my analysis, I recommend starting with..."). If an API request fails, catch the error and render the real error message and HTTP status code directly in the preview UI so the user sees the real result.
-    - DEDICATED APP-SPECIFIC SYSTEM PROMPT: When building an AI assistant app (e.g. "Shi"), inject a dedicated system prompt suited for THAT assistant (e.g. "You are Shi, a fast, knowledgeable, and helpful AI assistant designed with an Apple-grade interface..."). NEVER inject Calvras's own internal developer prompt into the user's application!
+    - DEDICATED APP-SPECIFIC SYSTEM PROMPT: When building an AI assistant app, inject a dedicated system prompt suited for that specific assistant domain and purpose. NEVER inject Calvras's own internal developer prompt into the user's application!
     - IF NO KEY PROVIDED: Build a clean in-app API Key settings modal or prompt the user for their key rather than running fake simulated replies.
     - ZERO SECRET LEAKS: Never print raw curl commands with user API keys into the chat or web searches.
   * DYNAMIC ASSISTANT PERSONA (NO HARDCODED CALVRAS IDENTITY IN USER APPS):
@@ -500,15 +500,20 @@ export function splitThinkingAndContent(rawText = '') {
 /**
  * Real-time SSE Stream AI response
  */
-export async function streamAIResponse({ messages, onThinkingChunk, onContentChunk, onDone, onError, fast = false, voiceMode = false }) {
+export async function streamAIResponse({ messages, onThinkingChunk, onContentChunk, onDone, onError, fast = false, voiceMode = false, signal }) {
   const formattedMessages = formatMultimodalMessages(messages);
 
-  // Detect vision request — use higher token budget and longer timeout
+  // Detect vision request — use higher token budget and responsive timeout
   const hasImages = formattedMessages.some(m =>
     Array.isArray(m.content) && m.content.some(p => p.type === 'image_url')
   );
   const tokenBudget = 16384;
-  const streamTimeout = 120000;
+  const streamTimeout = 25000;
+
+  const createRequestSignal = (timeoutMs = streamTimeout) => {
+    const timeoutSignal = AbortSignal.timeout(timeoutMs);
+    return signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
+  };
 
   const hfToken = localStorage.getItem(HF_TOKEN_STORAGE_KEY) || '';
   let streamResponse = null;
@@ -532,13 +537,14 @@ export async function streamAIResponse({ messages, onThinkingChunk, onContentChu
           fast: true,
           voiceMode
         }),
-        signal: AbortSignal.timeout(30000)
+        signal: createRequestSignal(20000)
       });
 
       if (res.ok && res.body) {
         streamResponse = res;
       }
     } catch (err) {
+      if (signal?.aborted) return;
       console.warn('[AI Stream] Fast backend failed, direct cloud fallback:', err.message);
     }
 
@@ -613,13 +619,14 @@ export async function streamAIResponse({ messages, onThinkingChunk, onContentChu
           top_p: 0.95,
           stream: true
         }),
-        signal: AbortSignal.timeout(streamTimeout)
+        signal: createRequestSignal(streamTimeout)
       });
 
       if (res.ok && res.body) {
         streamResponse = res;
       }
     } catch (err) {
+      if (signal?.aborted) return;
       console.warn('[AI Stream] Local backend stream failed, trying cloud failover:', err.message);
     }
   }
@@ -641,13 +648,14 @@ export async function streamAIResponse({ messages, onThinkingChunk, onContentChu
           top_p: 0.95,
           stream: true
         }),
-        signal: AbortSignal.timeout(streamTimeout)
+        signal: createRequestSignal(streamTimeout)
       });
 
       if (res.ok && res.body) {
         streamResponse = res;
       }
     } catch (err) {
+      if (signal?.aborted) return;
       console.warn('[AI Vision Stream] Vision request to server failed:', err.message);
     }
   }
@@ -655,6 +663,7 @@ export async function streamAIResponse({ messages, onThinkingChunk, onContentChu
   if (!streamResponse && !fast) {
     const modelsToTry = hasImages ? VISION_FAILOVER_MODELS : FAILOVER_MODELS;
     for (const model of modelsToTry) {
+      if (signal?.aborted) return;
       try {
         const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST',
@@ -671,7 +680,7 @@ export async function streamAIResponse({ messages, onThinkingChunk, onContentChu
             max_tokens: 16384,
             stream: true
           }),
-          signal: AbortSignal.timeout(25000)
+          signal: createRequestSignal(20000)
         });
 
         if (res.ok && res.body) {
@@ -679,12 +688,14 @@ export async function streamAIResponse({ messages, onThinkingChunk, onContentChu
           break;
         }
       } catch (err) {
+        if (signal?.aborted) return;
         console.warn(`[AI Stream] Model ${model} failed, trying next:`, err.message);
       }
     }
   }
 
   if (!streamResponse) {
+    if (signal?.aborted) return;
     const errorMsg = 'AI generation endpoints are currently unavailable. Please check your network or API keys in settings and try again.';
     if (onError) onError(new Error(errorMsg));
     return errorMsg;
@@ -700,7 +711,30 @@ export async function streamAIResponse({ messages, onThinkingChunk, onContentChu
   let streamWasInterrupted = false;
   try {
     while (true) {
-      const { done, value } = await reader.read();
+      if (signal?.aborted) {
+        reader.cancel();
+        return;
+      }
+      let readTimer;
+      const timeoutPromise = new Promise((_, reject) => {
+        readTimer = setTimeout(() => reject(new Error('Network response timed out. Please retry.')), 20000);
+      });
+      let readResult;
+      try {
+        const readPromise = signal
+          ? Promise.race([
+              reader.read(),
+              new Promise((_, reject) => {
+                if (signal.aborted) reject(new DOMException('Aborted', 'AbortError'));
+                signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true });
+              })
+            ])
+          : reader.read();
+        readResult = await Promise.race([readPromise, timeoutPromise]);
+      } finally {
+        clearTimeout(readTimer);
+      }
+      const { done, value } = readResult;
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split('\n');
@@ -743,8 +777,17 @@ export async function streamAIResponse({ messages, onThinkingChunk, onContentChu
       }
     }
   } catch (streamErr) {
+    if (signal?.aborted || streamErr.name === 'AbortError') {
+      console.log('[AI Stream] Generation cancelled by user.');
+      try { reader.cancel(); } catch {}
+      return;
+    }
     console.warn('[AI Stream] Stream reading interrupted:', streamErr.message);
     streamWasInterrupted = true;
+    if (!accumulatedContent && !rawAccumulator) {
+      if (onError) onError(streamErr);
+      return streamErr.message;
+    }
   }
 
   let finalParsed = splitThinkingAndContent(accumulatedContent || rawAccumulator);
