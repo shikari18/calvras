@@ -94,8 +94,16 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
     .map(([_, v]) => v)
     .join('\n\n');
 
+  // Detect dark vs light theme
+  const allCode = Object.values(vfs).join(' ');
+  const hasDarkSignals = /class(?:Name)?=["'][^"']*\bdark\b|bg-gray-900|bg-zinc-900|bg-slate-900|bg-black|#0d0d12|#121212/i.test(allCode);
+  const hasLightSignals = /#FAF6EF|#FFFBEB|#FAFAFA|#F8FAFC|bg-amber-50|bg-orange-50|bg-slate-50|bg-gray-50|bg-stone-50|bg-zinc-50|class(?:Name)?=["'][^"']*\blight\b/i.test(allCode);
+  const isDarkMode = hasDarkSignals && !hasLightSignals;
+  const bodyBgColor = isDarkMode ? '#0d0d12' : (allCode.includes('#FAF6EF') ? '#FAF6EF' : '#ffffff');
+  const bodyTextColor = isDarkMode ? '#f4f4f5' : '#0f172a';
+
   return `<!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" class="${isDarkMode ? 'dark' : ''}">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -177,6 +185,27 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
   <style>
     :root {
       --radius: 1rem;
+      --background: ${bodyBgColor};
+      --foreground: ${bodyTextColor};
+      --card: ${isDarkMode ? '#18181f' : '#ffffff'};
+      --card-foreground: ${bodyTextColor};
+      --popover: ${isDarkMode ? '#18181f' : '#ffffff'};
+      --popover-foreground: ${bodyTextColor};
+      --primary: #ec4f88;
+      --primary-foreground: #ffffff;
+      --secondary: ${isDarkMode ? '#18181f' : '#f8fafc'};
+      --secondary-foreground: ${bodyTextColor};
+      --muted: ${isDarkMode ? '#18181f' : '#f1f5f9'};
+      --muted-foreground: ${isDarkMode ? '#a1a1aa' : '#64748b'};
+      --accent: ${isDarkMode ? '#27272a' : '#f1f5f9'};
+      --accent-foreground: ${bodyTextColor};
+      --destructive: #ef4444;
+      --destructive-foreground: #ffffff;
+      --border: ${isDarkMode ? '#27272a' : '#e2e8f0'};
+      --input: ${isDarkMode ? '#27272a' : '#e2e8f0'};
+      --ring: #ec4f88;
+    }
+    .dark {
       --background: #0d0d12;
       --foreground: #f4f4f5;
       --card: #18181f;
@@ -217,7 +246,7 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
     ${repoCss}
     ${projectCss}
     
-    body { background-color: var(--background, #0d0d12); color: var(--foreground, #f4f4f5); margin: 0; padding: 0; font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; min-height: 100vh; overflow-x: hidden; }
+    body { background-color: var(--background, ${bodyBgColor}); color: var(--foreground, ${bodyTextColor}); margin: 0; padding: 0; font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; min-height: 100vh; overflow-x: hidden; }
     #root { min-height: 100vh; display: flex; flex-direction: column; width: 100%; }
     * { box-sizing: border-box; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -588,6 +617,7 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
 
     function customRequire(callerPath, moduleName) {
       if (moduleName === 'react') return window.React;
+      if (moduleName === 'react-dom' || moduleName === 'react-dom/client') return window.ReactDOM;
       if (moduleName === 'react/jsx-runtime' || moduleName === 'react/jsx-dev-runtime' || moduleName.startsWith('react/jsx-')) {
         const createJsx = (type, props, key) => {
           const { children, ...rest } = props || {};
@@ -886,6 +916,14 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
             .replace(/as\\s+(?:HTML[A-Za-z]+Element|string|number|boolean|any|unknown)/g, '')
             .replace(/as\\s+const/g, '');
 
+          // Auto-export component if export default is missing
+          if (!code.includes('export default') && !code.includes('export { default }')) {
+            const compMatch = code.match(/(?:export\\s+)?(?:function|const)\\s+([A-Z][a-zA-Z0-9_]*)/);
+            if (compMatch && compMatch[1]) {
+              code += String.fromCharCode(10) + 'export default ' + compMatch[1] + ';' + String.fromCharCode(10);
+            }
+          }
+
           const babelPresets = ['typescript', 'react'];
           const babelPlugins = ['transform-modules-commonjs'];
           let transformed;
@@ -902,8 +940,11 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
               if ((repaired.split("'").length - 1) % 2 !== 0) repaired += "'";
               if ((repaired.split('"').length - 1) % 2 !== 0) repaired += '"';
               if ((repaired.split(String.fromCharCode(96)).length - 1) % 2 !== 0) repaired += String.fromCharCode(96);
-              if (!repaired.includes('export default') && (repaired.includes('function App') || repaired.includes('const App'))) {
-                repaired += String.fromCharCode(10) + 'export default App;' + String.fromCharCode(10);
+              if (!repaired.includes('export default')) {
+                const matchComp = repaired.match(/(?:export\\s+)?(?:function|const)\\s+([A-Z][a-zA-Z0-9_]*)/);
+                if (matchComp && matchComp[1]) {
+                  repaired += String.fromCharCode(10) + 'export default ' + matchComp[1] + ';' + String.fromCharCode(10);
+                }
               }
               transformed = Babel.transform(repaired, {
                 filename: vfsKey,
@@ -1033,7 +1074,12 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
       }
     }
 
-    const isValidComp = (c) => typeof c === 'function' && !c.__isDummyProxy;
+    const isValidComp = (c) => {
+      if (!c || c.__isDummyProxy) return false;
+      if (typeof c === 'function') return true;
+      if (typeof c === 'object' && (c.$$typeof || c.render || typeof c.type === 'function')) return true;
+      return false;
+    };
 
     // Resolve image sources to real VFS data URLs or branded fallbacks
     const resolveImgSrc = (src) => {
@@ -1152,6 +1198,24 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
           return;
         }
 
+        const hasReactFiles = allKeys.some(k => k.endsWith('.tsx') || k.endsWith('.jsx'));
+
+        function findCandidate(mod) {
+          if (!mod) return null;
+          if (isValidComp(mod)) return mod;
+          if (isValidComp(mod.default)) return mod.default;
+          if (isValidComp(mod.App)) return mod.App;
+          if (isValidComp(mod.Index)) return mod.Index;
+          if (isValidComp(mod.Home)) return mod.Home;
+          if (isValidComp(mod.Main)) return mod.Main;
+          if (isValidComp(mod.Route?.options?.component)) return mod.Route.options.component;
+          if (isValidComp(mod.Route?.component)) return mod.Route.component;
+          for (const key of Object.keys(mod)) {
+            if (isValidComp(mod[key])) return mod[key];
+          }
+          return null;
+        }
+
         // 1. Prioritize App.tsx, index route, home route, or root route
         const indexRouteKey = allKeys.find(k => k.endsWith('routes/index.tsx') || k.endsWith('routes/index.jsx') || k.endsWith('pages/index.tsx') || k.endsWith('pages/Index.tsx') || k.endsWith('pages/index.jsx') || k === 'src/routes/index.tsx' || k === 'routes/index.tsx');
         const homeRouteKey = allKeys.find(k => k.includes('routes/home.') || k.includes('pages/home.'));
@@ -1165,13 +1229,33 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
           || allKeys.find(k => k.endsWith('.tsx') || k.endsWith('.jsx'));
 
         let RootComp = null;
+        let lastMountError = null;
+
+        // If main.tsx exists and is not the primary appKey, test if it self-mounts into root
+        const mainKey = allKeys.find(k => k.endsWith('/main.tsx') || k.endsWith('/main.jsx') || k === 'main.tsx' || k === 'src/main.tsx');
+        if (mainKey && mainKey !== appKey) {
+          try {
+            const mainMod = customRequire('', mainKey);
+            const cand = findCandidate(mainMod);
+            if (isValidComp(cand)) RootComp = cand;
+            if (container.children && container.children.length > 0) {
+              try { window.parent.postMessage({ type: 'CALVRAS_PREVIEW_STATUS', hasError: false }, '*'); } catch {}
+              return;
+            }
+          } catch (e) {
+            console.warn('main.tsx execution error:', e);
+            lastMountError = e;
+          }
+        }
+
         if (appKey) {
           try {
             const mod = customRequire('', appKey);
-            const cand = mod.default || mod.App || mod.Index || mod.Home || mod.Route?.options?.component || mod.Route?.component || Object.values(mod).find(isValidComp);
+            const cand = findCandidate(mod);
             if (isValidComp(cand)) RootComp = cand;
           } catch (e) {
             console.warn('Entrypoint error in ' + appKey + ':', e);
+            lastMountError = e;
           }
         }
 
@@ -1181,17 +1265,19 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
             if (k.endsWith('.tsx') || k.endsWith('.jsx')) {
               try {
                 const mod = customRequire('', k);
-                const cand = mod.default || mod.App || mod.Index || mod.Home || mod.Route?.options?.component || mod.Route?.component || Object.values(mod).find(isValidComp);
+                const cand = findCandidate(mod);
                 if (isValidComp(cand)) {
                   RootComp = cand;
                   break;
                 }
-              } catch {}
+              } catch (e) {
+                if (!lastMountError) lastMountError = e;
+              }
             }
           }
         }
 
-        if (typeof RootComp === 'function') {
+        if (isValidComp(RootComp)) {
           if (!window.__reactRoot) {
             container.innerHTML = '';
             window.__reactRoot = ReactDOM.createRoot(container);
@@ -1203,20 +1289,48 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
           );
           try { window.parent.postMessage({ type: 'CALVRAS_PREVIEW_STATUS', hasError: false }, '*'); } catch {}
         } else {
-          // Check for static HTML fallback
-          const htmlKey = allKeys.find(k => k.endsWith('.html'));
+          // Check for static HTML fallback ONLY if there are NO React/TSX/JSX files
+          const htmlKey = !hasReactFiles && allKeys.find(k => k.endsWith('.html'));
           if (htmlKey && window.__vfs[htmlKey]) {
             container.innerHTML = window.__vfs[htmlKey];
             try { window.parent.postMessage({ type: 'CALVRAS_PREVIEW_STATUS', hasError: false }, '*'); } catch {}
           } else {
-            container.innerHTML = '<div class="min-h-screen bg-[#0d0d12] text-neutral-300 flex flex-col items-center justify-center p-6 text-center select-none font-sans"><div class="max-w-md w-full bg-[#18181f] border border-neutral-800 rounded-2xl p-6 shadow-2xl text-left space-y-3"><div class="flex items-center gap-2 text-blue-400 font-semibold text-sm"><span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>Mounting Application</div><p class="text-xs text-neutral-400 leading-relaxed">Mounting application components from workspace files... Click below if preview does not appear automatically.</p><button onclick="window.location.reload()" class="w-full py-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl text-xs font-semibold transition cursor-pointer">Reload Sandbox</button></div></div>';
-            try { window.parent.postMessage({ type: 'CALVRAS_PREVIEW_STATUS', hasError: true }, '*'); } catch {}
+            const errMsg = lastMountError ? (lastMountError.message || String(lastMountError)) : (hasReactFiles ? 'Could not find a valid React component to mount in workspace files.' : 'No previewable files found.');
+            container.innerHTML = '<div class="min-h-screen bg-slate-900 text-neutral-200 flex flex-col items-center justify-center p-6 text-center select-none font-sans relative">' +
+              '<div class="max-w-md w-full bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-2xl text-left space-y-4">' +
+                '<div class="flex items-center gap-2 text-rose-400 font-semibold text-sm">' +
+                  '<span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>' +
+                  'Preview Build Issue' +
+                '</div>' +
+                '<p id="calvras-error-msg" class="text-xs text-slate-300 font-mono bg-black/40 border border-slate-700 p-3 rounded-xl overflow-x-auto leading-relaxed whitespace-pre-wrap max-h-40"></p>' +
+                '<button id="calvras-fix-btn" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-2 shadow-md cursor-pointer">Fix with Calvras</button>' +
+              '</div>' +
+            '</div>';
+            const msgEl = document.getElementById('calvras-error-msg');
+            if (msgEl) msgEl.textContent = errMsg;
+            const btnEl = document.getElementById('calvras-fix-btn');
+            if (btnEl) btnEl.onclick = function() { window.parent.postMessage({ type: 'FIX_PREVIEW_ERROR', error: 'Preview build issue: ' + errMsg }, '*'); };
+            try { window.parent.postMessage({ type: 'CALVRAS_PREVIEW_STATUS', hasError: true, error: errMsg }, '*'); } catch {}
           }
         }
       } catch (err) {
         console.error('Sandbox Mount Error:', err);
-        container.innerHTML = '<div class="min-h-screen bg-[#0d0d11] text-red-400 flex flex-col items-center justify-center p-6 text-center select-none font-sans"><div class="p-4 rounded-xl bg-red-950/40 border border-red-800/50 max-w-md text-left"><p class="text-xs font-bold text-red-300 mb-1">Preview Render Error</p><pre class="text-[11px] text-red-200 font-mono whitespace-pre-wrap">' + String(err && err.message ? err.message : err) + '</pre></div></div>';
-        try { window.parent.postMessage({ type: 'CALVRAS_PREVIEW_STATUS', hasError: true, error: String(err) }, '*'); } catch {}
+        const errMsg = String(err && err.message ? err.message : err);
+        container.innerHTML = '<div class="min-h-screen bg-slate-900 text-rose-400 flex flex-col items-center justify-center p-6 text-center select-none font-sans relative">' +
+          '<div class="max-w-md w-full bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-2xl text-left space-y-4">' +
+            '<div class="flex items-center gap-2 text-rose-400 font-semibold text-sm">' +
+              '<span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>' +
+              'Preview Render Error' +
+            '</div>' +
+            '<p id="calvras-render-error-msg" class="text-xs text-rose-300 font-mono bg-black/40 border border-slate-700 p-3 rounded-xl overflow-x-auto leading-relaxed whitespace-pre-wrap max-h-40"></p>' +
+            '<button id="calvras-render-fix-btn" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-2 shadow-md cursor-pointer">Fix with Calvras</button>' +
+          '</div>' +
+        '</div>';
+        const msgEl = document.getElementById('calvras-render-error-msg');
+        if (msgEl) msgEl.textContent = errMsg;
+        const btnEl = document.getElementById('calvras-render-fix-btn');
+        if (btnEl) btnEl.onclick = function() { window.parent.postMessage({ type: 'FIX_PREVIEW_ERROR', error: 'Preview render error: ' + errMsg }, '*'); };
+        try { window.parent.postMessage({ type: 'CALVRAS_PREVIEW_STATUS', hasError: true, error: errMsg }, '*'); } catch {}
       }
     }
 

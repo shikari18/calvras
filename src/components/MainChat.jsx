@@ -903,10 +903,13 @@ function extractLiveActionDescription(fullContent = '', liveThinking = '', userQ
     const commentMatches = [...fullContent.matchAll(/\/\/\s*([^\n\r]{4,80})/g)];
     if (commentMatches.length > 0) {
       const rawComment = commentMatches[commentMatches.length - 1][1].trim();
-      if (/https?:|\bpollinations\b|\.ai\/|\.(?:png|jpg|jpeg|svg|webp|gif)\b/i.test(rawComment)) {
+      if (/https?:|unsplash|images\.|assets\.|pollinations|\.ai\/|\.(?:png|jpg|jpeg|svg|webp|gif)\b/i.test(rawComment)) {
         return 'Generating dynamic visual assets…';
       }
       const cleanComment = rawComment.replace(/[/{}\[\];]+.*$/, '').trim();
+      if (/https?:|unsplash|images\.|assets\./i.test(cleanComment)) {
+        return 'Generating dynamic visual assets…';
+      }
       if (cleanComment.length > 4 && cleanComment.length < 50 && !/^(?:import|export|const|let|var|return)\b/i.test(cleanComment)) {
         return `Implementing: ${cleanComment}…`;
       }
@@ -2678,9 +2681,10 @@ DIRECTIVES FOR WIRING THIS KEY IN USER APP:
 
     // 2. Preview Diagnostics, Self-Healing, and User Bug/Failure Complaints
     const isPreviewFix = 
-      /\b(?:this is what im seeing|still the same|same thing|not working|not fixing|isnt fixing|isn't fixing|just repeating|repeating|repeats|whats wrong|what is wrong|why is it|not previewing|cant see|can't see|cannot see|not showing|fix the preview|fix it|broken|blank|white screen|black screen|nothing is showing|invisible|stuck)\b/i.test(trimmedQuery) ||
-      (/\b(?:preview|screen|canvas|iframe|view|ui|app|code)\b/i.test(trimmedQuery) &&
-       /\b(?:can'?t\s+see|cannot\s+see|not\s+showing|not\s+working|broken|blank|white|black|empty|fix|issue|problem|not\s+previewing|nothing|invisible|where|repair|repeat|repeating)\b/i.test(trimmedQuery));
+      /\b(?:this is what im seeing|still the same|same thing|not working|not fixing|isnt fixing|isn't fixing|just repeating|repeating|repeats|whats wrong|what is wrong|why is it|not previewing|cant see|can't see|cannot see|not showing|fix the preview|fix it|broken|blank|white screen|black screen|nothing is showing|invisible|stuck|still dark|still black|still blank|still empty|all dark|all black|pitch black|why is it dark|it is dark|dark screen|empty screen|cant see anything|can't see anything|i cant see|i can't see|cant see`|can't see`|now it build and i cant see)\b/i.test(trimmedQuery) ||
+      (/\b(?:preview|screen|canvas|iframe|view|ui|app|code|site|page|build)\b/i.test(trimmedQuery) &&
+       /\b(?:can'?t\s+see|cannot\s+see|not\s+showing|not\s+working|broken|blank|white|black|dark|empty|fix|issue|problem|not\s+previewing|nothing|invisible|where|repair|repeat|repeating)\b/i.test(trimmedQuery)) ||
+      (hasExistingWorkspace && /\b(?:dark|black|blank|empty|invisible|broken|fix|repair)\b/i.test(trimmedQuery));
 
     // 2b. Crop or Partial Surgical Edit of existing workspace
     const isCropOrPartialEdit = hasExistingWorkspace && !isPreviewFix && (
@@ -2707,9 +2711,9 @@ DIRECTIVES FOR WIRING THIS KEY IN USER APP:
       /\b(?:code|form|button|input|submit|route|routing|nav|navigate|page|screen|modal|card|api|key|login|signin|sign-in|signup|sign-up|error|bug|issue|broken|work|working|fix|solve|repair|not\s+submitting|not\s+changing|not\s+showing|why\s+is|how\s+to|change|update|add|remove|prevent|handle|noValidate)\b/i.test(trimmedQuery)
     );
 
-    // 5. Conversational question — ONLY when user is asking a purely explanatory question without build/code intent
+    // 5. Conversational question — ONLY when user is asking a purely explanatory question without build/code intent and no active workspace
     const isConversationalQuestion =
-      !isPreviewFix && !isCropOrPartialEdit && !isWorkspaceRelated && (
+      !isPreviewFix && !isCropOrPartialEdit && !isWorkspaceRelated && !hasExistingWorkspace && (
         isPastedImageOnly ||
         (!hasBuildKeyword && (
           trimmedQuery.endsWith('?') ||

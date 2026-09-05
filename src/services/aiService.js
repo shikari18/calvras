@@ -498,6 +498,50 @@ export function splitThinkingAndContent(rawText = '') {
 }
 
 /**
+ * Fetch with connection timeout: times out ONLY while waiting for HTTP response headers.
+ * Once response headers arrive and body streaming begins, the timer is cleared so the
+ * streamed tokens are never aborted prematurely.
+ */
+async function fetchWithConnectTimeout(url, options = {}, connectTimeoutMs = 25000, userSignal = null) {
+  const controller = new AbortController();
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort(new Error(`Connection timed out after ${connectTimeoutMs}ms`));
+  }, connectTimeoutMs);
+
+  let onUserAbort;
+  if (userSignal) {
+    if (userSignal.aborted) {
+      clearTimeout(timer);
+      controller.abort();
+    } else {
+      onUserAbort = () => {
+        clearTimeout(timer);
+        controller.abort();
+      };
+      userSignal.addEventListener('abort', onUserAbort, { once: true });
+    }
+  }
+
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    // Response headers received — clear connection timeout so body streaming is never interrupted!
+    clearTimeout(timer);
+    return res;
+  } catch (err) {
+    clearTimeout(timer);
+    if (userSignal && onUserAbort) {
+      userSignal.removeEventListener('abort', onUserAbort);
+    }
+    if (timedOut) {
+      throw new Error(`Connection timed out after ${connectTimeoutMs}ms`);
+    }
+    throw err;
+  }
+}
+
+/**
  * Real-time SSE Stream AI response
  */
 export async function streamAIResponse({ messages, onThinkingChunk, onContentChunk, onDone, onError, fast = false, voiceMode = false, signal }) {
@@ -508,12 +552,6 @@ export async function streamAIResponse({ messages, onThinkingChunk, onContentChu
     Array.isArray(m.content) && m.content.some(p => p.type === 'image_url')
   );
   const tokenBudget = 16384;
-  const streamTimeout = 25000;
-
-  const createRequestSignal = (timeoutMs = streamTimeout) => {
-    const timeoutSignal = AbortSignal.timeout(timeoutMs);
-    return signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
-  };
 
   const hfToken = localStorage.getItem(HF_TOKEN_STORAGE_KEY) || '';
   let streamResponse = null;
@@ -521,7 +559,7 @@ export async function streamAIResponse({ messages, onThinkingChunk, onContentChu
   // Voice / fast conversational path — backend fast mode first, then direct fast cloud engines
   if (fast && !hasImages) {
     try {
-      const res = await fetch(LOCAL_API_URL, {
+      const res = await fetchWithConnectTimeout(LOCAL_API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -536,9 +574,8 @@ export async function streamAIResponse({ messages, onThinkingChunk, onContentChu
           stream: true,
           fast: true,
           voiceMode
-        }),
-        signal: createRequestSignal(20000)
-      });
+        })
+      }, 15000, signal);
 
       if (res.ok && res.body) {
         streamResponse = res;
@@ -551,7 +588,7 @@ export async function streamAIResponse({ messages, onThinkingChunk, onContentChu
     if (!streamResponse) {
       for (const model of FAST_MODELS) {
         try {
-          const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          const res = await fetchWithConnectTimeout('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${OPENROUTER_KEY}`,
@@ -565,15 +602,15 @@ export async function streamAIResponse({ messages, onThinkingChunk, onContentChu
               temperature: 0.4,
               max_tokens: 600,
               stream: true
-            }),
-            signal: AbortSignal.timeout(20000)
-          });
+            })
+          }, 15000, signal);
 
           if (res.ok && res.body) {
             streamResponse = res;
             break;
           }
         } catch (err) {
+          if (signal?.aborted) return;
           console.warn(`[AI Stream] Fast model ${model} failed, trying next:`, err.message);
         }
       }
@@ -587,7 +624,7 @@ export async function streamAIResponse({ messages, onThinkingChunk, onContentChu
           .map((m, i, arr) => (i === arr.length - 1 && m.role === 'user' && typeof m.content === 'string'
             ? { ...m, content: `${m.content}\n\n(Reply in 1-3 short sentences, plain conversational text, no markdown.)` }
             : m));
-        const res = await fetch('https://text.pollinations.ai/openai', {
+        const res = await fetchWithConnectTimeout('https://text.pollinations.ai/openai', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -595,17 +632,17 @@ export async function streamAIResponse({ messages, onThinkingChunk, onContentChu
             temperature: 0.4,
             max_tokens: 600,
             stream: true
-          }),
-          signal: AbortSignal.timeout(15000)
-        });
+          })
+        }, 15000, signal);
         if (res.ok && res.body) streamResponse = res;
       } catch (err) {
+        if (signal?.aborted) return;
         console.warn('[AI Stream] Fast pollinations fallback failed:', err.message);
       }
     }
   } else if (!hasImages) {
     try {
-      const res = await fetch(LOCAL_API_URL, {
+      const res = await fetchWithConnectTimeout(LOCAL_API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -618,9 +655,8 @@ export async function streamAIResponse({ messages, onThinkingChunk, onContentChu
           max_tokens: tokenBudget,
           top_p: 0.95,
           stream: true
-        }),
-        signal: createRequestSignal(streamTimeout)
-      });
+        })
+      }, 20000, signal);
 
       if (res.ok && res.body) {
         streamResponse = res;
@@ -634,7 +670,7 @@ export async function streamAIResponse({ messages, onThinkingChunk, onContentChu
   // For vision requests, route directly to server or elite vision model
   if (!streamResponse && hasImages) {
     try {
-      const res = await fetch(LOCAL_API_URL, {
+      const res = await fetchWithConnectTimeout(LOCAL_API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -647,9 +683,8 @@ export async function streamAIResponse({ messages, onThinkingChunk, onContentChu
           max_tokens: tokenBudget,
           top_p: 0.95,
           stream: true
-        }),
-        signal: createRequestSignal(streamTimeout)
-      });
+        })
+      }, 25000, signal);
 
       if (res.ok && res.body) {
         streamResponse = res;
@@ -665,7 +700,7 @@ export async function streamAIResponse({ messages, onThinkingChunk, onContentChu
     for (const model of modelsToTry) {
       if (signal?.aborted) return;
       try {
-        const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        const res = await fetchWithConnectTimeout('https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${OPENROUTER_KEY}`,
@@ -679,9 +714,8 @@ export async function streamAIResponse({ messages, onThinkingChunk, onContentChu
             temperature: 0.3,
             max_tokens: 16384,
             stream: true
-          }),
-          signal: createRequestSignal(20000)
-        });
+          })
+        }, 25000, signal);
 
         if (res.ok && res.body) {
           streamResponse = res;
@@ -777,7 +811,7 @@ export async function streamAIResponse({ messages, onThinkingChunk, onContentChu
       }
     }
   } catch (streamErr) {
-    if (signal?.aborted || streamErr.name === 'AbortError') {
+    if (signal?.aborted) {
       console.log('[AI Stream] Generation cancelled by user.');
       try { reader.cancel(); } catch {}
       return;
