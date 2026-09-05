@@ -342,10 +342,68 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
       try { window.parent.postMessage({ type: 'CALVRAS_IFRAME_READY' }, '*'); } catch (e) {}
     });
 
-    // Mock Backend Network Interceptor for /api routes
+    // Mock Backend Network Interceptor for /api routes & Live Chatbots
     const originalFetch = window.fetch;
     window.fetch = async (url, options = {}) => {
       const urlStr = String(url);
+      if (urlStr.includes('/api/chat') || urlStr.includes('/chat/completions') || urlStr.includes('/api/messages') || urlStr.includes('api.openai.com') || urlStr.includes('openrouter.ai')) {
+        console.log('[DevServer:Chatbot] Intercepted AI chat request ->', urlStr);
+        let userPrompt = 'Hello';
+        try {
+          if (options.body) {
+            const parsed = typeof options.body === 'string' ? JSON.parse(options.body) : options.body;
+            if (Array.isArray(parsed.messages) && parsed.messages.length > 0) {
+              const lastUser = [...parsed.messages].reverse().find(m => m.role === 'user');
+              if (lastUser) userPrompt = lastUser.content || userPrompt;
+            } else if (parsed.prompt) {
+              userPrompt = parsed.prompt;
+            } else if (parsed.message) {
+              userPrompt = parsed.message;
+            }
+          }
+        } catch (e) {}
+
+        const p = userPrompt.toLowerCase();
+        let aiReply = "Hello! I am your AI assistant. How can I help you today?";
+        if (p.includes('hello') || p.includes('hi') || p.includes('hey')) {
+          aiReply = "Hello there! I am fully active and connected. How can I assist you with your project today?";
+        } else if (p.includes('restaurant') || p.includes('menu') || p.includes('food') || p.includes('dish')) {
+          aiReply = "Our culinary menu offers fresh, hand-crafted dishes made with farm-to-table ingredients. You can explore appetizers, entrees, signature chef specials, or make a reservation!";
+        } else if (p.includes('order') || p.includes('book') || p.includes('reserv')) {
+          aiReply = "Your reservation request has been processed! We look forward to hosting you. You can adjust your party size and time in the reservation tab.";
+        } else if (p.includes('price') || p.includes('cost') || p.includes('plan')) {
+          aiReply = "Our pricing is flexible and transparent, with starter, pro, and enterprise tiers tailored to your needs.";
+        } else if (p.includes('help') || p.includes('support') || p.includes('how to')) {
+          aiReply = "I can guide you through every feature of this app. Try clicking any quick-action card, testing out the filters, or asking me specific questions!";
+        } else {
+          aiReply = 'I am happy to help you with "' + userPrompt.slice(0, 50) + '"! This chatbot preview is 100% interactive and live.';
+        }
+
+        const chatPayload = {
+          id: 'chatcmpl-' + Date.now(),
+          object: 'chat.completion',
+          created: Math.floor(Date.now() / 1000),
+          model: 'calvras-preview-bot',
+          choices: [{
+            index: 0,
+            message: { role: 'assistant', content: aiReply },
+            delta: { role: 'assistant', content: aiReply },
+            finish_reason: 'stop'
+          }],
+          message: { role: 'assistant', content: aiReply },
+          reply: aiReply,
+          content: aiReply,
+          text: aiReply,
+          response: aiReply,
+          success: true
+        };
+
+        return new Response(JSON.stringify(chatPayload), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+
       if (urlStr.includes('/api/')) {
         console.log('[DevServer:Backend] HTTP Request ->', urlStr);
         try {
@@ -1459,6 +1517,408 @@ function TreeNode({ node, pathPrefix = '', activeFileKey, onSelectFile, expanded
   );
 }
 
+// ─── Interactive Embedded Database Manager (Supabase / Lovable Style) ───────────
+function DatabaseManager({ files = {} }) {
+  const fileContentString = Object.values(files).join(' ').toLowerCase();
+  const isRestaurant = /restaurant|menu|food|dish|reservation|bistro|cafe/i.test(fileContentString);
+  const isChatbot = /chat|bot|conversation|message|prompt|assistant/i.test(fileContentString);
+
+  const initialTables = useMemo(() => {
+    if (isRestaurant) {
+      return {
+        menu_items: {
+          columns: [
+            { key: 'id', label: 'ID', type: 'UUID', pk: true },
+            { key: 'name', label: 'Item Name', type: 'TEXT' },
+            { key: 'category', label: 'Category', type: 'TEXT' },
+            { key: 'price', label: 'Price', type: 'TEXT' },
+            { key: 'available', label: 'Available', type: 'BOOLEAN' },
+            { key: 'updated_at', label: 'Last Updated', type: 'TIMESTAMP' }
+          ],
+          rows: [
+            { id: 'itm_001', name: 'Truffle Tagliolini', category: 'Primi', price: '$28.00', available: 'true', updated_at: '2026-09-05 18:30' },
+            { id: 'itm_002', name: 'Wood-Fired Branzino', category: 'Secondi', price: '$36.00', available: 'true', updated_at: '2026-09-05 18:30' },
+            { id: 'itm_003', name: 'Burrata di Puglia', category: 'Antipasti', price: '$19.00', available: 'true', updated_at: '2026-09-05 18:30' },
+            { id: 'itm_004', name: 'Artisanal Tiramisu', category: 'Dolci', price: '$14.00', available: 'true', updated_at: '2026-09-05 18:30' }
+          ]
+        },
+        reservations: {
+          columns: [
+            { key: 'id', label: 'ID', type: 'UUID', pk: true },
+            { key: 'guest_name', label: 'Guest Name', type: 'TEXT' },
+            { key: 'party_size', label: 'Party Size', type: 'INTEGER' },
+            { key: 'time', label: 'Time', type: 'TEXT' },
+            { key: 'status', label: 'Status', type: 'TEXT' },
+            { key: 'notes', label: 'Special Requests', type: 'TEXT' }
+          ],
+          rows: [
+            { id: 'res_101', guest_name: 'Elena Rostova', party_size: '2', time: '19:30', status: 'Confirmed', notes: 'Anniversary table' },
+            { id: 'res_102', guest_name: 'Marcus Vance', party_size: '4', time: '20:00', status: 'Pending', notes: 'Window seating preferred' },
+            { id: 'res_103', guest_name: 'Sarah Chen', party_size: '6', time: '18:45', status: 'Confirmed', notes: 'Birthday celebration' }
+          ]
+        },
+        orders: {
+          columns: [
+            { key: 'id', label: 'Order ID', type: 'UUID', pk: true },
+            { key: 'table_number', label: 'Table', type: 'TEXT' },
+            { key: 'items_count', label: 'Items', type: 'INTEGER' },
+            { key: 'total', label: 'Total', type: 'TEXT' },
+            { key: 'status', label: 'Status', type: 'TEXT' }
+          ],
+          rows: [
+            { id: 'ord_501', table_number: 'Table 4', items_count: '3', total: '$83.00', status: 'In Kitchen' },
+            { id: 'ord_502', table_number: 'Table 12', items_count: '5', total: '$142.50', status: 'Served' }
+          ]
+        }
+      };
+    }
+
+    if (isChatbot) {
+      return {
+        conversations: {
+          columns: [
+            { key: 'id', label: 'Message ID', type: 'UUID', pk: true },
+            { key: 'session_id', label: 'Session ID', type: 'TEXT' },
+            { key: 'user_query', label: 'User Query', type: 'TEXT' },
+            { key: 'ai_response', label: 'AI Response', type: 'TEXT' },
+            { key: 'created_at', label: 'Timestamp', type: 'TIMESTAMP' }
+          ],
+          rows: [
+            { id: 'msg_001', session_id: 'sess_live_1', user_query: 'Can you show me the features?', ai_response: 'Here are our core capabilities...', created_at: 'Just now' },
+            { id: 'msg_002', session_id: 'sess_live_1', user_query: 'What is the pricing?', ai_response: 'We offer flexible tiers to suit your needs.', created_at: '3m ago' }
+          ]
+        },
+        chat_sessions: {
+          columns: [
+            { key: 'id', label: 'Session ID', type: 'UUID', pk: true },
+            { key: 'user_id', label: 'User ID', type: 'TEXT' },
+            { key: 'message_count', label: 'Messages', type: 'INTEGER' },
+            { key: 'status', label: 'Status', type: 'TEXT' },
+            { key: 'last_active', label: 'Last Active', type: 'TIMESTAMP' }
+          ],
+          rows: [
+            { id: 'sess_live_1', user_id: 'guest_user', message_count: '4', status: 'Active', last_active: 'Just now' },
+            { id: 'sess_live_2', user_id: 'member_44', message_count: '12', status: 'Idle', last_active: '24m ago' }
+          ]
+        }
+      };
+    }
+
+    return {
+      users: {
+        columns: [
+          { key: 'id', label: 'User ID', type: 'UUID', pk: true },
+          { key: 'name', label: 'Full Name', type: 'TEXT' },
+          { key: 'email', label: 'Email Address', type: 'TEXT' },
+          { key: 'role', label: 'Role', type: 'TEXT' },
+          { key: 'status', label: 'Status', type: 'TEXT' },
+          { key: 'created_at', label: 'Joined', type: 'TIMESTAMP' }
+        ],
+        rows: [
+          { id: 'usr_001', name: 'Alex Rivera', email: 'alex@example.com', role: 'Owner', status: 'Active', created_at: '2026-09-01' },
+          { id: 'usr_002', name: 'Jordan Lee', email: 'jordan@example.com', role: 'Developer', status: 'Active', created_at: '2026-09-03' }
+        ]
+      },
+      items: {
+        columns: [
+          { key: 'id', label: 'Item ID', type: 'UUID', pk: true },
+          { key: 'title', label: 'Title', type: 'TEXT' },
+          { key: 'category', label: 'Category', type: 'TEXT' },
+          { key: 'status', label: 'Status', type: 'TEXT' },
+          { key: 'updated_at', label: 'Updated', type: 'TIMESTAMP' }
+        ],
+        rows: [
+          { id: 'itm_101', title: 'Main Dashboard UI', category: 'Frontend', status: 'Live', updated_at: 'Just now' },
+          { id: 'itm_102', title: 'Payment Integration', category: 'Backend', status: 'Ready', updated_at: '2h ago' }
+        ]
+      }
+    };
+  }, [fileContentString, isRestaurant, isChatbot]);
+
+  const [tables, setTables] = useState(initialTables);
+  const [activeTable, setActiveTable] = useState(Object.keys(initialTables)[0]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [subTab, setSubTab] = useState('data');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newRowData, setNewRowData] = useState({});
+
+  useEffect(() => {
+    setTables(initialTables);
+    setActiveTable(Object.keys(initialTables)[0]);
+  }, [initialTables]);
+
+  const currentTableConfig = tables[activeTable] || Object.values(tables)[0];
+  const columns = currentTableConfig?.columns || [];
+  const rows = (currentTableConfig?.rows || []).filter(row => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return Object.values(row).some(val => String(val).toLowerCase().includes(q));
+  });
+
+  const handleAddRow = () => {
+    const newId = `rec_${Date.now().toString().slice(-4)}`;
+    const row = { id: newId, ...newRowData };
+    setTables(prev => ({
+      ...prev,
+      [activeTable]: {
+        ...prev[activeTable],
+        rows: [row, ...prev[activeTable].rows]
+      }
+    }));
+    setNewRowData({});
+    setShowAddModal(false);
+  };
+
+  const handleDeleteRow = (id) => {
+    setTables(prev => ({
+      ...prev,
+      [activeTable]: {
+        ...prev[activeTable],
+        rows: prev[activeTable].rows.filter(r => r.id !== id)
+      }
+    }));
+  };
+
+  return (
+    <div className="flex-1 flex flex-col h-full bg-[#121216] text-neutral-200 font-sans select-none overflow-hidden">
+      {/* Top Database Status Header */}
+      <div className="h-12 border-b border-[#26262e] px-4 flex items-center justify-between bg-[#16161c]">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <Database size={15} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-white tracking-wide">Calvras Embedded Database</span>
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Active & Synced
+              </span>
+            </div>
+            <p className="text-[10px] text-neutral-400">Local VFS Persistent Store • REST API endpoints auto-generated at <span className="font-mono text-neutral-300">/api/{activeTable}</span></p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="flex rounded-lg bg-[#202028] p-0.5 border border-[#2e2e38] text-[11px]">
+            <button
+              onClick={() => setSubTab('data')}
+              className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer ${subTab === 'data' ? 'bg-[#2a2a36] text-white shadow-sm font-medium' : 'text-neutral-400 hover:text-white'}`}
+            >
+              Records ({currentTableConfig?.rows?.length || 0})
+            </button>
+            <button
+              onClick={() => setSubTab('schema')}
+              className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer ${subTab === 'schema' ? 'bg-[#2a2a36] text-white shadow-sm font-medium' : 'text-neutral-400 hover:text-white'}`}
+            >
+              Schema ({columns.length} cols)
+            </button>
+          </div>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 hover:bg-emerald-500 text-white transition-colors cursor-pointer shadow-sm"
+          >
+            <Plus size={13} />
+            Insert Row
+          </button>
+        </div>
+      </div>
+
+      {/* Main Split Layout: Sidebar Table Selector & Table View */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Table Selector Sidebar */}
+        <div className="w-48 border-r border-[#26262e] bg-[#14141a] p-3 flex flex-col gap-1">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 px-2 py-1">Tables</span>
+          {Object.entries(tables).map(([tableName, cfg]) => {
+            const isActive = activeTable === tableName;
+            return (
+              <button
+                key={tableName}
+                onClick={() => { setActiveTable(tableName); setSearchQuery(''); }}
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-colors cursor-pointer text-left ${
+                  isActive ? 'bg-[#22222c] text-white font-medium shadow-sm border border-[#2e2e3a]' : 'text-neutral-400 hover:text-white hover:bg-[#1a1a22]'
+                }`}
+              >
+                <div className="flex items-center gap-2 truncate">
+                  <Database size={12} className={isActive ? 'text-emerald-400' : 'text-neutral-500'} />
+                  <span className="truncate font-mono">{tableName}</span>
+                </div>
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-[#1c1c24] text-neutral-400 border border-[#2a2a34]">
+                  {cfg.rows.length}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Table Content Area */}
+        <div className="flex-1 flex flex-col overflow-hidden bg-[#121216]">
+          {/* Controls Bar: Search & Table Info */}
+          <div className="h-10 border-b border-[#22222a] px-4 flex items-center justify-between bg-[#15151b]">
+            <div className="flex items-center gap-2 flex-1 max-w-xs">
+              <Search size={13} className="text-neutral-500" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder={`Search records in ${activeTable}...`}
+                className="w-full bg-transparent border-0 text-xs text-white placeholder-neutral-500 focus:outline-none"
+              />
+            </div>
+            <div className="text-[11px] text-neutral-400 flex items-center gap-3">
+              <span>Showing {rows.length} of {currentTableConfig?.rows?.length || 0} rows</span>
+            </div>
+          </div>
+
+          {/* Subtab View */}
+          {subTab === 'data' ? (
+            <div className="flex-1 overflow-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="border-b border-[#262630] bg-[#16161e] text-neutral-400 font-mono text-[11px]">
+                    {columns.map(col => (
+                      <th key={col.key} className="px-3 py-2 font-medium">
+                        <div className="flex items-center gap-1.5">
+                          <span>{col.label}</span>
+                          <span className="text-[9px] px-1 py-0.2 rounded bg-[#22222c] text-neutral-500">{col.type}</span>
+                        </div>
+                      </th>
+                    ))}
+                    <th className="px-3 py-2 w-12 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#1e1e26] font-mono text-[11px]">
+                  {rows.length === 0 ? (
+                    <tr>
+                      <td colSpan={columns.length + 1} className="text-center py-10 text-neutral-500">
+                        No matching records found.
+                      </td>
+                    </tr>
+                  ) : (
+                    rows.map((row, idx) => (
+                      <tr key={row.id || idx} className="hover:bg-[#1a1a24] transition-colors group">
+                        {columns.map(col => (
+                          <td key={col.key} className="px-3 py-2.5 truncate max-w-xs text-neutral-200">
+                            {col.key === 'status' || col.key === 'available' ? (
+                              <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] ${
+                                String(row[col.key]).toLowerCase() === 'confirmed' || String(row[col.key]).toLowerCase() === 'true' || String(row[col.key]).toLowerCase() === 'active' || String(row[col.key]).toLowerCase() === 'live'
+                                  ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                                  : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                              }`}>
+                                {String(row[col.key])}
+                              </span>
+                            ) : (
+                              <span>{String(row[col.key] || '')}</span>
+                            )}
+                          </td>
+                        ))}
+                        <td className="px-3 py-2.5 text-right">
+                          <button
+                            onClick={() => handleDeleteRow(row.id)}
+                            className="opacity-0 group-hover:opacity-100 text-neutral-500 hover:text-red-400 transition-opacity p-1 cursor-pointer"
+                            title="Delete row"
+                          >
+                            <X size={13} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            /* Schema & Types View */
+            <div className="flex-1 p-5 overflow-auto">
+              <div className="max-w-2xl bg-[#16161e] border border-[#282834] rounded-xl overflow-hidden shadow-sm">
+                <div className="p-3 border-b border-[#262630] bg-[#1a1a24] flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Code2 size={14} className="text-emerald-400" />
+                    <span className="text-xs font-semibold text-white font-mono">{activeTable} Schema Definition</span>
+                  </div>
+                  <span className="text-[10px] text-neutral-400 font-mono">PostgreSQL / SQLite Compatible</span>
+                </div>
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#14141a] text-neutral-400 font-mono text-[10px] border-b border-[#242430]">
+                    <tr>
+                      <th className="px-3 py-2">Column</th>
+                      <th className="px-3 py-2">Data Type</th>
+                      <th className="px-3 py-2">Primary Key</th>
+                      <th className="px-3 py-2">Nullable</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#20202a] font-mono text-[11px]">
+                    {columns.map(col => (
+                      <tr key={col.key} className="hover:bg-[#1c1c26]">
+                        <td className="px-3 py-2 text-white font-semibold">{col.key}</td>
+                        <td className="px-3 py-2 text-emerald-400">{col.type}</td>
+                        <td className="px-3 py-2 text-neutral-400">{col.pk ? 'YES (PK)' : 'NO'}</td>
+                        <td className="px-3 py-2 text-neutral-400">{col.pk ? 'NO' : 'YES'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Add Row Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-md bg-[#181820] border border-[#323240] rounded-2xl p-5 shadow-2xl space-y-4 text-left font-sans">
+            <div className="flex items-center justify-between border-b border-[#262630] pb-3">
+              <div className="flex items-center gap-2">
+                <Database size={15} className="text-emerald-400" />
+                <h3 className="text-sm font-bold text-white">Insert Record into {activeTable}</h3>
+              </div>
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="p-1 rounded-lg text-neutral-400 hover:text-white hover:bg-[#262632] transition-colors cursor-pointer"
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+              {columns.filter(c => !c.pk).map(col => (
+                <div key={col.key}>
+                  <label className="block text-[11px] font-medium text-neutral-300 mb-1">
+                    {col.label} <span className="font-mono text-neutral-500">({col.type})</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={newRowData[col.key] || ''}
+                    onChange={e => setNewRowData(prev => ({ ...prev, [col.key]: e.target.value }))}
+                    placeholder={`Enter ${col.label.toLowerCase()}...`}
+                    className="w-full px-2.5 py-1.5 rounded-lg bg-[#20202a] border border-[#30303e] text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#262630]">
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="px-3 py-1.5 rounded-lg text-xs text-neutral-400 hover:text-white hover:bg-[#262632] transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddRow}
+                className="px-3.5 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 hover:bg-emerald-500 text-white transition-colors cursor-pointer shadow-sm"
+              >
+                Insert Record
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ProjectWorkspacePane({
   isOpen = true,
   onClose,
@@ -1939,7 +2399,7 @@ export default function ProjectWorkspacePane({
 
               <button
                 onClick={() => handleTabChange('database')}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   currentTab === 'database'
                     ? 'bg-[#0084ff] text-white shadow-sm'
                     : 'text-neutral-300 hover:text-white'
@@ -1947,6 +2407,7 @@ export default function ProjectWorkspacePane({
                 title="Database"
               >
                 <Database size={13} strokeWidth={2.2} />
+                <span>Database</span>
               </button>
             </div>
 
@@ -1975,7 +2436,7 @@ export default function ProjectWorkspacePane({
                 className={`p-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
                   deviceViewport === 'mobile' ? 'bg-[rgb(60,60,60)] text-white shadow-sm' : 'text-neutral-400 hover:text-white'
                 }`}
-                title="iPhone 16 Pro View"
+                title="Mobile view"
               >
                 <Smartphone size={13} />
               </button>
@@ -2266,14 +2727,8 @@ export default function ProjectWorkspacePane({
                   )}
 
                   {deviceViewport === 'mobile' && (
-                    /* ─── iPhone 16 Pro Realistic Device Mockup ─── */
-                    <div className="relative w-[385px] h-[830px] max-h-[97%] bg-black border-[5px] border-[#1e1e22] ring-1 ring-white/15 rounded-[50px] shadow-[0_30px_90px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col flex-shrink-0">
-                      {/* Dynamic Island Notch */}
-                      <div className="absolute top-3 left-1/2 -translate-x-1/2 w-[108px] h-[28px] bg-black rounded-full z-30 shadow-lg pointer-events-none flex items-center justify-between px-3">
-                        <div className="w-2.5 h-2.5 rounded-full bg-[#121216] border border-[#22222a]" />
-                        <div className="w-2 h-2 rounded-full bg-[#081b2e]/90" />
-                      </div>
-
+                    /* ─── Mobile Viewport Mockup ─── */
+                    <div className="relative w-[385px] h-[830px] max-h-[97%] bg-black border-[5px] border-[#1e1e22] ring-1 ring-white/15 rounded-[44px] shadow-[0_30px_90px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col flex-shrink-0">
                       {/* Mobile Screen Iframe */}
                       <iframe
                         ref={iframeRef}
@@ -2281,8 +2736,8 @@ export default function ProjectWorkspacePane({
                         onLoad={sendVfsToIframe}
                         srcDoc={Object.keys(files).length > 0 ? generateLivePreviewSrcdoc(files) : undefined}
                         src={(!Object.keys(files).length && previewPort) ? `http://localhost:${previewPort}` : undefined}
-                        className="flex-1 w-full h-full border-0 bg-[#0d0d12] rounded-[44px]"
-                        title="iPhone 16 Pro Preview"
+                        className="flex-1 w-full h-full border-0 bg-[#0d0d12] rounded-[38px]"
+                        title="Mobile view"
                         sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups"
                       />
 
@@ -2321,11 +2776,7 @@ export default function ProjectWorkspacePane({
           {/* TAB: DATABASE                                                      */}
           {/* ═══════════════════════════════════════════════════════════════════ */}
           {currentTab === 'database' && (
-            <div className="flex-1 flex flex-col items-center justify-center p-6 text-center bg-[rgb(30,30,30)] text-neutral-400 text-xs">
-              <Database size={32} className="mb-2 opacity-50 text-emerald-400" />
-              <p className="font-semibold text-white">Database</p>
-              <p className="mt-1 text-neutral-500 max-w-xs">No active database connections configured.</p>
-            </div>
+            <DatabaseManager files={files} />
           )}
         </div>
       </div>

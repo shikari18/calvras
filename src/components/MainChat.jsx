@@ -954,12 +954,12 @@ function isUnderspecifiedBuildRequest(query = '', attachedFiles = []) {
   if (attachedFiles && attachedFiles.length > 0) return false;
   const q = query.trim().toLowerCase().replace(/[.!?]+$/, '');
 
-  // If query is longer than 85 characters, assume the user gave initial context
-  if (q.length > 85) return false;
+  // If query is longer than 75 characters or more than 12 words, assume user gave context
+  if (q.length > 75 || q.split(/\s+/).length > 12) return false;
 
   // Specific domains or details that indicate the user already provided context
-  const hasSpecificContext = /\b(?:crypto|bitcoin|real\s*estate|restaurant|gym|fitness|workout|hotel|ecommerce|e-commerce|shoes|clothing|fashion|crm|kanban|weather|calculator|music|spotify|netflix|streaming|uber|airbnb|inventory|invoice|calendar|booking|blog|portfolio|forum|resume|quiz|game|notes?|task|chat\s*app|messenger|whatsapp|slack)\b/i.test(q);
-  if (hasSpecificContext) return false;
+  if (/\b(?:named|called)\s+[a-z0-9]/i.test(q)) return false;
+  if (/\b(?:just\s+build|build\s+now|dont\s+ask|don't\s+ask|no\s+questions?|start\s+coding)\b/i.test(q)) return false;
 
   const genericPatterns = [
     /^(?:can\s+you\s+)?(?:please\s+)?(?:build|create|make|design|code|develop)\s+(?:me\s+)?(?:a|an)\s+(?:new\s+)?(?:ai\s+)?(?:chatbot|bot|assistant|website|web\s*site|site|web\s*app|app|application|dashboard|platform|landing\s*page|tool|saas|portal)(?:\s+(?:for\s+me|please|for\s+my\s+business|for\s+a\s+business|for\s+work))?$/i,
@@ -969,51 +969,6 @@ function isUnderspecifiedBuildRequest(query = '', attachedFiles = []) {
   ];
 
   return genericPatterns.some(p => p.test(q));
-}
-
-function getClarificationResponse(query = '') {
-  const q = query.toLowerCase();
-  const isChatbot = /\b(?:chatbot|bot|assistant)\b/i.test(q);
-  const isWebsite = /\b(?:website|web\s*site|site|landing\s*page)\b/i.test(q);
-  const isDashboard = /\b(?:dashboard|portal|analytics)\b/i.test(q);
-
-  if (isChatbot) {
-    return `I would be glad to build this chatbot for you! To make sure I craft the exact application you need rather than making assumptions, could you clarify a few details?
-
-1. **What is the chatbot's primary purpose or role?** (e.g., customer support assistant, AI tutor, sales consultant, general conversational AI)
-2. **Which key features do you need?** (e.g., live streaming responses, chat history, custom system persona, preset prompt suggestions, file upload)
-3. **What visual style or branding would you prefer?** (e.g., modern dark theme, clean minimalist light theme, specific accent colors)
-
-Once you let me know, I will architect and generate the complete, ready-to-run application!`;
-  }
-
-  if (isWebsite) {
-    return `I would love to build this website for you! To ensure I build exactly what fits your vision rather than guessing, could you share a few specifics?
-
-1. **What type of website is this?** (e.g., SaaS landing page, portfolio, business showcase, e-commerce storefront, blog)
-2. **What sections or pages should be included?** (e.g., hero section with CTA, features grid, pricing tier cards, testimonials, contact form)
-3. **Do you have a preferred design aesthetic or color scheme?** (e.g., sleek dark tech, modern minimal light, bold vibrant, corporate blue)
-
-Once you share your preferences, I will build out the full responsive website with interactive components!`;
-  }
-
-  if (isDashboard) {
-    return `I would be happy to build this dashboard for you! To ensure it meets your workflow requirements, could you clarify:
-
-1. **What data or metrics should this dashboard track?** (e.g., revenue & sales analytics, user activity, server uptime, project tasks)
-2. **What interactive components do you need?** (e.g., line & bar charts, filterable data tables, stats summary cards, quick-action modals)
-3. **What layout or theme style do you envision?** (e.g., dark mode sidebar navigation, clean light layout, compact data density)
-
-Let me know what you prefer and I will construct the complete interactive dashboard!`;
-  }
-
-  return `I would be happy to build this application for you! To make sure I tailor it to your exact requirements rather than making assumptions, could you clarify a few details?
-
-1. **What is the core functionality or goal of the application?** (e.g., task manager, booking system, calculator, community portal)
-2. **What are the key features or views you need?** (e.g., multi-step forms, interactive cards, search & filter, export capabilities)
-3. **What visual design or theme do you prefer?** (e.g., modern dark aesthetic, clean minimalist light, specific brand colors)
-
-Share your thoughts and I will immediately build the complete, production-ready app for you!`;
 }
 
 // ─── Calvras Action Status (shows terminal/browse actions above input, invisible to user controls) ─
@@ -1814,6 +1769,21 @@ export default function MainChat({
 
     // ── 1. Git Clone Interception — Robust Backend SSE Stream + Direct Fallback ──
     const cloneMatch = query.match(/(https?:\/\/(?:github|gitlab)\.com\/[^\s]+)/i) || (query.toLowerCase().includes('git clone') ? query.match(/(https?:\/\/[^\s]+)/i) : null);
+    const isCloneQueryWithoutUrl = !cloneMatch && /\b(?:clone|cloning)\s+(?:a\s+)?(?:github\s+)?(?:repo|repository|project)\b/i.test(query);
+    if (isCloneQueryWithoutUrl) {
+      setIsThinking(false);
+      setRunningTasks([]);
+      setMessages(prev => [...prev, {
+        id: `msg-clone-need-url-${Date.now()}`,
+        role: 'assistant',
+        content: `I can clone any public or private GitHub repository for you! Please provide the repository URL (e.g. \`https://github.com/username/project\`), and I will load all its files into your workspace and launch the live preview.`,
+        mode: activeBuildMode,
+        thoughtDuration: getThoughtDuration(),
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }]);
+      return;
+    }
+
     if (cloneMatch) {
       const repoUrl = cloneMatch[1].replace(/\.git$/, '');
       const repoName = repoUrl.split('/').pop();
@@ -1947,8 +1917,10 @@ export default function MainChat({
       return;
     }
 
-    // ── 2. GitHub Push Command Handler ("push to github", "git push", etc.) ──
-    const isPushRequest = /\b(?:push\s+(?:this|my|the|all)?\s*(?:changes|code|commits?|project|repo)?\s*(?:to|on)?\s*github|git\s+push|publish\s+(?:to\s+)?github)\b/i.test(query)
+    // ── 2. GitHub Push Command Handler ("push to github", "git push", "psuh to github", etc.) ──
+    const isPushRequest = /\b(?:p[suh]{3,4}|push|puhs|pshu|sync|publish)\s+(?:this|my|the|all)?\s*(?:changes|code|commits?|project|repo)?\s*(?:to|on)?\s*(?:github|git|repo)\b/i.test(query)
+      || /\b(?:git\s+push|psuh\s+to\s+github|push\s+to\s+github|push\s+to\s+repo|psuh\s+to\s+repo)\b/i.test(query)
+      || /\b(?:push|psuh|puhs)\b.*\b(?:github|repo)\b/i.test(query)
       || (pendingPushState && !/^(?:build|create|make|new\s+chat)\b/i.test(query));
 
     if (isPushRequest) {
@@ -1974,7 +1946,7 @@ export default function MainChat({
         setMessages(prev => [...prev, {
           id: `msg-push-need-repo-${Date.now()}`,
           role: 'assistant',
-          content: `This project was created in Calvras and is not yet linked to a GitHub repository.\n\nTo push your project to GitHub, please provide:\n1. Your target GitHub repository URL or name (e.g. \`https://github.com/username/my-project\`)\n2. Your GitHub Personal Access Token (PAT) with \`repo\` scope\n\nOnce provided, I will commit and push all project files directly to your repository.`,
+          content: `This project is ready to push to GitHub!\n\nYou can click the **Push to GitHub** button in the workspace top bar, or provide:\n1. Your target GitHub repository URL or name (e.g. \`https://github.com/username/my-project\`)\n2. Your GitHub Personal Access Token (PAT) with \`repo\` scope\n\nOnce provided, I will commit and push all project files directly to your repository.`,
           mode: activeBuildMode,
           thoughtDuration: getThoughtDuration(),
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -2648,33 +2620,12 @@ DIRECTIVES FOR WIRING THIS KEY IN USER APP:
     const hasExistingWorkspace = Object.keys(workspaceFiles).length > 0;
     const trimmedQuery = (query || '').trim();
 
-    // Check if the conversation has already asked for clarification
-    const hasAlreadyAskedClarification = messages.some(m =>
-      m.role === 'assistant' && (
-        m.content.includes('rather than making assumptions') ||
-        m.content.includes('rather than guessing') ||
-        m.content.includes('fits your vision')
-      )
-    );
+    // Check if the user is answering a previous clarification prompt
+    const hasPriorAssistantTurn = messages.some(m => m.role === 'assistant');
+    const isFollowUpToClarification = !hasExistingWorkspace && hasPriorAssistantTurn;
 
-    // If generic build request with no prior clarification and no workspace files, ask clarifying questions first
-    if (!hasExistingWorkspace && !hasAlreadyAskedClarification && isUnderspecifiedBuildRequest(trimmedQuery, currentAttachedFiles)) {
-      const clarificationText = getClarificationResponse(trimmedQuery);
-      setMessages(prev => [...prev, {
-        id: `msg-clarify-${Date.now()}`,
-        role: 'assistant',
-        content: clarificationText,
-        mode: activeBuildMode,
-        thoughtDuration: getThoughtDuration(),
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      }]);
-      setIsThinking(false);
-      setIsStreaming(false);
-      setStreamingText('');
-      setLiveStreamContent('');
-      setRunningTasks([]);
-      return;
-    }
+    // Check if this is an underspecified prompt that needs dynamic AI clarification questions
+    const isUnderspecified = !hasExistingWorkspace && !isFollowUpToClarification && currentAttachedFiles.length === 0 && isUnderspecifiedBuildRequest(trimmedQuery, currentAttachedFiles);
 
     // 1. Pasted image only (no text) → ask what they want, never auto-build
     const isPastedImageOnly = hasImageAttachment && trimmedQuery.length === 0;
@@ -2696,9 +2647,12 @@ DIRECTIVES FOR WIRING THIS KEY IN USER APP:
     // 3. Explicit build/clone/duplicate words or UI duplication with image (ONLY when not troubleshooting)
     const hasBuildKeyword = !isPreviewFix && (
       /\b(?:duplicate|duplicating|duplicated|clone|cloning|cloned|replicate|replicating|recreate|recreating|rebuild|rebuilding|build|building|develop|implement|code|create|make|design|generate|turn\s+this\s+into|convert\s+this\s+into|copy)\b/i.test(trimmedQuery) ||
+      /\b(?:restaurant|resturant|restraunt|cafe|bistro|diner|food|menu|website|webxsite|webiste|websit|site|app|application|chatbot|chat\s*bot|bot|dashboard|store|shop|ecommerce|portfolio|landing\s*page|tool|saas|portal)\b/i.test(trimmedQuery) ||
+      /\b(?:named|called)\s+[a-zA-Z0-9_-]+/i.test(trimmedQuery) ||
       (!hasExistingWorkspace && hasImageAttachment && /\b(?:ui|app|website|site|page|screen|design|dashboard|component|interface|this|like\s+this|like\s+the\s+image|same|image|images|numbers|card|cards|fix|add)\b/i.test(trimmedQuery)) ||
       (/\b(?:app|website|site|landing\s*page|dashboard|component|ui|interface|prototype|screen|tool)\b/i.test(trimmedQuery) &&
-       /\b(?:build|make|create|code|clone|duplicate|design|give|show|do|implement)\b/i.test(trimmedQuery))
+       /\b(?:build|make|create|code|clone|duplicate|design|give|show|do|implement)\b/i.test(trimmedQuery)) ||
+      (isFollowUpToClarification && trimmedQuery.length > 2)
     );
 
     // 4. System prompt generation request
@@ -2713,7 +2667,7 @@ DIRECTIVES FOR WIRING THIS KEY IN USER APP:
 
     // 5. Conversational question — ONLY when user is asking a purely explanatory question without build/code intent and no active workspace
     const isConversationalQuestion =
-      !isPreviewFix && !isCropOrPartialEdit && !isWorkspaceRelated && !hasExistingWorkspace && (
+      !isPreviewFix && !isCropOrPartialEdit && !isWorkspaceRelated && !hasExistingWorkspace && !isUnderspecified && (
         isPastedImageOnly ||
         (!hasBuildKeyword && (
           trimmedQuery.endsWith('?') ||
@@ -2725,7 +2679,7 @@ DIRECTIVES FOR WIRING THIS KEY IN USER APP:
     // 6. In-place surgical edit of existing workspace
     const isExplicitRebuild = /\b(?:rebuild\s+from\s+scratch|start\s+over|brand\s+new\s+project|create\s+a\s+different\s+app|make\s+a\s+new\s+app\s+instead)\b/i.test(trimmedQuery);
 
-    const isWorkspaceEdit = !isConversationalQuestion && !isPromptContext && !isExplicitRebuild && (
+    const isWorkspaceEdit = !isConversationalQuestion && !isPromptContext && !isExplicitRebuild && !isUnderspecified && (
       isPreviewFix ||
       isCropOrPartialEdit ||
       isWorkspaceRelated ||
@@ -2734,7 +2688,7 @@ DIRECTIVES FOR WIRING THIS KEY IN USER APP:
     );
 
     // 7. Explicit build — triggered by hasBuildKeyword or image with build request
-    const isExplicitBuild = !isPreviewFix && !isCropOrPartialEdit && (hasBuildKeyword || (hasImageAttachment && !hasExistingWorkspace && !isConversationalQuestion && !isPastedImageOnly)) && !isWorkspaceEdit && !isPromptContext;
+    const isExplicitBuild = !isUnderspecified && !isPreviewFix && !isCropOrPartialEdit && (hasBuildKeyword || (hasImageAttachment && !hasExistingWorkspace && !isConversationalQuestion && !isPastedImageOnly)) && !isWorkspaceEdit && !isPromptContext;
 
     const isCodePrompt = isWorkspaceEdit || isExplicitBuild;
 
@@ -2886,6 +2840,19 @@ DO NOT EVER output only conversational text saying "Surgical fix: add X" or "I w
             files: currentAttachedFiles
           }
         ];
+      } else if (isUnderspecified) {
+        messagesForAI = [
+          ...history.slice(0, -1),
+          {
+            role: 'user',
+            content: `The user requested: "${query}".
+This build request is brief or underspecified.
+In your own natural, conversational, friendly voice (DO NOT use canned templates or standard lists), ask 2-3 focused clarifying questions tailored specifically to "${query}" before generating code.
+For example, clarify key features, specific user flows, or preferred visual aesthetic.
+DO NOT output any code block now.
+Let them know that as soon as they share their thoughts (or tell you to proceed right away), you will build the complete production application for them.`
+          }
+        ];
       } else if (isPromptContext) {
         messagesForAI = [
           ...history.slice(0, -1),
@@ -2900,7 +2867,7 @@ DO NOT EVER output only conversational text saying "Surgical fix: add X" or "I w
           ...history.slice(0, -1),
           {
             role: 'user',
-            content: `${query}\n\nCRITICAL INSTRUCTIONS FOR CALVRAS:\n1. State in 1 concise line what application you are constructing, then IMMEDIATELY output the complete code in \`\`\`tsx file=src/App.tsx. DO NOT claim the application is built or finished before or during code output.\n2. DO NOT output long bulleted outlines or essays before the code. Start writing code immediately.\n3. EXACT AI-GENERATED IMAGES IN WORKSPACE: If screenshots or designs are provided, inspect every photo, artwork, album art, banner, card, and avatar. Generate each exact matching image directly in the workspace code using: https://image.pollinations.ai/prompt/{encoded_description}?width=800&height=800&nologo=true. NEVER output standalone images in the chat — embed them directly in the workspace code.\n4. Output real, production-ready React 18 TypeScript code using Tailwind CSS and Lucide icons. Every file must be self-contained and complete with export default.`,
+            content: `${query}\n\nCRITICAL INSTRUCTIONS FOR CALVRAS:\n1. Output the complete code IMMEDIATELY in \`\`\`tsx file=src/App.tsx without any intro sentence, preamble, or "I will construct..." before the code block. Start writing code on line 1.\n2. After the code block, provide ONE concise sentence summarizing the application and features built.\n3. EXACT AI-GENERATED IMAGES IN WORKSPACE: If screenshots or designs are provided, inspect every photo, artwork, album art, banner, card, and avatar. Generate each exact matching image directly in the workspace code using: https://image.pollinations.ai/prompt/{encoded_description}?width=800&height=800&nologo=true. NEVER output standalone images in the chat — embed them directly in the workspace code.\n4. Output real, production-ready React 18 TypeScript code using Tailwind CSS and Lucide icons. Every file must be self-contained and complete with export default.`,
             files: currentAttachedFiles
           }
         ];
@@ -3078,7 +3045,8 @@ DO NOT EVER output only conversational text saying "Surgical fix: add X" or "I w
               .replace(/```[\s\S]*$/g, '')
               .replace(/<write_file[\s\S]*?>/gi, '')
               .replace(/<\/?[a-z_]+(?:\s[^>]*)?>?/gi, '')
-              .replace(/^(?:I'll|I will|Let me|I'm going to)\s+[^.\n]+(?:\.|\n)+\s*(?=(?:I(?:'ve| have| did)|(?:Wired|Built|Added|Created|Updated|Connected|Configured|Implemented|Integrated|Fixed))\b)/i, '')
+              .replace(/^(?:I'll|I will|Let me|I'm going to|Making|Constructing|Building)\s+[^.\n]+(?:\.|\n)+\s*(?=(?:I(?:'ve| have| did)|(?:Wired|Built|Added|Created|Updated|Connected|Configured|Implemented|Integrated|Fixed|Made))\b)/i, '')
+              .replace(/^(?:Making|Constructing|Building|Setting up|Creating)\s+[^.\n]+(?:\.|\n)+\s*(?=[A-Z])/i, '')
               .replace(/\n{3,}/g, '\n\n')
               .trim();
 
