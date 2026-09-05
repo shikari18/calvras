@@ -2372,7 +2372,7 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
           ...history.slice(0, -1),
           {
             role: 'user',
-            content: `${query}\n\nCRITICAL INSTRUCTIONS FOR CALVRAS:\n1. State in 1 concise line what application you are building, then IMMEDIATELY output the complete code in \`\`\`tsx file=src/App.tsx.\n2. DO NOT output long bulleted outlines, architectural essays, or design breakdowns before the code. The full code block must begin immediately.\n3. If 1 to 4 images are attached: duplicate the design with 10/10 pixel-perfect accuracy (exact layout, navbar, cards, colors, typography, and functional interactions).\n4. Output real, production-ready React 18 TypeScript code using Tailwind CSS and Lucide icons. Every file must be self-contained and complete with export default.`,
+            content: `${query}\n\nCRITICAL INSTRUCTIONS FOR CALVRAS:\n1. State in 1 concise line what application you are building, then IMMEDIATELY output the complete code in \`\`\`tsx file=src/App.tsx.\n2. DO NOT output long bulleted outlines or essays before the code. Start writing code immediately.\n3. EXACT AI-GENERATED IMAGES IN WORKSPACE: If screenshots or designs are provided, inspect every photo, artwork, album art, banner, card, and avatar. Generate each exact matching image directly in the workspace code using: https://image.pollinations.ai/prompt/{encoded_description}?width=800&height=800&nologo=true. NEVER output standalone images in the chat — embed them directly in the workspace code.\n4. Output real, production-ready React 18 TypeScript code using Tailwind CSS and Lucide icons. Every file must be self-contained and complete with export default.`,
             files: currentAttachedFiles
           }
         ];

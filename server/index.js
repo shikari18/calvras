@@ -45,6 +45,16 @@ function streamCommand(cmd, args, cwd, res, onDone) {
   return proc;
 }
 
+// ─── POST /api/generate-image ───────────────────────────────────────────────
+// body: { prompt: string, width?: number, height?: number }
+app.post('/api/generate-image', (req, res) => {
+  const { prompt, width = 800, height = 800 } = req.body;
+  if (!prompt) return res.status(400).json({ error: 'prompt required' });
+  const cleanPrompt = encodeURIComponent(prompt.trim());
+  const url = `https://image.pollinations.ai/prompt/${cleanPrompt}?width=${width}&height=${height}&nologo=true`;
+  return res.json({ url, prompt });
+});
+
 // ─── POST /api/clone ─────────────────────────────────────────────────────────
 // body: { url: string, token?: string }
 // Streams SSE logs, ends with { type: 'done', port, files } or { type: 'error' }
@@ -667,11 +677,12 @@ When given an image or screenshot of a website or application to clone, duplicat
 \`\`\`
 3. STRICT MANDATE FOR ICONS:
    - NEVER EVER render icon names as plain text strings (e.g. NEVER write "Plus", "Monitor", "Files", "Database", "Search" as text)! Always import and use Lucide icon components from 'lucide-react' (e.g. <Plus size={16} />, <Search size={16} />, <Monitor size={16} />).
-4. STRICT MANDATE FOR IMAGES & CARDS:
-   - NEVER EVER use numbered placeholders (e.g. 1, 2, 3, 4, 5, 6, 7, 8), blank gray boxes, or empty rectangles for cards or preview items!
-   - Every single card, item, or visual showcase MUST have a real, high-resolution Unsplash image (e.g. https://images.unsplash.com/photo-... with ?w=800&auto=format&fit=crop&q=80) or dynamic Pollinations image matching the theme.
-   - Every card author/creator MUST have a real avatar image from Unsplash (e.g. https://images.unsplash.com/photo-... with ?w=100).
-   - Ensure rich visual density: titles, authors, PRO/Team badges, like counts with heart icons, view counts, and hover zoom effects.
+4. STRICT MANDATE FOR AI-GENERATED EXACT IMAGES:
+   - When duplicating a screenshot or design, inspect every photo, artwork, album art, banner, card, and avatar.
+   - Generate the EXACT images you see directly in the workspace code using Pollinations AI:
+     `https://image.pollinations.ai/prompt/${encodeURIComponent("detailed descriptive prompt of what you see in the screenshot")}?width=800&height=800&nologo=true`
+   - NEVER use numbered placeholders (1, 2, 3, 4), blank boxes, or unrelated generic images. Replicate the exact visual subjects from the screenshot.
+   - WORKSPACE-ONLY RULE: All generated images MUST be placed directly in the workspace code (`src/App.tsx`). NEVER output standalone markdown images (`![...](...)`) in the chat conversation. All images live exclusively inside the application workspace and live preview.
 5. STRICT MANDATE FOR MOBILE RESPONSIVENESS:
    - Every single website, page, and component MUST be 100% mobile-responsive across phone, tablet, and desktop viewports.
    - Use Tailwind responsive classes: grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 for all card grids.
@@ -780,7 +791,7 @@ OUTPUT FORMAT: Output ALL project files in standard markdown code blocks with fi
 \`\`\`
 
 CRITICAL DESIGN & QUALITY RULES:
-1. MANDATORY REAL IMAGES: Never use numbered placeholders (1, 2, 3) or empty rectangles. When building cards, galleries, feeds, or portfolios, ALWAYS include real high-resolution Unsplash image URLs (https://images.unsplash.com/photo-... with descriptive topics) and creator avatar URLs.
+1. MANDATORY AI-GENERATED EXACT IMAGES: When building cards, feeds, galleries, album artwork, or portfolios, generate exact matching images directly in the code using Pollinations AI: `https://image.pollinations.ai/prompt/${encodeURIComponent("detailed descriptive prompt")}?width=800&height=800&nologo=true`. Embed all images directly in src/App.tsx. NEVER output standalone images in the chat.
 2. MANDATORY 100% MOBILE RESPONSIVENESS: Every UI must be fully responsive on mobile, tablet, and desktop (e.g., grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4, mobile hamburger menu, touch-friendly buttons).
 3. Start directly with code blocks. No preamble, no reasoning, no explanation before the code.
 4. Concluding prose: After all code blocks, write 1-2 friendly sentences talking directly to the user in past tense summarizing what was built and inviting them to test the live preview.`;

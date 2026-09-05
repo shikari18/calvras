@@ -331,6 +331,21 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
       return originalFetch(url, options);
     };
 
+    // Image Auto-Recovery: ensure AI-generated images load reliably with zero broken icons
+    window.addEventListener('error', function(event) {
+      if (event.target && event.target.tagName === 'IMG') {
+        const img = event.target;
+        if (!img.dataset.hasRecovered) {
+          img.dataset.hasRecovered = 'true';
+          const originalSrc = img.src || '';
+          if (originalSrc.includes('pollinations.ai')) {
+            const separator = originalSrc.includes('?') ? '&' : '?';
+            img.src = originalSrc + separator + 'seed=' + Math.floor(Math.random() * 100000);
+          }
+        }
+      }
+    }, true);
+
     // Lucide Icon SVG Definitions & Universal Fallback
     const ICON_PATHS = {
       Play: '<polygon points="5 3 19 12 5 21 5 3"/>',
