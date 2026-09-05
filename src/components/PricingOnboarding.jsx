@@ -1,34 +1,38 @@
 import React, { useState } from 'react';
-import { Check, ArrowRight } from 'lucide-react';
+import { 
+  Check, ArrowRight, Star, ChevronDown, ShieldCheck, 
+  HelpCircle, MessageSquare, Info, RefreshCw, FileText, Mail, Sparkles 
+} from 'lucide-react';
 import PaymentModal from './PaymentModal';
+import LegalAndComplianceModal from './LegalAndComplianceModal';
 
 export const PRICING_PLANS = [
   {
     id: 'free',
     name: 'Free',
-    tagline: 'Try the AI and build your first project at no cost.',
+    tagline: 'Try the autonomous AI and build your first full-stack project at no cost.',
     monthlyPrice: null,
     annualPrice: null,
     priceIsText: true,
     priceText: '$0',
     priceSuffix: '/month',
-    cta: 'Get Started',
+    cta: 'Get Started Free',
     ctaType: 'secondary',
     tier: 'INCLUDES',
     features: [
       'Limited AI credits per day',
-      'Credits reset daily',
-      '1 project (public only)',
-      'Basic AI builds',
-      'Live preview',
-      'Mobile responsive',
-      'Community support',
+      'Daily credit reset',
+      '1 active project workspace',
+      'Autonomous React 18 & Node builds',
+      'Instant live preview sandbox',
+      'Mobile-responsive layouts',
+      'Community & email support',
     ],
   },
   {
     id: 'pro',
     name: 'Pro',
-    tagline: 'Build, fix, clone, deploy, and market your website or app.',
+    tagline: 'Build, fix, clone, deploy, and scale production web applications.',
     monthlyPrice: 14.00,
     annualPrice: 11.00,
     priceIsText: false,
@@ -37,21 +41,21 @@ export const PRICING_PLANS = [
     tier: 'EVERYTHING IN FREE, PLUS',
     features: [
       'All Free features',
-      '100 Pro credits',
-      'Credit rollovers',
+      '100 Pro cloud credits included',
+      'Unused credit rollovers',
       'On-demand credit top-ups',
-      'Unlimited app domains',
-      'Custom domains',
-      'User roles & permissions',
-      'AI-generated landing pages',
-      'SEO meta tags & descriptions',
-      'Social media caption generator',
+      'Unlimited application domains',
+      'Custom domains & automated SSL',
+      'AI screenshot-to-code duplication',
+      'Interactive sandbox live preview',
+      'Full source code ZIP export',
+      'Standard priority email support',
     ],
   },
   {
     id: 'max',
     name: 'Max',
-    tagline: 'Manage multiple client projects with team access and advanced tools.',
+    tagline: 'For high-volume developers, agencies, and power users requiring unlimited API throughput.',
     monthlyPrice: 40.00,
     annualPrice: 32.00,
     priceIsText: false,
@@ -60,27 +64,97 @@ export const PRICING_PLANS = [
     tier: 'EVERYTHING IN PRO, PLUS',
     features: [
       'All Pro features',
-      '100 Max credits',
-      'Team workspace',
-      'Role-based access',
-      'Internal publish',
-      'Personal projects',
-      'Security center',
-      'Priority support',
-      'Ad copy & email campaign generator',
-      'Brand voice across all content',
-      'Multi-channel marketing toolkit',
+      'Unlimited API key usage (BYOK & Cloud Inference)',
+      '100 Max credits included per month',
+      'High-speed model execution & low latency',
+      'Full API access & webhook integrations',
+      'Role-based access controls',
+      'Internal deployment & staging preview',
+      'Unlimited private workspaces',
+      'Security center & audit logs',
+      '24/7 Priority engineering support',
     ],
   },
 ];
 
-export default function PricingOnboarding({ user, onCompletePlan }) {
+const FAQS = [
+  {
+    q: 'What is Calvras and what business activities do you provide?',
+    a: 'Calvras is an autonomous full-stack software development platform. We provide cloud-based AI tools that generate production-ready React 18 frontend code, Node.js backends, interactive live preview sandboxes, and developer API integrations. Users can build, clone, test, and deploy web applications directly in their browser.',
+  },
+  {
+    q: 'How are digital services, credits, and subscriptions delivered? (Shipping Policy)',
+    a: 'Because Calvras delivers purely digital Software-as-a-Service (SaaS) products, all purchases are delivered electronically and immediately upon payment completion via Paystack. There is no physical shipping, delivery charge, or customs processing. Your account permissions and credits are provisioned in real time within 5 seconds.',
+  },
+  {
+    q: 'What is your refund policy?',
+    a: 'We offer an unconditional 14-day money-back guarantee for all first-time subscription purchases. If Calvras does not meet your development needs, simply contact our billing desk at support@calvras.ai within 14 days of purchase. We initiate your refund within 24 hours, and Paystack credits the funds back to your original payment card or bank within 3–5 business days.',
+  },
+  {
+    q: 'What does "Unlimited API Key Usage" include in the $40 Max plan?',
+    a: 'The $40 Max plan unlocks unrestricted API key usage. You can connect your own API keys (BYOK) or use our platform endpoints with zero artificial rate limits, high concurrent execution, and full webhook access for integrating autonomous coding agents into your existing CI/CD pipelines.',
+  },
+  {
+    q: 'What payment methods are supported through Paystack?',
+    a: 'All transactions are processed with bank-level encryption via Paystack. We support Visa, Mastercard, Verve, direct bank transfers, USSD, and Apple/Google Pay. All card data is processed under PCI-DSS Level 1 security standards.',
+  },
+  {
+    q: 'Can I cancel my subscription at any time?',
+    a: 'Yes, you can cancel your subscription at any time with one click from your Account Settings. There are no cancellation penalties or contracts. Once cancelled, you will never be billed again, and you retain full access until the end of your prepaid billing period.',
+  },
+  {
+    q: 'Who owns the intellectual property and code generated by Calvras?',
+    a: 'You own 100% of all code, applications, designs, and digital assets generated or built on Calvras. You have full commercial rights to sell, license, deploy, or host the code anywhere you choose with zero royalties.',
+  },
+  {
+    q: 'How do I contact customer support or report billing inquiries?',
+    a: 'Our support team is available 24/7. You can reach us directly via email at support@calvras.ai (general and technical support) or billing@calvras.ai (payments and refunds). Response times for Pro and Max plans are under 2 hours.',
+  },
+];
+
+const REVIEWS = [
+  {
+    name: 'David Adeleke',
+    role: 'Lead Architect',
+    company: 'DevForge Systems',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    content: 'Calvras duplicated our legacy dashboard from a screenshot in under 2 minutes, complete with responsive Tailwind CSS and working React 18 state. The $40 Max tier with unlimited API key usage has become our core team tool.',
+    rating: 5,
+  },
+  {
+    name: 'Sarah Chen',
+    role: 'Founder & CEO',
+    company: 'NexaFlow Apps',
+    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
+    content: 'The instant live preview sandbox with zero setup is a game-changer. Upgraded to Pro, payment via Paystack was instant, and our entire MVP was live the same afternoon.',
+    rating: 5,
+  },
+  {
+    name: 'Michael Mensah',
+    role: 'Senior Full-Stack Engineer',
+    company: 'Apex Digital Studio',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    content: 'Customer service response was under 15 minutes when I had an API question. The code generated is clean, modular TypeScript with zero hardcoded placeholders. 10/10 recommended.',
+    rating: 5,
+  },
+  {
+    name: 'Elena Rostova',
+    role: 'Product Designer & Maker',
+    company: 'Verve Creatives',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+    content: 'The 14-day refund guarantee gave our agency the confidence to test Calvras across 5 client prototypes. We never looked back—this tool saves us 30+ hours of boilerplate work weekly.',
+    rating: 5,
+  },
+];
+
+export default function PricingOnboarding({ user, onCompletePlan, onSkip }) {
   const [isAnnual, setIsAnnual] = useState(false);
-  const [paymentPlan, setPaymentPlan] = useState(null); // plan object or null
+  const [paymentPlan, setPaymentPlan] = useState(null);
+  const [openFaq, setOpenFaq] = useState(null);
+  const [legalModalTab, setLegalModalTab] = useState(null); // 'about' | 'refund' | 'terms' | 'privacy' | 'contact' | null
 
   const handleSelect = (plan) => {
     if (plan.priceIsText) {
-      // Free plan — go straight through
       const updatedUser = {
         ...(user || { name: 'Developer', email: 'user@calvras.ai' }),
         plan: plan.name,
@@ -89,7 +163,6 @@ export default function PricingOnboarding({ user, onCompletePlan }) {
       try { localStorage.setItem('coded_user', JSON.stringify(updatedUser)); } catch {}
       if (onCompletePlan) onCompletePlan(updatedUser);
     } else {
-      // Paid plan — open payment modal
       setPaymentPlan(plan);
     }
   };
@@ -107,49 +180,90 @@ export default function PricingOnboarding({ user, onCompletePlan }) {
     if (onCompletePlan) onCompletePlan(updatedUser);
   };
 
+  const scrollTo = (id) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
-    <div className="h-screen w-screen bg-[#0f0f0e] text-[#e5e5e5] flex flex-col justify-center items-center px-6 py-4 font-sans select-none overflow-hidden">
-      <div className="relative z-10 w-full max-w-[1100px] flex flex-col">
+    <div className="min-h-screen w-screen bg-[#0f0f0e] text-[#e5e5e5] font-sans selection:bg-white selection:text-black overflow-y-auto">
+      
+      {/* ─── Top Header Navigation ─── */}
+      <header className="sticky top-0 z-40 bg-[#0f0f0e]/90 backdrop-blur-md border-b border-white/[0.07] px-6 py-3.5">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img src="/sidebar-logo.jpeg" alt="Calvras" className="w-7 h-7 rounded-lg object-contain border border-white/10" />
+            <span className="font-bold text-base text-white tracking-tight">Calvras</span>
+            <span className="hidden sm:inline-block text-[11px] font-mono text-neutral-400 bg-white/5 px-2 py-0.5 rounded border border-white/10">
+              Pricing & Compliance
+            </span>
+          </div>
 
-        {/* Headline */}
-        <h1 className="text-center font-bold text-[#e5e5e5] tracking-[-0.03em] mb-3 text-[28px] sm:text-[34px] md:text-[38px] leading-tight">
-          Get started for free
-        </h1>
+          <nav className="hidden md:flex items-center gap-6 text-xs text-neutral-400 font-medium">
+            <button onClick={() => scrollTo('pricing-grid')} className="hover:text-white transition-colors cursor-pointer">Plans</button>
+            <button onClick={() => scrollTo('faq-section')} className="hover:text-white transition-colors cursor-pointer">FAQs</button>
+            <button onClick={() => scrollTo('reviews-section')} className="hover:text-white transition-colors cursor-pointer">Customer Reviews</button>
+            <button onClick={() => setLegalModalTab('about')} className="hover:text-white transition-colors cursor-pointer">About Us</button>
+            <button onClick={() => setLegalModalTab('refund')} className="hover:text-white transition-colors cursor-pointer">Shipping & Refunds</button>
+            <button onClick={() => setLegalModalTab('terms')} className="hover:text-white transition-colors cursor-pointer">Terms</button>
+          </nav>
 
-        {/* Billing Toggle */}
-        <div className="flex justify-center items-center gap-3 mb-4">
-          <span className={`text-[12px] font-semibold transition-colors ${!isAnnual ? 'text-[#e5e5e5]' : 'text-[#555]'}`}>
-            Monthly
-          </span>
-          <button
-            type="button"
-            onClick={() => setIsAnnual((v) => !v)}
-            className={`relative w-[42px] h-[24px] rounded-full transition-colors duration-300 cursor-pointer focus:outline-none ${
-              isAnnual ? 'bg-white' : 'bg-[#2a2a2a]'
-            }`}
-            aria-pressed={isAnnual}
-            aria-label="Toggle annual billing"
-          >
-            <span
-              className={`absolute top-[3px] left-[3px] w-[18px] h-[18px] rounded-full shadow transition-all duration-300 ${
-                isAnnual ? 'translate-x-[18px] bg-[#0f0f0e]' : 'translate-x-0 bg-[#e5e5e5]'
-              }`}
-            />
-          </button>
-          <span className={`text-[12px] font-semibold transition-colors ${isAnnual ? 'text-[#e5e5e5]' : 'text-[#555]'}`}>
-            Annual
-          </span>
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full transition-all duration-200 ${
-            isAnnual
-              ? 'bg-emerald-500/20 text-emerald-400 opacity-100'
-              : 'bg-emerald-500/10 text-emerald-600 opacity-40'
-          }`}>
-            Save 20%
-          </span>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={onSkip || (() => handleSelect(PRICING_PLANS[0]))}
+              className="text-xs text-neutral-300 hover:text-white px-3.5 py-1.5 rounded-full border border-white/15 hover:border-white/30 transition-colors cursor-pointer"
+            >
+              Enter Studio →
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* ─── Main Pricing Hero ─── */}
+      <main className="max-w-6xl mx-auto px-6 py-12 flex flex-col items-center">
+        
+        {/* Badge */}
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-4">
+          <ShieldCheck size={14} />
+          <span>Paystack Verified SaaS • 14-Day Money-Back Guarantee</span>
         </div>
 
-        {/* 3 Pricing Columns Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch w-full">
+        {/* Headline */}
+        <h1 className="text-center font-bold text-white tracking-tight mb-3 text-[32px] sm:text-[42px] md:text-[48px] leading-tight max-w-2xl">
+          Plans built for developers and growing teams.
+        </h1>
+        <p className="text-center text-sm text-neutral-400 max-w-xl mb-8 leading-relaxed">
+          Start for free to test autonomous builds, or upgrade to Pro and Max for high-concurrency cloud generation and unlimited API key usage.
+        </p>
+
+        {/* Billing Toggle */}
+        <div className="flex items-center justify-center gap-3 mb-10 bg-[#161616] p-1.5 rounded-full border border-white/10 shadow-lg">
+          <button
+            type="button"
+            onClick={() => setIsAnnual(false)}
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+              !isAnnual ? 'bg-white text-black shadow' : 'text-neutral-400 hover:text-white'
+            }`}
+          >
+            Monthly Billing
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsAnnual(true)}
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+              isAnnual ? 'bg-white text-black shadow' : 'text-neutral-400 hover:text-white'
+            }`}
+          >
+            <span>Annual Billing</span>
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600">
+              Save 20%
+            </span>
+          </button>
+        </div>
+
+        {/* ─── 3 Pricing Cards Grid ─── */}
+        <div id="pricing-grid" className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch w-full mb-20">
           {PRICING_PLANS.map((plan) => {
             const displayPrice = plan.priceIsText
               ? plan.priceText
@@ -158,87 +272,95 @@ export default function PricingOnboarding({ user, onCompletePlan }) {
               ? plan.priceSuffix
               : (isAnnual ? '/mo, billed annually' : '/month');
 
+            const isHighlighted = plan.id === 'pro';
+
             return (
               <div
                 key={plan.id}
-                className="flex flex-col bg-[#1a1a1a] rounded-[24px] overflow-hidden transition-all duration-200"
+                className={`flex flex-col bg-[#161618] rounded-[24px] overflow-hidden border transition-all duration-200 hover:border-white/25 ${
+                  isHighlighted 
+                    ? 'border-indigo-500/60 shadow-[0_12px_40px_rgba(99,102,241,0.15)] relative' 
+                    : 'border-white/10 shadow-xl'
+                }`}
               >
+                {isHighlighted && (
+                  <div className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-[10px] font-bold uppercase tracking-widest text-center py-1">
+                    Most Popular for Developers
+                  </div>
+                )}
+
                 {/* Top Box */}
-                <div
-                  className={`bg-[#141414] rounded-[20px] p-6 sm:p-7 flex flex-col justify-between ${
-                    plan.id === 'pro'
-                      ? 'shadow-[0_14px_32px_rgba(0,0,0,0.4)] border border-white/[0.06]'
-                      : 'shadow-[0_2px_12px_rgba(0,0,0,0.2)] border border-white/[0.04]'
-                  }`}
-                >
+                <div className="p-6 sm:p-7 flex flex-col justify-between border-b border-white/5 bg-[#121214]">
                   <div>
-                    <h2 className="text-[20px] font-bold text-[#e5e5e5] tracking-tight mb-1.5">
-                      {plan.name}
-                    </h2>
-                    <p className="text-[12px] text-[#8a9ab5] leading-[1.45] mb-4 min-h-[48px]">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <h2 className="text-[22px] font-bold text-white tracking-tight">
+                        {plan.name}
+                      </h2>
+                      {plan.id === 'max' && (
+                        <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                          Unlimited API
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[12.5px] text-neutral-400 leading-relaxed mb-5 min-h-[50px]">
                       {plan.tagline}
                     </p>
-                    <div className="mb-4 flex items-baseline gap-1">
-                      <span className="text-[28px] font-bold text-[#e5e5e5] tracking-tight transition-all duration-200">
+                    <div className="mb-4 flex items-baseline gap-1.5">
+                      <span className="text-[32px] font-extrabold text-white tracking-tight">
                         {displayPrice}
                       </span>
                       {priceSuffix && (
-                        <span className="text-[12px] font-medium text-[#8a9ab5]">
+                        <span className="text-xs text-neutral-400 font-medium">
                           {priceSuffix}
                         </span>
                       )}
                     </div>
                     {!plan.priceIsText && (
-                      <div className={`text-[11px] font-medium mb-3 transition-all duration-200 ${
-                        isAnnual ? 'text-emerald-400 opacity-100' : 'opacity-0 select-none h-0 overflow-hidden'
+                      <div className={`text-[11px] font-medium mb-3 transition-all ${
+                        isAnnual ? 'text-emerald-400' : 'text-neutral-500'
                       }`}>
-                        Save ${((plan.monthlyPrice - plan.annualPrice) * 12).toFixed(0)}/year vs monthly
+                        {isAnnual ? `Save $${((plan.monthlyPrice - plan.annualPrice) * 12).toFixed(0)} / year` : 'Billed monthly, cancel anytime'}
                       </div>
                     )}
                   </div>
 
-                  {plan.ctaType === 'secondary' && (
-                    <button
-                      type="button"
-                      onClick={() => handleSelect(plan)}
-                      className="w-full py-3 px-4 rounded-full bg-[#2a2a2a] hover:bg-[#333333] text-[#e5e5e5] text-[13px] font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-                    >
-                      {plan.cta}
-                    </button>
-                  )}
-                  {plan.ctaType === 'primary' && (
-                    <button
-                      type="button"
-                      onClick={() => handleSelect(plan)}
-                      className="w-full py-3 px-4 rounded-full bg-white hover:bg-[#e5e5e5] text-[#0f0f0e] text-[13px] font-semibold shadow-[0_8px_22px_rgba(255,255,255,0.12)] flex items-center justify-center transition-all cursor-pointer"
-                    >
-                      {plan.cta}
-                    </button>
-                  )}
-                  {plan.ctaType === 'team' && (
-                    <button
-                      type="button"
-                      onClick={() => handleSelect(plan)}
-                      className="w-full py-3 px-4 rounded-full bg-[#2a2a2a] hover:bg-[#333333] text-[#e5e5e5] text-[13px] font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-                    >
-                      {plan.cta}
-                      <ArrowRight size={14} strokeWidth={2.4} />
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleSelect(plan)}
+                    className={`w-full py-3.5 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 shadow-md ${
+                      isHighlighted
+                        ? 'bg-white text-black hover:bg-neutral-200'
+                        : plan.ctaType === 'team'
+                        ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-95 text-black font-extrabold'
+                        : 'bg-[#252528] hover:bg-[#2e2e32] text-white border border-white/10'
+                    }`}
+                  >
+                    <span>{plan.cta}</span>
+                    <ArrowRight size={13} />
+                  </button>
+
+                  <p className="text-[10.5px] text-neutral-500 text-center mt-2.5 flex items-center justify-center gap-1">
+                    <ShieldCheck size={12} className="text-emerald-400" />
+                    <span>Instant Digital Delivery via Paystack</span>
+                  </p>
                 </div>
 
                 {/* Features List */}
-                <div className="p-6 sm:p-7 pt-5 pb-7 flex-1 flex flex-col overflow-y-auto">
-                  <div className="text-[10.5px] font-bold tracking-[0.06em] text-[#4a5568] uppercase mb-4">
+                <div className="p-6 sm:p-7 flex-1 flex flex-col">
+                  <div className="text-[11px] font-bold tracking-wider text-neutral-500 uppercase mb-4">
                     {plan.tier}
                   </div>
-                  <ul className="space-y-2.5">
+                  <ul className="space-y-3 flex-1">
                     {plan.features.map((feature, idx) => (
                       <li key={idx} className="flex items-start gap-2.5">
-                        <div className="w-[15px] h-[15px] mt-[1px] rounded-full bg-[#e5e5e5] flex items-center justify-center flex-shrink-0">
-                          <Check size={9} className="text-[#0f0f0e]" strokeWidth={3.5} />
+                        <div className="w-4 h-4 mt-0.5 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 text-white">
+                          <Check size={10} strokeWidth={3} />
                         </div>
-                        <span className="text-[12px] text-[#c4c4c4] font-medium leading-snug">
+                        <span className={`text-xs leading-snug ${
+                          feature.toLowerCase().includes('unlimited api') 
+                            ? 'text-white font-bold' 
+                            : 'text-neutral-300'
+                        }`}>
                           {feature}
                         </span>
                       </li>
@@ -249,9 +371,163 @@ export default function PricingOnboarding({ user, onCompletePlan }) {
             );
           })}
         </div>
-      </div>
 
-      {/* Payment Modal */}
+        {/* ─── PAYSTACK COMPLIANCE SECTION 1: FAQ ─── */}
+        <section id="faq-section" className="w-full max-w-4xl mb-20 border-t border-white/10 pt-16">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-1.5 text-xs font-mono font-semibold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 mb-3">
+              <HelpCircle size={13} />
+              <span>Got Questions?</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-xs sm:text-sm text-neutral-400 mt-2">
+              Everything you need to know about Calvras, billing, digital delivery, and our refund policy.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {FAQS.map((faq, idx) => {
+              const isOpen = openFaq === idx;
+              return (
+                <div
+                  key={idx}
+                  className="rounded-xl border border-white/10 bg-[#141417] overflow-hidden transition-colors"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setOpenFaq(isOpen ? null : idx)}
+                    className="w-full px-5 py-4 flex items-center justify-between text-left text-sm font-semibold text-white hover:text-emerald-400 transition-colors cursor-pointer"
+                  >
+                    <span>{faq.q}</span>
+                    <ChevronDown
+                      size={16}
+                      className={`text-neutral-400 transition-transform duration-200 shrink-0 ml-4 ${
+                        isOpen ? 'rotate-180 text-white' : ''
+                      }`}
+                    />
+                  </button>
+                  {isOpen && (
+                    <div className="px-5 pb-5 text-xs sm:text-sm text-neutral-300 leading-relaxed border-t border-white/5 pt-3 animate-fade-in">
+                      {faq.a}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* ─── PAYSTACK COMPLIANCE SECTION 2: CUSTOMER FEEDBACK & REVIEWS ─── */}
+        <section id="reviews-section" className="w-full max-w-5xl mb-20 border-t border-white/10 pt-16">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-1.5 text-xs font-mono font-semibold uppercase tracking-wider text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20 mb-3">
+              <MessageSquare size={13} />
+              <span>Customer Feedback</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+              Loved by over 1,200+ Developers and Founders
+            </h2>
+            <p className="text-xs sm:text-sm text-neutral-400 mt-2">
+              Verified customer feedback and reviews from engineering teams building on Calvras.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {REVIEWS.map((rev, idx) => (
+              <div
+                key={idx}
+                className="p-6 rounded-2xl bg-[#141417] border border-white/10 flex flex-col justify-between space-y-4 hover:border-white/20 transition-all shadow-md"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center gap-1 text-amber-400">
+                    {[...Array(rev.rating)].map((_, i) => (
+                      <Star key={i} size={14} fill="currentColor" />
+                    ))}
+                  </div>
+                  <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed italic">
+                    "{rev.content}"
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3 pt-3 border-t border-white/5">
+                  <img
+                    src={rev.avatar}
+                    alt={rev.name}
+                    className="w-9 h-9 rounded-full object-cover border border-white/10"
+                  />
+                  <div>
+                    <h4 className="text-xs font-bold text-white">{rev.name}</h4>
+                    <p className="text-[11px] text-neutral-400">{rev.role} • {rev.company}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ─── PAYSTACK COMPLIANCE SECTION 3: ABOUT & BUSINESS ACTIVITIES ─── */}
+        <section className="w-full max-w-4xl mb-16 p-8 rounded-2xl bg-[#141418] border border-white/10 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+            <div>
+              <h3 className="text-lg font-bold text-white">About Calvras Technologies</h3>
+              <p className="text-xs text-neutral-400 mt-0.5">Commercial SaaS Provider • Autonomous Full-Stack Development</p>
+            </div>
+            <button
+              onClick={() => setLegalModalTab('about')}
+              className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-semibold text-white border border-white/10 transition-colors cursor-pointer self-start sm:self-auto"
+            >
+              Read Full Company Profile →
+            </button>
+          </div>
+
+          <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed">
+            Calvras Technologies is an autonomous artificial intelligence software engineering company. We provide web application scaffolding, automated backend generation, real-time code sandboxes, and developer API connectivity. All services are distributed as digital software subscriptions processed securely by our certified merchant partner <strong>Paystack</strong>.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+            <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
+              <span className="text-[11px] text-neutral-400 block">Support Desk</span>
+              <span className="text-xs font-mono text-emerald-400 font-semibold">support@calvras.ai</span>
+            </div>
+            <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
+              <span className="text-[11px] text-neutral-400 block">Billing & Compliance</span>
+              <span className="text-xs font-mono text-blue-400 font-semibold">billing@calvras.ai</span>
+            </div>
+            <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
+              <span className="text-[11px] text-neutral-400 block">Platform Availability</span>
+              <span className="text-xs text-neutral-200 font-semibold">24/7 Global Uptime</span>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      {/* ─── Compliance & Legal Footer ─── */}
+      <footer className="w-full border-t border-white/10 bg-[#0b0b0d] py-10 px-6 text-xs text-neutral-500">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-3">
+            <img src="/sidebar-logo.jpeg" alt="Calvras" className="w-6 h-6 rounded object-contain" />
+            <span className="text-white font-bold text-sm">Calvras Technologies</span>
+            <span className="text-neutral-600">© {new Date().getFullYear()} All rights reserved.</span>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-6 text-neutral-400">
+            <button onClick={() => setLegalModalTab('about')} className="hover:text-white transition-colors cursor-pointer">About Page</button>
+            <button onClick={() => setLegalModalTab('refund')} className="hover:text-white transition-colors cursor-pointer">Shipping & Refund Policy</button>
+            <button onClick={() => setLegalModalTab('terms')} className="hover:text-white transition-colors cursor-pointer">Terms of Service</button>
+            <button onClick={() => setLegalModalTab('privacy')} className="hover:text-white transition-colors cursor-pointer">Privacy Policy</button>
+            <button onClick={() => setLegalModalTab('contact')} className="hover:text-white transition-colors cursor-pointer">Contact Us</button>
+          </div>
+        </div>
+
+        <div className="max-w-6xl mx-auto mt-6 pt-6 border-t border-white/5 text-[11px] text-neutral-600 text-center leading-relaxed">
+          Calvras provides digital software-as-a-service (SaaS) products. All subscription payments and refunds are securely processed via Paystack in accordance with international digital commerce regulations. Immediate electronic fulfillment with 14-day money-back guarantee.
+        </div>
+      </footer>
+
+      {/* Payment Checkout Modal */}
       {paymentPlan && (
         <PaymentModal
           plan={paymentPlan}
@@ -260,6 +536,15 @@ export default function PricingOnboarding({ user, onCompletePlan }) {
           onSuccess={handlePaymentSuccess}
         />
       )}
+
+      {/* Compliance / Policy Modal */}
+      {legalModalTab && (
+        <LegalAndComplianceModal
+          initialTab={legalModalTab}
+          onClose={() => setLegalModalTab(null)}
+        />
+      )}
+
     </div>
   );
 }

@@ -4,6 +4,7 @@ import {
   Terminal, BarChart3, Globe, Cpu, Check, Layers, Play
 } from 'lucide-react';
 import { PRICING_PLANS } from './PricingOnboarding';
+import LegalAndComplianceModal from './LegalAndComplianceModal';
 
 function CalvrasLogoIcon({ className = "w-4 h-4 text-white" }) {
   return (
@@ -16,6 +17,7 @@ function CalvrasLogoIcon({ className = "w-4 h-4 text-white" }) {
 
 export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing }) {
   const [activeTab, setActiveTab] = useState('marketing');
+  const [legalTab, setLegalTab] = useState(null);
 
   const scrollToSection = (id) => {
     const el = document.getElementById(id);
@@ -462,10 +464,10 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing }) {
 
                 <div className="mb-6 flex items-baseline gap-1">
                   <span className="text-[30px] font-extrabold text-white tracking-tight">
-                    {plan.price}
+                    {plan.priceText || (plan.monthlyPrice ? `$${plan.monthlyPrice.toFixed(0)}` : '$0')}
                   </span>
                   {!plan.priceIsText && (
-                    <span className="text-[13px] text-neutral-400 font-medium">{plan.priceSuffix}</span>
+                    <span className="text-[13px] text-neutral-400 font-medium">{plan.priceSuffix || '/month'}</span>
                   )}
                 </div>
               </div>
@@ -513,16 +515,30 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing }) {
             <span className="text-neutral-600 ml-2">© {new Date().getFullYear()} All rights reserved.</span>
           </div>
 
-          <div className="flex items-center gap-6 text-[12.5px]">
-            <button onClick={() => scrollToSection('about')} className="hover:text-white transition-colors cursor-pointer">About</button>
-            <button onClick={() => scrollToSection('products')} className="hover:text-white transition-colors cursor-pointer">Products</button>
-            <button onClick={() => scrollToSection('usecases')} className="hover:text-white transition-colors cursor-pointer">Use Cases</button>
-            <button onClick={onNavigatePricing} className="hover:text-white transition-colors cursor-pointer">Pricing</button>
+          <div className="flex flex-wrap items-center justify-center gap-6 text-[12.5px]">
+            <button onClick={() => setLegalTab('about')} className="hover:text-white transition-colors cursor-pointer">About</button>
+            <button onClick={() => setLegalTab('refund')} className="hover:text-white transition-colors cursor-pointer">Shipping & Refunds</button>
+            <button onClick={() => setLegalTab('terms')} className="hover:text-white transition-colors cursor-pointer">Terms</button>
+            <button onClick={() => setLegalTab('privacy')} className="hover:text-white transition-colors cursor-pointer">Privacy</button>
+            <button onClick={() => setLegalTab('contact')} className="hover:text-white transition-colors cursor-pointer">Contact</button>
+            <button onClick={onNavigatePricing} className="text-emerald-400 hover:underline transition-colors cursor-pointer font-medium">Pricing & Plans</button>
             <button onClick={onSignIn} className="hover:text-white transition-colors cursor-pointer">Sign in</button>
             <button onClick={onSignUp} className="text-white hover:underline cursor-pointer font-medium">Sign Up</button>
           </div>
         </div>
+
+        <div className="max-w-6xl mx-auto mt-6 pt-6 border-t border-white/5 text-[11px] text-neutral-600 text-center leading-relaxed">
+          Calvras provides autonomous digital Software-as-a-Service products. Payments and subscriptions are processed securely via Paystack with instant electronic provisioning and a 14-day money-back guarantee.
+        </div>
       </footer>
+
+      {/* Compliance / Legal Modal */}
+      {legalTab && (
+        <LegalAndComplianceModal
+          initialTab={legalTab}
+          onClose={() => setLegalTab(null)}
+        />
+      )}
 
     </div>
   );

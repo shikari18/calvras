@@ -400,7 +400,8 @@ export default function App() {
         onAuthSuccess={(userData) => {
           setUser(userData);
           localStorage.setItem('coded_user', JSON.stringify(userData));
-          navigateTo('chat');
+          // Always present the pricing and compliance page directly after onboarding
+          navigateTo('pricing');
         }}
       />
     );
