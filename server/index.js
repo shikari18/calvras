@@ -742,15 +742,37 @@ When given an image or screenshot of a website or application to clone, duplicat
       }
     }
   } else {
-    // Only override system prompt when the request is an explicit build/clone — not for questions or lists
     const userQuery = messages
       .filter(m => m.role === 'user')
       .map(m => Array.isArray(m.content) ? m.content.filter(p => p.type === 'text').map(p => p.text).join(' ') : m.content)
       .join(' ');
 
-    const isExplicitBuild = /\b(?:duplicate|clone|recreate|rebuild|build\s+(?:me\s+)?(?:a|an|the)\s+(?:app|site|website|page|dashboard|tool|game)|create\s+(?:a|an|the)\s+(?:app|site|website|page|dashboard|tool)|implement\s+(?:a|an)\s+(?:app|site|website|page|dashboard))\b/i.test(userQuery);
-    if (isExplicitBuild) {
-      const CODER_SYSTEM_PROMPT = `You are Calvras Coder, an autonomous elite React 18 TypeScript engineer. You ship complete, production-ready full-stack applications.
+    const hasPreviousCode = messages.some(m => m.role === 'assistant' && (m.content || '').includes('```tsx file=src/App.tsx'));
+    const isExplicitRebuild = /\b(?:rebuild\s+from\s+scratch|start\s+over|brand\s+new\s+project|different\s+app)\b/i.test(userQuery);
+
+    if (hasPreviousCode && !isExplicitRebuild) {
+      const SURGICAL_EDIT_PROMPT = `You are Calvras autonomous software engineer performing an IN-PLACE SURGICAL EDIT on an existing active website.
+The user is requesting a modification, layout shift, or styling update to their EXISTING application: "${userQuery}".
+CRITICAL MANDATES:
+1. DO NOT discard, redesign, or regenerate the rest of the application into something completely different!
+2. Read the existing src/App.tsx provided in conversation history. PRESERVE all existing navigation, hero sections, sidebars, cards, state, audio player, playlists, and layout structure.
+3. SURGICALLY UPDATE ONLY the targeted component, section, layout alignment, or styling in src/App.tsx to fulfill the user's request.
+   - For example, if shifting or moving items (e.g. "shift Explore Premium Install App user to the right"), adjust only those items' flexbox/alignment classes in the header, keeping all other elements (Spotify logo, search bar, home button, etc.) completely intact!
+4. Output the complete updated src/App.tsx in:
+\`\`\`tsx file=src/App.tsx
+// Complete updated code preserving the entire application with the surgical edit applied
+\`\`\`
+5. Lucide icons must always be imported from 'lucide-react' (never render icon names as plain text strings).`;
+
+      for (let i = 0; i < messages.length; i++) {
+        if (messages[i].role === 'system') {
+          messages[i].content = SURGICAL_EDIT_PROMPT;
+        }
+      }
+    } else {
+      const isExplicitBuild = /\b(?:duplicate|clone|recreate|rebuild|build\s+(?:me\s+)?(?:a|an|the)\s+(?:app|site|website|page|dashboard|tool|game)|create\s+(?:a|an|the)\s+(?:app|site|website|page|dashboard|tool)|implement\s+(?:a|an)\s+(?:app|site|website|page|dashboard))\b/i.test(userQuery);
+      if (isExplicitBuild) {
+        const CODER_SYSTEM_PROMPT = `You are Calvras Coder, an autonomous elite React 18 TypeScript engineer. You ship complete, production-ready full-stack applications.
 
 OUTPUT FORMAT: Output ALL project files in standard markdown code blocks with file path headers:
 \`\`\`tsx file=src/App.tsx
@@ -763,9 +785,10 @@ CRITICAL DESIGN & QUALITY RULES:
 3. Start directly with code blocks. No preamble, no reasoning, no explanation before the code.
 4. Concluding prose: After all code blocks, write 1-2 friendly sentences talking directly to the user in past tense summarizing what was built and inviting them to test the live preview.`;
 
-      for (let i = 0; i < messages.length; i++) {
-        if (messages[i].role === 'system') {
-          messages[i].content = CODER_SYSTEM_PROMPT;
+        for (let i = 0; i < messages.length; i++) {
+          if (messages[i].role === 'system') {
+            messages[i].content = CODER_SYSTEM_PROMPT;
+          }
         }
       }
     }

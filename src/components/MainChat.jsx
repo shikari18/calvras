@@ -2197,12 +2197,14 @@ CRITICAL:
         ))
       );
 
-    // 6. In-place surgical edit or preview repair of existing workspace
-    const isWorkspaceEdit = (isPreviewFix || isCropOrPartialEdit || hasExistingWorkspace) && !isConversationalQuestion && !isPromptContext && (
+    // 6. In-place surgical edit of existing workspace
+    const isExplicitRebuild = /\b(?:rebuild\s+from\s+scratch|start\s+over|brand\s+new\s+project|create\s+a\s+different\s+app|make\s+a\s+new\s+app\s+instead)\b/i.test(trimmedQuery);
+
+    const isWorkspaceEdit = !isConversationalQuestion && !isPromptContext && !isExplicitRebuild && (
       isPreviewFix ||
       isCropOrPartialEdit ||
-      (/\b(?:change|update|modify|edit|fix|adjust|style|color|button|navbar|header|footer|sidebar|make\s+it|make\s+this|remove|replace|add|better|responsive|mobile|align|numbers|image|images)\b/i.test(trimmedQuery) &&
-      !/\b(?:rebuild\s+from\s+scratch|start\s+over|new\s+project|brand\s+new)\b/i.test(trimmedQuery))
+      hasExistingWorkspace ||
+      /\b(?:change|update|modify|edit|fix|adjust|shift|move|put|place|style|color|button|navbar|header|footer|sidebar|make\s+it|make\s+this|remove|replace|add|better|responsive|mobile|align|numbers|image|images)\b/i.test(trimmedQuery)
     );
 
     // 7. Explicit build — triggered by hasBuildKeyword or image with build request
@@ -2331,22 +2333,22 @@ CRITICAL FIX & REPAIR INSTRUCTIONS FOR CALVRAS:
           .map(([k, v]) => `File: ${k.replace('Calvras/', '')}\n\`\`\`\n${v}\n\`\`\``)
           .join('\n\n');
 
-        const editPrompt = isCropOrPartialEdit
-          ? `The user is requesting a SURGICAL EDIT to a specific part/section of their active application: "${query}".
+        const editPrompt = `The user is requesting an IN-PLACE SURGICAL EDIT to their active application: "${query}".
 
 Active Project Files:
 ${filesContext}
 
 CRITICAL MANDATES FOR SURGICAL EDIT:
-1. DO NOT discard, redesign, or regenerate the rest of the application into something else! The rest of the site (pages, cards, layout, navigation) is already working and must remain completely intact.
-2. Read the existing src/App.tsx above carefully. Identify the exact component or section the user wants updated based on their prompt and/or attached image crop.
-3. Apply the modification ONLY to that specific part in src/App.tsx, while preserving all existing styles, layouts, sidebars, and data.
+1. DO NOT discard, redesign, or regenerate the rest of the application into something else! The existing site (navigation, layout, header, sidebars, main content, cards, audio players, state, and mock data) is already working and must remain completely intact.
+2. Read the active src/App.tsx above carefully. Identify the exact component, section, or layout element the user wants updated based on their prompt "${query}"${hasImageAttachment ? ' and attached image/crop' : ''}.
+3. Apply the requested modification AS A SURGICAL EDIT in src/App.tsx:
+   - For layout shift or alignment requests (e.g. "shift Explore Premium Install App user to the right"): adjust ONLY the container or flexbox alignment classes for those specific items in the header. Keep all other header elements (such as logo, search bar, home button) and all other page sections (library, player, cards) completely intact.
+   - For styling or component tweaks: modify ONLY that specific component or property while preserving the rest of src/App.tsx unchanged.
 4. Output the complete updated src/App.tsx in:
 \`\`\`tsx file=src/App.tsx
-// Complete updated code
+// Complete updated code preserving the entire application with the surgical edit applied
 \`\`\`
-5. Lucide icons must always be imported from 'lucide-react' (never output icon names as plain text strings).`
-          : `The user wants to make a modification to their active project codebase.\n\nUser Change Request:\n"${query}"\n\nActive Project Files:\n${filesContext}\n\nCRITICAL INSTRUCTIONS FOR CALVRAS:\n1. Implement the requested modification: "${query}".\n2. Output the FULL, COMPLETE src/App.tsx (and any other modified files) wrapped in standard code blocks with file headers (e.g. \`\`\`tsx file=src/App.tsx).\n3. Every file MUST be 100% complete and self-contained with all imports, state, components, and export default. NEVER return partial snippets or placeholders.\n4. If 1 to 4 images are attached: inspect each image carefully. If multiple images are different pages of the app (e.g. Home, Dashboard, Settings, etc.), build the multi-page application with a navigation bar linking all pages. If an image is an error or settings mockup, apply the fix to the active UI.`;
+5. Lucide icons must always be imported from 'lucide-react' (never output icon names as plain text strings).`;
 
         messagesForAI = [
           ...history.slice(0, -1),
