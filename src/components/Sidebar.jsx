@@ -48,7 +48,7 @@ export default function Sidebar({
 
   return (
     <aside 
-      className={`relative flex flex-col h-full bg-[#0d0d0f] text-[#b4b4b8] border-r border-[#1a1a20] transition-all duration-200 z-30 select-none overflow-hidden ${
+      className={`relative flex flex-col h-full bg-[#14120B] text-[#b4b4b8] border-r border-[#242016] transition-all duration-200 z-30 select-none overflow-hidden ${
         collapsed ? 'w-14' : 'w-[230px]'
       }`}
     >

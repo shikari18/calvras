@@ -2,7 +2,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Search, ArrowLeft, ChevronRight, FileText, HelpCircle, 
   ShieldCheck, RefreshCw, Zap, BookOpen, ExternalLink, 
-  MessageSquare, Key, Globe, CheckCircle2, ChevronLeft, Sparkles
+  MessageSquare, Key, Globe, CheckCircle2, ChevronLeft, Sparkles,
+  Lock, CreditCard, Terminal, Code2, Server, Check
 } from 'lucide-react';
 
 export const SUPPORT_ARTICLES = [
@@ -10,185 +11,187 @@ export const SUPPORT_ARTICLES = [
     id: 'usage-limits-best-practices',
     collectionId: 'usage-limits',
     title: 'Usage limit best practices',
-    updatedAt: 'June 2, 2026',
-    readTime: '4 min read',
+    updatedAt: 'September 2026',
+    readTime: '5 min read',
     summary: 'How to optimize your message allocations, plan limits, and project caching across Calvras.',
-    content: `The number of messages and builds you can execute will vary based on your Calvras plan. For more information on your plan’s usage, refer to the following resources:
+    content: `### 1. Overview of Usage Allocations
+The number of messages, vision analyses, and full-stack builds you can execute varies by your Calvras plan:
 
-- **Free Plan:** Daily credit resets, public workspaces, standard model inference.
-- **Pro Plan ($14/mo):** 100 Pro cloud credits, credit rollovers, on-demand top-ups, custom domains.
-- **Max Plan ($40/mo):** 100 Max credits included plus **Unlimited API Key Usage (BYOK & platform endpoints)**, high-speed execution, and 24/7 priority engineering support.
-
----
-
-### Additional factors that affect your usage limits include:
-- **Message length & Prompt complexity:** Detailed prompts require more token context.
-- **File attachment & Screenshot size:** Multimodal vision processing for screenshot duplication scales with image resolution.
-- **Current conversation length:** Long continuous chat sessions retain previous context in memory.
-- **Tool usage:** Multi-step autonomous agent tools (e.g. web search, terminal execution, live preview compiling).
-- **Model choice:** Flagship reasoning vs fast conversational models.
-- **Artifact creation and workspace updates:** Full React 18 / Node.js multi-file workspace generation.
+- **Calvras Pro ($14/mo):** Built-in web search, high usage limit, early access to new features, and priority access to flagship models.
+- **Calvras Max ($40/mo):** Everything in Pro, **Unlimited API Key Usage (BYOK & platform inference)**, 2x higher usage limits than Pro, zero rate limits, and 24/7 dedicated engineering support.
 
 ---
 
-### System Caching & Optimization:
-Our system also includes intelligent caching that helps you optimize your limits:
-1. **Workspace Virtual File System:** Content in active projects is cached in your local VFS and doesn't count against your limits when unchanged.
-2. **Similar Prompts:** Common architectural scaffolding prompts are cached for sub-second execution.
-3. **Session Memory:** Calvras preserves component context from earlier turns to avoid full re-generation.
+### 2. Factors that determine compute consumption
+- **Prompt Complexity & Depth:** Multi-step autonomous architectural instructions require larger context windows.
+- **Screenshot & Vision Analysis:** High-resolution screenshots analyzed for pixel-perfect duplication scale dynamically with token depth.
+- **Continuous Conversation Context:** Conversations retain previous turn state in memory so subsequent edits understand your codebase.
+- **Integrated Tool Execution:** Web searches, real-time database schema generation, and live sandbox bundling.
 
 ---
 
-### 1. Start by planning your conversations
-Before starting a complex build or duplication with Calvras, consider:
-- What specific components, state, or APIs do you need?
-- Can you combine layout structure and style preferences in your initial prompt?
-- Provide relevant design guidelines upfront to minimize iterative revisions.
+### 3. Intelligent Virtual File System (VFS) Caching
+Calvras features intelligent client and server caching:
+1. **Unchanged File Caching:** Code files that remain untouched during an edit do not consume additional generation cycles.
+2. **Scaffolding Reuse:** Common architectural primitives (Tailwind configurations, Vite setups, Lucide icon libraries) are synthesized with sub-second execution.
+3. **Session Anchoring:** Calvras anchors component trees to prevent full re-renders when making minor styling tweaks.
 
-### 2. Be specific and concise
-- Provide clear, detailed instructions in each turn.
-- Avoid vague queries that require clarification passes.
-- When uploading screenshots for UI duplication, ensure all text, headers, and cards are clearly legible.
+---
 
-### 3. Take advantage of Memory & Workspace state
-- Refer back to existing files: *"In src/App.tsx, update the navbar layout"* rather than re-pasting entire files.
-- Use surgical editing instructions: Calvras can make in-place code edits without rewriting your entire project.
-
-### 4. Batch similar modifications in one prompt
-If you need 3 related changes (e.g. *"add dark mode toggle, increase card padding to 24px, and connect the search bar"*), request them together in a single prompt rather than three separate messages.
-
-### 5. Monitor your consumption in Usage Settings
-Users on Pro and Max plans can view real-time credit consumption, active session tokens, and rollover balances in **Account Settings > Billing & Usage**.`,
+### 4. Best Practices for Developers
+- **Be direct and descriptive:** Combine layout structure, color preferences, and state requirements in your initial prompt.
+- **Request surgical in-place edits:** Use specific prompts (e.g. *"In src/App.tsx, shift the CTA button 12px right and add border-white/20"*) rather than regenerating the entire project.
+- **Batch related adjustments:** Group 2–3 minor styling or copy adjustments into one prompt.`,
   },
   {
     id: 'refund-shipping-policy',
     collectionId: 'billing-refunds',
     title: 'Will Calvras refund my purchase? (Shipping & Refund Policy)',
     updatedAt: 'September 2026',
-    readTime: '3 min read',
+    readTime: '4 min read',
     summary: 'Our 14-day unconditional money-back guarantee, digital fulfillment, and Paystack settlement timeline.',
     content: `### 1. 14-Day Unconditional Money-Back Guarantee
-Yes. We offer an unconditional **14-day money-back guarantee** on all initial subscription purchases (Pro and Max plans). If Calvras does not meet your expectations or development requirements, you are entitled to a 100% full refund within 14 calendar days of your transaction.
+Yes. We offer an unconditional **14-day money-back guarantee** on all subscription purchases ($14 Pro and $40 Max plans). If Calvras does not meet your development needs or business standards, you are entitled to a 100% full refund within 14 calendar days of your purchase. No questions asked.
 
 ---
 
 ### 2. How to Request a Refund
 Requesting a refund is simple and immediate:
 1. Send an email to **support@calvras.ai** or **billing@calvras.ai**.
-2. Include your registered account email and your Paystack transaction receipt or reference ID.
-3. Our billing desk initiates your refund within **24 hours**.
+2. Include your registered account email and your Paystack payment reference or receipt number.
+3. Our billing desk reviews and authorizes your refund within **24 hours**.
 
 ---
 
-### 3. Paystack Refund Processing Timeline
-- Once initiated, your refund is processed directly back through **Paystack** to your original payment method (card, bank account, or mobile money).
-- Depending on your banking institution, funds will reflect in your account within **3 to 5 business days**.
+### 3. Paystack Refund Settlement Timeline
+- Once authorized, funds are returned directly to your original payment card or bank account via our merchant processor, **Paystack**.
+- Depending on your issuing bank, the refunded funds typically reflect in your account within **3 to 5 business days**.
 
 ---
 
-### 4. Digital Delivery & Fulfillment (Shipping Policy)
-- Calvras products are strictly digital Software-as-a-Service (SaaS) subscriptions and cloud compute credits.
-- **No physical goods or parcel shipments are involved.**
-- Upon successful payment authorization by Paystack, your account permissions, credits, and features are provisioned electronically in real-time within 5 seconds.
-- There are zero shipping, freight, handling, or customs charges.
+### 4. Digital SaaS Fulfillment & Delivery (Shipping Policy)
+- Calvras provides strictly digital Software-as-a-Service (SaaS) cloud subscriptions and developer tooling.
+- **No physical parcels or hardware goods are shipped.**
+- Upon successful payment verification by Paystack, your account permissions, unlimited API key access, and compute tiers are provisioned electronically in real-time within **5 seconds**.
+- There are zero shipping, freight, handling, or customs charges of any kind.
 
 ---
 
 ### 5. Subscription Cancellation
-You can cancel your subscription at any time with 1 click in your **Account Settings**. Upon cancellation, you will never be charged again, and you retain complete access to your paid features until the end of your current billing period.`,
+You can cancel your subscription at any time with 1 click in your **Account Settings**. Upon cancellation, you will never be billed again, and you retain complete access until the end of your billing cycle.`,
   },
   {
-    id: 'max-plan-unlimited-api',
-    collectionId: 'plans-pricing',
+    id: 'max-plan-unlimited-api-usage',
+    collectionId: 'api-developer',
     title: 'What is included in the $40 Max plan with Unlimited API usage?',
     updatedAt: 'September 2026',
-    readTime: '3 min read',
+    readTime: '4 min read',
     summary: 'Complete details on BYOK, platform keys, zero rate-throttling, and high-concurrency cloud generation.',
-    content: `The **Max plan ($40/month or $32/mo billed annually)** is engineered for power users, engineering leads, agencies, and high-volume developers.
+    content: `### 1. Unlimited API Key Usage Defined
+The **Calvras Max ($40/mo)** plan is purpose-built for high-volume developers, agencies, and engineering teams who require unrestricted compute throughput.
 
-### Core Features of Max:
-- **Unlimited API Key Usage (BYOK & Cloud Inference):** Connect your own OpenRouter, OpenAI, Anthropic, or Gemini API keys with zero platform throttling, or leverage our enterprise inference endpoints.
-- **100 Max Cloud Credits Included:** Dedicated monthly cloud compute credits for autonomous builds and multi-agent reasoning.
-- **Full API Access & Webhook Integrations:** Programmatically trigger builds, retrieve workspace code, and sync to external repos.
-- **Role-Based Access & Internal Publish:** Host staging preview links and internal shareable sandboxes.
-- **Unlimited Private Workspaces:** Keep client codebases and prototypes completely private and isolated.
-- **24/7 Priority Engineering Support:** Dedicated support queue with response times under 2 hours.`,
+---
+
+### 2. Bring Your Own Key (BYOK) & Cloud Inference
+- **Zero Rate Limits:** Connect your own Anthropic, OpenAI, or Google Cloud keys with zero artificial rate limits imposed by Calvras.
+- **Client-Side Hardware Encryption:** Your custom API keys are encrypted client-side using AES-256 before transport. Keys are never logged or stored in plain text.
+- **Managed High-Speed Pool:** If you don't provide custom keys, you can run directly on our managed high-speed cluster with 2x more compute allocation than the Pro plan.
+
+---
+
+### 3. Key Benefits of the Max Plan
+- **Everything in Pro:** Built-in web search, early feature access, and flagship model routing.
+- **Unlimited Usage of API Key:** Unlimited autonomous builds, code refactors, and test executions.
+- ***2 More Usage Than Pro:** Double the concurrent session capacity and workspace file limits.
+- **Priority Access to New Models:** Immediate day-one access to new reasoning architectures.
+- **Full API Access & Webhooks:** Connect Calvras autonomous agents directly into your GitHub Actions and CI/CD pipelines.`,
   },
   {
-    id: 'getting-started-live-preview',
-    collectionId: 'getting-started',
+    id: 'getting-started-sandboxes',
+    collectionId: 'calvras-basics',
     title: 'Getting started with Calvras & Live Preview Sandboxes',
     updatedAt: 'September 2026',
-    readTime: '3 min read',
-    summary: 'How Calvras compiles React 18, TypeScript, and Tailwind in your browser with 0 build steps.',
-    content: `Calvras provides an in-browser live preview sandbox that mounts and compiles modern full-stack web applications instantaneously.
+    readTime: '4 min read',
+    summary: 'How to build full-stack web applications, run live browser previews, and export clean code.',
+    content: `### 1. Autonomous Full-Stack Architecture
+Calvras isn't just an autocomplete tool. It is an autonomous full-stack software engineer that designs, writes, and bundles complete production applications:
 
-### Key Capabilities:
-- **Zero Local Environment Setup:** No need to run \`npm install\` or configure Vite—code executes live inside an isolated virtual browser sandbox.
-- **React 18 & TypeScript:** Full support for hooks (\`useState\`, \`useEffect\`, \`useRef\`), modern JSX, and typed interfaces.
-- **Tailwind CSS & Lucide Icons:** Complete responsive utility classes and 500+ scalable SVG icons pre-bundled.
-- **Full Code Ownership & Export:** Download your complete multi-file project as a standard Vite + React project ZIP at any time.`,
+- **Frontend:** Modern React 18, Vite, TypeScript, Tailwind CSS, and Lucide icons.
+- **Backend:** Node.js Express REST APIs with live endpoints and request validation.
+- **Database:** Relational schemas and mock stores designed for SQLite or PostgreSQL.
+
+---
+
+### 2. Interactive Live Preview
+Every code generation or modification automatically renders in the interactive right-side split screen workspace:
+- **Hot Module Reload:** Code changes reflect instantaneously without losing your application state.
+- **Responsive Viewport Controls:** Toggle between desktop, tablet, and mobile dimensions with 1 click.
+- **Console & Terminal:** Inspect real-time execution logs, network requests, and compile states.
+
+---
+
+### 3. Exporting Your Work
+- **ZIP Download:** Export the entire workspace folder including \`package.json\`, \`vite.config.ts\`, and asset structures.
+- **Git Push:** Connect your GitHub account to push repositories directly to your personal or organization account.`,
   },
   {
-    id: 'screenshot-to-code-vision',
-    collectionId: 'vision-duplication',
-    title: 'How does AI Screenshot & UI Duplication work?',
+    id: 'screenshot-to-code-guide',
+    collectionId: 'ui-vision',
+    title: 'UI Screenshot duplication: 10/10 pixel accuracy guidelines',
     updatedAt: 'September 2026',
-    readTime: '3 min read',
-    summary: 'Using multimodal vision models to clone websites, inspect visual assets, and generate matching code.',
-    content: `Calvras features state-of-the-art multimodal vision coding capabilities:
+    readTime: '4 min read',
+    summary: 'Best practices for uploading design mockups, mobile screenshots, and matching typography.',
+    content: `### 1. How UI Duplication Works
+When you paste or drag-and-drop an image into Calvras, our multimodal vision models dissect the design at the token level:
+- **Geometry & Alignment:** Extracts exact flexbox/grid hierarchies, padding, and zero-phantom margins.
+- **Color Extraction:** Identifies exact hex palettes and dark obsidian undertones.
+- **Typography:** Maps header and body text to modern sans-serif scales (Inter, SF Pro) with correct weights.
+- **Iconography:** Emits clean, functional Lucide icons or inline SVGs matching the visual reference.
 
-1. **Upload any UI screenshot:** Simply drag and drop or paste a screenshot of any web or mobile interface.
-2. **Visual Inspection:** Our vision models analyze layout geometry, flex/grid hierarchies, padding, typography, color palettes, and embedded imagery.
-3. **Exact Matching AI Image Generation:** All images, album covers, banners, and avatars detected in the screenshot are generated directly inside \`src/App.tsx\` code—never dumped into chat text.
-4. **Instant Live Preview:** The duplicated code mounts immediately into the live sandbox for interaction, testing, and customization.`,
+---
+
+### 2. Tips for 10/10 Duplication Accuracy
+1. **Provide Clear, High-Resolution Images:** Ensure text, button borders, and navigation items are crisp and uncompressed.
+2. **Crop to Relevant Regions:** If you only want to change or duplicate a specific card or navbar, crop the screenshot to that region.
+3. **Specify Interaction Details:** State what actions should occur when a user clicks buttons or inputs (e.g. *"When the search input is focused, show the filter dropdown"*).`,
   },
   {
-    id: 'managing-api-keys-byok',
-    collectionId: 'developer-api',
-    title: 'Managing your API keys & Bring Your Own Key (BYOK)',
-    updatedAt: 'September 2026',
-    readTime: '2 min read',
-    summary: 'How to configure custom API keys for maximum autonomy and limitless coding throughput.',
-    content: `Calvras gives you complete control over your AI inference engines:
-
-- Go to **Developer Settings** or click **Connect Tools** in your workspace.
-- Input your Hugging Face, OpenRouter, Anthropic, or OpenAI API key.
-- Keys are encrypted locally in your browser and sent securely only during inference calls.
-- On the **Max Plan**, enjoy unlimited BYOK requests with zero platform surcharges or request throttling.`,
-  },
-  {
-    id: 'code-ownership-ip',
+    id: 'privacy-soc2-compliance',
     collectionId: 'privacy-legal',
-    title: 'Code ownership and intellectual property rights',
+    title: 'Data privacy, security standards & zero training policy',
     updatedAt: 'September 2026',
-    readTime: '2 min read',
-    summary: 'You own 100% of all code, designs, and applications generated on Calvras.',
-    content: `### 100% Commercial Ownership
-You own all intellectual property rights to the source code, applications, user interfaces, and digital assets you generate or create using Calvras.
+    readTime: '5 min read',
+    summary: 'How Calvras protects your proprietary source code, credentials, and business IP.',
+    content: `### 1. Zero Code Training Policy
+Your source code and designs are your confidential intellectual property. Calvras enforces a strict zero-data-retention policy:
+- **No Training on Customer Data:** We do not train, fine-tune, or evaluate public models on your proprietary code, prompts, or uploaded images.
+- **Ephemeral Processing:** Prompts and context files are processed transiently during generation and stored only in your private workspace.
 
-- You may use, sell, license, deploy, or patent any code created with Calvras without paying royalties.
-- Calvras claims zero ownership over your proprietary software or client work.
-- All workspace files can be exported to GitHub or downloaded as standard ZIP archives at any time.`,
-  },
+---
+
+### 2. SOC2 & PCI-DSS Compliance
+- **Payment Security:** Calvras does not store credit card numbers. All billing and card processing is handled by **Paystack**, a certified PCI-DSS Level 1 service provider.
+- **Transport Encryption:** All data in transit is protected using TLS 1.3 encryption with modern forward-secret cipher suites.
+- **Data at Rest:** Workspaces and account metadata are encrypted using AES-256 at rest.`,
+  }
 ];
 
-export const SUPPORT_COLLECTIONS = [
-  { id: 'getting-started', name: 'Calvras Basics', desc: 'Get started with Calvras across everyday full-stack coding, live previews, and projects.' },
-  { id: 'plans-pricing', name: 'Pro and Max plans', desc: 'Plan comparisons, cloud credits, and the $40 Max plan with unlimited API key usage.' },
-  { id: 'billing-refunds', name: 'Billing & Refunds', desc: 'Payment receipts, Paystack transactions, 14-day refund guarantee, and cancellations.' },
-  { id: 'usage-limits', name: 'Usage limits & Caching', desc: 'Best practices for managing message limits, caching, and token allocation.' },
-  { id: 'vision-duplication', name: 'UI & Screenshot Duplication', desc: 'Multimodal vision duplication, exact layout cloning, and AI image generation.' },
-  { id: 'developer-api', name: 'Developer API & Console', desc: 'BYOK, API keys, webhooks, and programmatic workspace automation.' },
-  { id: 'privacy-legal', name: 'Privacy and Legal', desc: 'Terms of service, privacy policy, data security, and compliance information.' },
+const COLLECTIONS = [
+  { id: 'all', name: 'All Articles', count: 6 },
+  { id: 'calvras-basics', name: 'Calvras Basics', count: 1 },
+  { id: 'billing-refunds', name: 'Billing & Refunds', count: 1 },
+  { id: 'api-developer', name: 'Developer & API', count: 1 },
+  { id: 'ui-vision', name: 'UI & Screenshot Duplication', count: 1 },
+  { id: 'usage-limits', name: 'Usage Limits & Best Practices', count: 1 },
+  { id: 'privacy-legal', name: 'Privacy & Security', count: 1 },
 ];
 
-function formatInline(str) {
-  if (!str) return '';
-  return str
-    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-[#1f1e1d]">$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
-    .replace(/`(.*?)`/g, '<code class="bg-[#edeae1] text-[#1f1e1d] px-1.5 py-0.5 rounded text-[12px] font-mono">$1</code>');
+function formatInline(text) {
+  if (!text) return '';
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-white">$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em class="italic text-neutral-300">$1</em>')
+    .replace(/`(.*?)`/g, '<code class="bg-white/10 text-emerald-300 px-1.5 py-0.5 rounded text-[12px] font-mono">$1</code>');
 }
 
 function renderFormattedContent(text) {
@@ -201,25 +204,25 @@ function renderFormattedContent(text) {
 
     if (trimmed.startsWith('### ')) {
       return (
-        <h3 key={idx} className="text-base sm:text-lg font-bold text-[#1f1e1d] mt-6 mb-2 tracking-tight">
+        <h3 key={idx} className="text-lg sm:text-xl font-bold text-white mt-8 mb-3 tracking-tight">
           {trimmed.replace('### ', '')}
         </h3>
       );
     }
     if (trimmed.startsWith('## ')) {
       return (
-        <h2 key={idx} className="text-lg sm:text-xl font-bold text-[#1f1e1d] mt-7 mb-3 tracking-tight">
+        <h2 key={idx} className="text-xl sm:text-2xl font-bold text-white mt-9 mb-4 tracking-tight">
           {trimmed.replace('## ', '')}
         </h2>
       );
     }
     if (trimmed === '---') {
-      return <hr key={idx} className="my-6 border-[#e5e3dc]" />;
+      return <hr key={idx} className="my-6 border-white/10" />;
     }
     if (trimmed.startsWith('- ')) {
       const items = trimmed.split('\n').filter(l => l.trim().startsWith('- '));
       return (
-        <ul key={idx} className="list-disc pl-5 space-y-2 my-3 text-[#33312e] text-xs sm:text-sm">
+        <ul key={idx} className="list-disc pl-5 space-y-2.5 my-4 text-neutral-300 text-sm sm:text-base leading-relaxed">
           {items.map((item, i) => {
             const line = item.replace(/^- /, '');
             return (
@@ -232,7 +235,7 @@ function renderFormattedContent(text) {
     if (/^\d+\.\s/.test(trimmed)) {
       const items = trimmed.split('\n').filter(l => /^\d+\.\s/.test(l.trim()));
       return (
-        <ol key={idx} className="list-decimal pl-5 space-y-2 my-3 text-[#33312e] text-xs sm:text-sm">
+        <ol key={idx} className="list-decimal pl-5 space-y-2.5 my-4 text-neutral-300 text-sm sm:text-base leading-relaxed">
           {items.map((item, i) => {
             const line = item.replace(/^\d+\.\s/, '');
             return (
@@ -246,7 +249,7 @@ function renderFormattedContent(text) {
     return (
       <p 
         key={idx} 
-        className="text-[#33312e] leading-relaxed my-2.5 text-xs sm:text-sm"
+        className="text-neutral-300 leading-relaxed my-3.5 text-sm sm:text-base"
         dangerouslySetInnerHTML={{ __html: formatInline(trimmed) }} 
       />
     );
@@ -285,243 +288,265 @@ export default function SupportCenterPage({ onBack, onNavigateLegal, onNavigateP
   }, [activeArticleId]);
 
   return (
-    <div className="min-h-screen w-full bg-[#faf9f5] text-[#1f1e1d] font-sans selection:bg-[#1f1e1d] selection:text-white flex flex-col">
+    <div className="min-h-screen w-full bg-[#14120B] text-white font-sans selection:bg-white selection:text-black flex flex-col">
       
-      {/* ─── Top Header (Matching Claude Support) ─── */}
-      <header className="sticky top-0 z-40 bg-[#faf9f5]/95 backdrop-blur-md border-b border-[#e5e3dc] px-6 py-3.5">
+      {/* ─── Top Header on #14120B ─── */}
+      <header className="sticky top-0 z-40 bg-[#14120B] border-b border-white/10 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           
-          {/* Brand & Title */}
           <div className="flex items-center gap-3">
             <button
               onClick={onBack}
-              className="p-1.5 rounded-lg text-[#66635c] hover:text-[#1f1e1d] hover:bg-[#eae8e1] transition-colors cursor-pointer flex items-center gap-1 text-xs font-semibold"
-              title="Back"
+              className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer flex items-center gap-1 text-xs font-semibold"
             >
               <ArrowLeft size={16} />
-              <span className="hidden sm:inline">Back</span>
+              <span>Back</span>
             </button>
-            <div className="h-4 w-px bg-[#dcd9d0]" />
+            <div className="h-4 w-px bg-white/15" />
             <div 
               onClick={() => { setActiveArticleId(null); setSelectedCollection('all'); setSearchQuery(''); }}
               className="flex items-center gap-2 cursor-pointer"
             >
               <img src="/sidebar-logo.jpeg" alt="Calvras" className="w-6 h-6 rounded-md object-contain" />
-              <span className="font-bold text-base text-[#1f1e1d] tracking-tight">Calvras Support</span>
+              <span className="font-bold text-base text-white tracking-tight uppercase">Calvras Support</span>
             </div>
           </div>
 
-          {/* Right Header Links */}
-          <div className="flex items-center gap-5 text-xs text-[#66635c] font-medium">
-            <button onClick={() => onNavigateLegal && onNavigateLegal('terms')} className="hover:text-[#1f1e1d] transition-colors cursor-pointer hidden md:inline">
+          <div className="flex items-center gap-5 text-xs text-neutral-400 font-medium">
+            <button onClick={() => onNavigateLegal && onNavigateLegal('terms')} className="hover:text-white transition-colors cursor-pointer hidden md:inline">
               Terms
             </button>
-            <button onClick={() => onNavigateLegal && onNavigateLegal('refund')} className="hover:text-[#1f1e1d] transition-colors cursor-pointer hidden md:inline">
+            <button onClick={() => onNavigateLegal && onNavigateLegal('refund')} className="hover:text-white transition-colors cursor-pointer hidden md:inline">
               Refund Policy
             </button>
-            <button onClick={() => onNavigatePricing && onNavigatePricing()} className="hover:text-[#1f1e1d] transition-colors cursor-pointer hidden sm:inline">
+            <button onClick={onNavigatePricing} className="hover:text-white transition-colors cursor-pointer hidden md:inline">
               Pricing & Plans
             </button>
             <a 
               href="mailto:support@calvras.ai"
-              className="px-3.5 py-1.5 rounded-full bg-[#1f1e1d] text-white text-xs font-semibold hover:bg-[#33312e] transition-all cursor-pointer"
+              className="px-3.5 py-1.5 rounded-full bg-white text-black font-semibold hover:bg-neutral-200 transition-colors shadow-sm"
             >
               Contact Support
             </a>
           </div>
-
         </div>
       </header>
 
-      {/* ─── Main Support Layout ─── */}
-      <div className="flex-1 max-w-7xl w-full mx-auto flex flex-col md:flex-row px-4 sm:px-6 py-6 sm:py-8 gap-8">
+      {/* ─── Body: 2-Column Knowledge Base ─── */}
+      <div className="max-w-7xl mx-auto w-full px-6 py-10 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 text-left">
         
-        {/* ── Left Sidebar: Collections ── */}
-        <aside className="w-full md:w-64 shrink-0 space-y-1">
-          <div className="px-3 py-2 text-[11px] font-bold tracking-wider uppercase text-[#8c887b]">
-            Knowledge Collections
+        {/* Left Sidebar */}
+        <aside className="lg:col-span-3 space-y-6">
+          <div className="border border-white/10 rounded-2xl p-4 bg-[#14120B]">
+            <div className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 mb-3 font-semibold">
+              Knowledge Collections
+            </div>
+            <nav className="space-y-1 text-xs font-medium">
+              {COLLECTIONS.map(col => {
+                const isSelected = selectedCollection === col.id && !activeArticleId;
+                return (
+                  <button
+                    key={col.id}
+                    onClick={() => {
+                      setSelectedCollection(col.id);
+                      setActiveArticleId(null);
+                    }}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-colors text-left cursor-pointer ${
+                      isSelected 
+                        ? 'bg-white text-black font-bold shadow-sm' 
+                        : 'text-neutral-300 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    <span>{col.name}</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
+                      isSelected ? 'bg-black/10 text-black' : 'bg-white/10 text-neutral-400'
+                    }`}>
+                      {col.count}
+                    </span>
+                  </button>
+                );
+              })}
+            </nav>
           </div>
-          
-          <button
-            onClick={() => { setSelectedCollection('all'); setActiveArticleId(null); }}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-colors text-left cursor-pointer ${
-              selectedCollection === 'all' && !activeArticleId
-                ? 'bg-[#eae8e1] text-[#1f1e1d]'
-                : 'text-[#66635c] hover:bg-[#f2f0e8] hover:text-[#1f1e1d]'
-            }`}
-          >
-            <span>All Articles</span>
-            <span className="text-[10px] font-mono bg-black/5 px-1.5 py-0.5 rounded">{SUPPORT_ARTICLES.length}</span>
-          </button>
 
-          {SUPPORT_COLLECTIONS.map(col => {
-            const isSelected = selectedCollection === col.id && !activeArticleId;
-            const count = SUPPORT_ARTICLES.filter(a => a.collectionId === col.id).length;
-            return (
-              <button
-                key={col.id}
-                onClick={() => { setSelectedCollection(col.id); setActiveArticleId(null); }}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-colors text-left cursor-pointer ${
-                  isSelected
-                    ? 'bg-[#eae8e1] text-[#1f1e1d]'
-                    : 'text-[#66635c] hover:bg-[#f2f0e8] hover:text-[#1f1e1d]'
-                }`}
-              >
-                <span className="truncate pr-2">{col.name}</span>
-                <span className="text-[10px] font-mono text-[#8c887b]">{count}</span>
-              </button>
-            );
-          })}
-
-          <div className="pt-6 px-3 border-t border-[#e5e3dc] mt-6 space-y-2 text-xs text-[#8c887b]">
-            <p className="font-semibold text-[#1f1e1d]">Need urgent assistance?</p>
-            <p className="text-[11px] leading-relaxed">Our billing and technical engineering desk is available 24/7 at <span className="font-mono text-[#1f1e1d]">support@calvras.ai</span>.</p>
+          <div className="border border-white/10 rounded-2xl p-5 bg-[#14120B] text-xs text-neutral-400 space-y-3">
+            <div className="flex items-center gap-2 text-white font-semibold">
+              <HelpCircle size={15} className="text-emerald-400" />
+              <span>Need merchant assistance?</span>
+            </div>
+            <p className="leading-relaxed text-[11.5px]">
+              Our technical engineering and Paystack billing desk is online 24/7.
+            </p>
+            <div className="font-mono text-emerald-400 font-semibold text-[12px]">
+              support@calvras.ai
+            </div>
           </div>
         </aside>
 
-        {/* ── Main Content Area ── */}
-        <main className="flex-1 min-w-0">
+        {/* Right Main Article / List View */}
+        <main className="lg:col-span-9 space-y-6">
           
-          {/* Breadcrumb & Search Bar */}
-          <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="text-xs text-[#8c887b] flex items-center gap-1.5">
-              <span 
-                onClick={() => { setActiveArticleId(null); setSelectedCollection('all'); }} 
-                className="hover:underline cursor-pointer"
-              >
-                All Collections
-              </span>
-              <ChevronRight size={12} />
-              <span className="text-[#1f1e1d] font-semibold">
-                {activeArticle ? activeArticle.title : selectedCollection === 'all' ? 'Calvras Knowledge Base' : SUPPORT_COLLECTIONS.find(c => c.id === selectedCollection)?.name}
-              </span>
-            </div>
-
-            {/* Live Search Input */}
-            <div className="relative w-full sm:w-72">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8c887b]" />
-              <input
-                type="text"
-                placeholder="Search articles & guides..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 rounded-xl bg-white border border-[#dcd9d0] text-xs text-[#1f1e1d] placeholder-[#8c887b] focus:outline-none focus:border-[#1f1e1d] transition-colors shadow-sm"
-              />
-            </div>
+          {/* Search Bar */}
+          <div className="relative w-full">
+            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search articles, refund timeline, BYOK, or vision duplication..."
+              className="w-full pl-11 pr-4 py-3 bg-[#14120B] border border-white/10 rounded-2xl text-xs sm:text-sm text-white placeholder-neutral-500 outline-none focus:border-white/30 transition-all shadow-inner"
+            />
           </div>
 
-          {/* ── DETAIL VIEW: Active Article ── */}
           {activeArticle ? (
-            <article className="bg-white rounded-2xl border border-[#dcd9d0] p-6 sm:p-10 shadow-sm animate-fade-in">
+            /* Detailed Article View */
+            <div className="border border-white/10 rounded-3xl p-6 sm:p-10 bg-[#14120B] space-y-6 animate-in fade-in duration-150">
               <button
                 onClick={() => setActiveArticleId(null)}
-                className="inline-flex items-center gap-1.5 text-xs text-[#8c887b] hover:text-[#1f1e1d] font-semibold mb-6 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white transition-colors cursor-pointer font-medium"
               >
-                <ArrowLeft size={14} />
-                <span>Back to articles</span>
+                <ChevronLeft size={14} />
+                <span>Back to all guides</span>
               </button>
 
-              <h1 className="text-2xl sm:text-3xl font-bold text-[#1f1e1d] tracking-tight mb-2">
-                {activeArticle.title}
-              </h1>
-
-              <div className="flex items-center gap-3 text-xs text-[#8c887b] pb-6 border-b border-[#e5e3dc] mb-6 font-mono">
-                <span>{activeArticle.updatedAt}</span>
-                <span>•</span>
-                <span>{activeArticle.readTime}</span>
+              <div className="space-y-2 border-b border-white/10 pb-6">
+                <div className="flex items-center gap-3 text-[11px] font-mono text-neutral-400">
+                  <span>{activeArticle.updatedAt}</span>
+                  <span>•</span>
+                  <span>{activeArticle.readTime}</span>
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                  {activeArticle.title}
+                </h1>
+                <p className="text-neutral-400 text-sm">
+                  {activeArticle.summary}
+                </p>
               </div>
 
-              {/* Body */}
-              <div className="text-[#33312e] leading-relaxed font-sans">
+              <div className="article-body">
                 {renderFormattedContent(activeArticle.content)}
               </div>
 
-              {/* Feedback footer */}
-              <div className="mt-12 pt-6 border-t border-[#e5e3dc] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#8c887b]">
-                <span>Did this answer your question?</span>
-                <div className="flex items-center gap-2">
-                  <a
-                    href={`mailto:support@calvras.ai?subject=Feedback on ${encodeURIComponent(activeArticle.title)}`}
-                    className="px-3.5 py-1.5 rounded-lg border border-[#dcd9d0] hover:bg-[#f2f0e8] text-[#1f1e1d] font-semibold transition-colors"
-                  >
-                    Contact Support
-                  </a>
+              <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <span className="text-xs text-neutral-400">Was this guide helpful?</span>
+                <div className="flex gap-2">
+                  <button className="px-3.5 py-1.5 rounded-xl border border-white/10 hover:border-white/20 text-xs font-semibold text-white transition-colors">
+                    Yes, helpful
+                  </button>
+                  <button className="px-3.5 py-1.5 rounded-xl border border-white/10 hover:border-white/20 text-xs font-semibold text-white transition-colors">
+                    Needs update
+                  </button>
                 </div>
               </div>
-            </article>
+            </div>
           ) : (
-            /* ── LIST VIEW: Articles & Collections ── */
-            <div className="space-y-6">
-              
-              {/* Hero Banner */}
-              <div className="bg-white rounded-2xl border border-[#dcd9d0] p-6 sm:p-8 shadow-sm">
-                <h2 className="text-xl sm:text-2xl font-bold text-[#1f1e1d] tracking-tight mb-1">
-                  {selectedCollection === 'all' ? 'Calvras' : SUPPORT_COLLECTIONS.find(c => c.id === selectedCollection)?.name}
-                </h2>
-                <p className="text-xs sm:text-sm text-[#66635c] leading-relaxed max-w-2xl">
-                  {selectedCollection === 'all' 
-                    ? 'Get started with Calvras across everyday full-stack coding, vision duplication, live previews, and API scaling.' 
-                    : SUPPORT_COLLECTIONS.find(c => c.id === selectedCollection)?.desc}
+            /* Articles Cards List */
+            <div className="space-y-4">
+              <div className="border border-white/10 rounded-3xl p-6 sm:p-8 bg-[#14120B] space-y-2 mb-6">
+                <h2 className="text-2xl font-bold text-white tracking-tight">Calvras Knowledge Base</h2>
+                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed max-w-2xl">
+                  Official engineering documentation, Paystack merchant compliance details, 14-day refund policies, and unlimited API usage architectures.
                 </p>
-                <div className="mt-4 text-xs text-[#8c887b] font-mono">
-                  {filteredArticles.length} {filteredArticles.length === 1 ? 'article' : 'articles'} available
-                </div>
               </div>
 
-              {/* Articles Grid */}
               <div className="space-y-3">
-                {filteredArticles.length === 0 ? (
-                  <div className="bg-white rounded-2xl border border-[#dcd9d0] p-12 text-center text-[#8c887b] text-xs">
-                    No matching articles found for "{searchQuery}". Email <a href="mailto:support@calvras.ai" className="underline text-[#1f1e1d]">support@calvras.ai</a> for direct assistance.
-                  </div>
-                ) : (
-                  filteredArticles.map(art => (
-                    <div
-                      key={art.id}
-                      onClick={() => setActiveArticleId(art.id)}
-                      className="group bg-white rounded-xl border border-[#dcd9d0] hover:border-[#1f1e1d] p-5 transition-all cursor-pointer shadow-sm hover:shadow-md flex items-start justify-between gap-4"
-                    >
-                      <div className="space-y-1.5 flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <FileText size={15} className="text-[#8c887b] group-hover:text-[#1f1e1d] transition-colors shrink-0" />
-                          <h3 className="text-sm font-bold text-[#1f1e1d] group-hover:underline truncate">
-                            {art.title}
-                          </h3>
-                        </div>
-                        <p className="text-xs text-[#66635c] line-clamp-2 leading-relaxed">
-                          {art.summary}
-                        </p>
-                        <div className="text-[11px] text-[#8c887b] font-mono pt-1">
-                          {art.updatedAt} • {art.readTime}
-                        </div>
+                {filteredArticles.map(art => (
+                  <div
+                    key={art.id}
+                    onClick={() => setActiveArticleId(art.id)}
+                    className="p-5 sm:p-6 rounded-2xl border border-white/10 bg-[#14120B] hover:border-white/25 transition-all cursor-pointer group flex items-start justify-between gap-4 shadow-sm"
+                  >
+                    <div className="space-y-1.5 max-w-2xl">
+                      <div className="flex items-center gap-2 text-[11px] font-mono text-neutral-400">
+                        <FileText size={12} className="text-neutral-400" />
+                        <span>{art.readTime}</span>
+                        <span>•</span>
+                        <span>{art.updatedAt}</span>
                       </div>
-
-                      <ChevronRight size={16} className="text-[#8c887b] group-hover:text-[#1f1e1d] group-hover:translate-x-1 transition-all shrink-0 mt-2" />
+                      <h3 className="text-base sm:text-lg font-semibold text-white group-hover:text-emerald-400 transition-colors">
+                        {art.title}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                        {art.summary}
+                      </p>
                     </div>
-                  ))
-                )}
+                    <ChevronRight size={18} className="text-neutral-500 group-hover:text-white group-hover:translate-x-1 transition-all mt-3 flex-shrink-0" />
+                  </div>
+                ))}
               </div>
-
             </div>
           )}
 
         </main>
       </div>
 
-      {/* ─── Footer ─── */}
-      <footer className="mt-auto border-t border-[#e5e3dc] bg-[#faf9f5] py-8 px-6 text-xs text-[#8c887b]">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <img src="/sidebar-logo.jpeg" alt="Calvras" className="w-5 h-5 rounded object-contain" />
-            <span className="font-bold text-[#1f1e1d]">Calvras Support Center</span>
-            <span>© {new Date().getFullYear()} Calvras Technologies Inc.</span>
+      {/* ─── Massive Cursor-Style 5-Column Footer (Increased Height) ─── */}
+      <footer className="py-20 px-6 sm:px-12 border-t border-white/[0.08] bg-[#14120B] text-neutral-400 text-[13px] mt-20">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-10 pb-16 border-b border-white/[0.08] text-left">
+          
+          <div className="space-y-3.5">
+            <h4 className="text-[13px] font-semibold text-white tracking-wider">Product</h4>
+            <ul className="space-y-2.5 text-[12.5px] text-neutral-400">
+              <li><button onClick={onBack} className="hover:text-white transition-colors cursor-pointer">Autonomous Studio</button></li>
+              <li><button onClick={onNavigatePricing} className="hover:text-white transition-colors cursor-pointer">Pricing ($14 / $40)</button></li>
+              <li><button onClick={onBack} className="hover:text-white transition-colors cursor-pointer">Live Preview Sandbox</button></li>
+              <li><button onClick={onBack} className="hover:text-white transition-colors cursor-pointer">UI Vision Duplicator</button></li>
+              <li><button onClick={onBack} className="hover:text-white transition-colors cursor-pointer">BYOK API Gateway</button></li>
+            </ul>
           </div>
 
-          <div className="flex items-center gap-5">
-            <button onClick={() => onNavigateLegal && onNavigateLegal('privacy')} className="hover:text-[#1f1e1d] transition-colors cursor-pointer">Privacy Policy</button>
-            <button onClick={() => onNavigateLegal && onNavigateLegal('terms')} className="hover:text-[#1f1e1d] transition-colors cursor-pointer">Terms of Service</button>
-            <button onClick={() => onNavigateLegal && onNavigateLegal('refund')} className="hover:text-[#1f1e1d] transition-colors cursor-pointer">Shipping & Refunds</button>
-            <a href="mailto:support@calvras.ai" className="hover:text-[#1f1e1d] transition-colors">support@calvras.ai</a>
+          <div className="space-y-3.5">
+            <h4 className="text-[13px] font-semibold text-white tracking-wider">Resources</h4>
+            <ul className="space-y-2.5 text-[12.5px] text-neutral-400">
+              <li><button onClick={() => { setActiveArticleId(null); setSelectedCollection('all'); }} className="hover:text-white transition-colors cursor-pointer">Knowledge Base</button></li>
+              <li><button onClick={() => setActiveArticleId('usage-limits-best-practices')} className="hover:text-white transition-colors cursor-pointer">Usage Limits</button></li>
+              <li><button onClick={() => setActiveArticleId('max-plan-unlimited-api-usage')} className="hover:text-white transition-colors cursor-pointer">Unlimited API Guide</button></li>
+              <li><button onClick={() => setActiveArticleId('screenshot-to-code-guide')} className="hover:text-white transition-colors cursor-pointer">Vision Cloning Guide</button></li>
+              <li><button onClick={() => setActiveArticleId('getting-started-sandboxes')} className="hover:text-white transition-colors cursor-pointer">Sandbox Quickstart</button></li>
+            </ul>
+          </div>
+
+          <div className="space-y-3.5">
+            <h4 className="text-[13px] font-semibold text-white tracking-wider">Company</h4>
+            <ul className="space-y-2.5 text-[12.5px] text-neutral-400">
+              <li><button onClick={() => onNavigateLegal && onNavigateLegal('about')} className="hover:text-white transition-colors cursor-pointer">About Calvras</button></li>
+              <li><button onClick={onBack} className="hover:text-white transition-colors cursor-pointer">Engineering Philosophy</button></li>
+              <li><button onClick={onBack} className="hover:text-white transition-colors cursor-pointer">Research Lab</button></li>
+              <li><button onClick={onBack} className="hover:text-white transition-colors cursor-pointer">Brand Assets</button></li>
+              <li><a href="mailto:support@calvras.ai" className="hover:text-white transition-colors">support@calvras.ai</a></li>
+            </ul>
+          </div>
+
+          <div className="space-y-3.5">
+            <h4 className="text-[13px] font-semibold text-white tracking-wider">Legal & Compliance</h4>
+            <ul className="space-y-2.5 text-[12.5px] text-neutral-400">
+              <li><button onClick={() => onNavigateLegal && onNavigateLegal('terms')} className="hover:text-white transition-colors cursor-pointer">Terms of Service</button></li>
+              <li><button onClick={() => onNavigateLegal && onNavigateLegal('privacy')} className="hover:text-white transition-colors cursor-pointer">Privacy Policy</button></li>
+              <li><button onClick={() => onNavigateLegal && onNavigateLegal('refund')} className="hover:text-white transition-colors cursor-pointer">Shipping & Refunds</button></li>
+              <li><button onClick={() => setActiveArticleId('privacy-soc2-compliance')} className="hover:text-white transition-colors cursor-pointer">Zero Training Policy</button></li>
+            </ul>
+          </div>
+
+          <div className="space-y-3.5">
+            <h4 className="text-[13px] font-semibold text-white tracking-wider">Connect</h4>
+            <ul className="space-y-2.5 text-[12.5px] text-neutral-400">
+              <li><a href="https://twitter.com" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">X (Twitter)</a></li>
+              <li><a href="https://linkedin.com" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">LinkedIn</a></li>
+              <li><a href="https://github.com/shikari18/calvras" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">GitHub</a></li>
+              <li><a href="mailto:billing@calvras.ai" className="hover:text-white transition-colors">billing@calvras.ai</a></li>
+            </ul>
+          </div>
+
+        </div>
+
+        <div className="max-w-7xl mx-auto pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11.5px] text-neutral-500">
+          <div className="flex items-center gap-2">
+            <img src="/sidebar-logo.jpeg" alt="Calvras" className="w-4 h-4 rounded object-contain" />
+            <span className="text-white font-medium">Calvras Technologies</span>
+            <span>© {new Date().getFullYear()} All rights reserved.</span>
+          </div>
+          <div>
+            All subscriptions and cloud services are distributed digitally with electronic provisioning and a 14-day refund guarantee processed via Paystack.
           </div>
         </div>
       </footer>

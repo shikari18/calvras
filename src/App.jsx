@@ -18,12 +18,36 @@ import DeveloperPage from './components/DeveloperPage';
 import SupportCenterPage from './pages/SupportCenterPage';
 import LegalDocumentPage from './pages/LegalDocumentPage';
 
+const generateConversationId = () => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
+function getSessionIdFromPath() {
+  try {
+    const match = window.location.pathname.match(/^\/c\/([a-zA-Z0-9_-]+)/i);
+    return match ? match[1] : null;
+  } catch {
+    return null;
+  }
+}
+
 function getInitialRoute() {
   try {
     const path = window.location.pathname.toLowerCase();
     const hash = window.location.hash.toLowerCase();
 
     // Explicit URL-based route detection
+    if (path.startsWith('/c/')) {
+      const savedUser = localStorage.getItem('coded_user');
+      return savedUser ? 'chat' : 'auth';
+    }
     if (path.startsWith('/pricing')) return 'pricing';
     if (path.startsWith('/auth') || path.startsWith('/login') || path.startsWith('/signup') ||
         hash.includes('login') || hash.includes('auth')) return 'auth';
@@ -79,41 +103,6 @@ export default function App() {
     }
   });
 
-  const navigateTo = (route, meta = null) => {
-    let target = route;
-    if (route === 'legal' && meta) {
-      target = meta;
-    }
-    if (target === 'help' && meta) {
-      setHelpArticleId(meta);
-    } else if (target !== 'help') {
-      setHelpArticleId(null);
-    }
-
-    if (!['privacy', 'terms', 'refund', 'about', 'help', 'support'].includes(currentRoute)) {
-      setPreviousRoute(currentRoute);
-    }
-
-    setCurrentRoute(target);
-    try {
-      localStorage.setItem('malvos_current_route', target);
-      const url = (target === 'chat' || target === 'landing') ? '/' : `/${target}`;
-      window.history.pushState(null, '', url);
-    } catch {}
-  };
-
-  useEffect(() => {
-    const handlePopState = () => {
-      setCurrentRoute(getInitialRoute());
-    };
-    window.addEventListener('popstate', handlePopState);
-    window.addEventListener('hashchange', handlePopState);
-    return () => {
-      window.removeEventListener('popstate', handlePopState);
-      window.removeEventListener('hashchange', handlePopState);
-    };
-  }, []);
-
   // User profile — persisted in localStorage
   const [user, setUser] = useState(() => {
     try {
@@ -131,6 +120,7 @@ export default function App() {
 
   const [messages, setMessages] = useState(() => {
     try {
+      const pathSessionId = getSessionIdFromPath();
       const currentUser = (() => {
         try {
           const s = localStorage.getItem('coded_user');
@@ -138,7 +128,7 @@ export default function App() {
         } catch { return null; }
       })();
       const email = (currentUser?.email || 'guest').toLowerCase().trim().replace(/[^a-z0-9_]/g, '_');
-      const activeId = localStorage.getItem(`calvras_active_session_${email}`) || localStorage.getItem('coded_active_session');
+      const activeId = pathSessionId || localStorage.getItem(`calvras_active_session_${email}`) || localStorage.getItem('coded_active_session');
       const savedSessions = localStorage.getItem(`calvras_sessions_${email}`) || localStorage.getItem('coded_sessions');
       if (savedSessions) {
         const parsed = JSON.parse(savedSessions);
@@ -177,6 +167,8 @@ export default function App() {
   });
 
   const [activeSession, setActiveSession] = useState(() => {
+    const pathSessionId = getSessionIdFromPath();
+    if (pathSessionId) return pathSessionId;
     const currentUser = (() => {
       try {
         const s = localStorage.getItem('coded_user');
@@ -186,6 +178,63 @@ export default function App() {
     const email = (currentUser?.email || 'guest').toLowerCase().trim().replace(/[^a-z0-9_]/g, '_');
     return localStorage.getItem(`calvras_active_session_${email}`) || localStorage.getItem('coded_active_session') || null;
   });
+
+  const navigateTo = (route, meta = null) => {
+    let target = route;
+    if (route === 'legal' && meta) {
+      target = meta;
+    }
+    if (target === 'help' && meta) {
+      setHelpArticleId(meta);
+    } else if (target !== 'help') {
+      setHelpArticleId(null);
+    }
+
+    if (!['privacy', 'terms', 'refund', 'about', 'help', 'support'].includes(currentRoute)) {
+      setPreviousRoute(currentRoute);
+    }
+
+    setCurrentRoute(target);
+    try {
+      localStorage.setItem('malvos_current_route', target);
+      if (target === 'chat') {
+        const url = (activeSession && messages.length > 0) ? `/c/${activeSession}` : '/';
+        window.history.pushState(null, '', url);
+      } else if (target === 'landing') {
+        window.history.pushState(null, '', '/');
+      } else {
+        window.history.pushState(null, '', `/${target}`);
+      }
+    } catch {}
+  };
+
+  // Dynamic ChatGPT-Style URL synchronization (/c/:conversationId)
+  useEffect(() => {
+    try {
+      if (currentRoute === 'chat' && user) {
+        if (activeSession && messages.length > 0) {
+          const targetUrl = `/c/${activeSession}`;
+          if (window.location.pathname !== targetUrl) {
+            window.history.pushState(null, '', targetUrl);
+          }
+        } else if (messages.length === 0 && window.location.pathname.startsWith('/c/')) {
+          window.history.pushState(null, '', '/');
+        }
+      }
+    } catch {}
+  }, [currentRoute, activeSession, messages.length, user]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentRoute(getInitialRoute());
+    };
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('hashchange', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('hashchange', handlePopState);
+    };
+  }, []);
 
   // Reload history whenever active account changes
   useEffect(() => {
@@ -248,7 +297,7 @@ export default function App() {
       if (activeSession) {
         setSessions(prev => prev.map(s => s.id === activeSession ? { ...s, messages, updatedAt: Date.now() } : s));
       } else {
-        const newId = 'session_' + Date.now();
+        const newId = generateConversationId();
         const firstUserMsg = messages.find(m => m.role === 'user');
         const rawContent = firstUserMsg?.content;
         const textSnippet = typeof rawContent === 'string' ? rawContent : (Array.isArray(rawContent) ? rawContent.find(p => p.type === 'text')?.text || 'New Project' : 'New Project');
@@ -262,9 +311,14 @@ export default function App() {
         };
         setActiveSession(newId);
         setSessions(prev => [newSession, ...prev]);
+        try {
+          if (currentRoute === 'chat') {
+            window.history.pushState(null, '', `/c/${newId}`);
+          }
+        } catch {}
       }
     }
-  }, [messages, activeSession]);
+  }, [messages, activeSession, currentRoute]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -288,6 +342,11 @@ export default function App() {
     setActiveSession(null);
     setActiveNav('home');
     setSidebarCollapsed(false);
+    try {
+      if (window.location.pathname.startsWith('/c/')) {
+        window.history.pushState(null, '', '/');
+      }
+    } catch {}
     localStorage.removeItem('malvos_active_messages');
     localStorage.removeItem('coded_active_session');
     localStorage.removeItem('malvos_active_workspace');
@@ -319,6 +378,9 @@ export default function App() {
       setActiveSession(sessionId);
       setMessages(sess.messages || []);
       setSidebarCollapsed(true);
+      try {
+        window.history.pushState(null, '', `/c/${sessionId}`);
+      } catch {}
       let filesToRestore = sess.workspaceFiles || null;
       if (!filesToRestore) {
         try {
@@ -351,7 +413,7 @@ export default function App() {
   const handleUserMessage = (query) => {
     setSidebarCollapsed(true);
     if (!activeSession) {
-      const newSessionId = `session-${Date.now()}`;
+      const newSessionId = generateConversationId();
       const title = query.slice(0, 30) + (query.length > 30 ? '...' : '');
       const newSession = {
         id: newSessionId,
@@ -360,6 +422,9 @@ export default function App() {
       };
       setSessions(prev => [newSession, ...prev]);
       setActiveSession(newSessionId);
+      try {
+        window.history.pushState(null, '', `/c/${newSessionId}`);
+      } catch {}
     }
   };
 
@@ -516,7 +581,7 @@ export default function App() {
 
       {/* Main Chat / Projects / Developer Frame */}
       <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0 p-2 sm:py-2.5 sm:pr-2.5 sm:pl-0 bg-[#14120B]">
-        <div className="relative flex flex-col flex-1 h-full overflow-hidden rounded-[20px] border border-white/[0.08] bg-[#1c1c1c] shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
+        <div className="relative flex flex-col flex-1 h-full overflow-hidden rounded-[20px] border border-[#242016] bg-[#14120B] shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
           {activeNav === 'projects' ? (
             <ProjectsPage
               sessions={sessions}

@@ -11,56 +11,56 @@ export default function LegalDocumentPage({ documentType = 'privacy', onBack, on
   }, [documentType]);
 
   return (
-    <div className="min-h-screen w-full bg-[#faf9f5] text-[#1f1e1d] font-sans selection:bg-[#1f1e1d] selection:text-white flex flex-col">
+    <div className="min-h-screen w-full bg-[#14120B] text-white font-sans selection:bg-white selection:text-black flex flex-col">
       
-      {/* ─── Top Header (Matching Anthropic Legal Header) ─── */}
-      <header className="sticky top-0 z-40 bg-[#faf9f5]/95 backdrop-blur-md border-b border-[#e5e3dc] px-6 py-4">
+      {/* ─── Top Header on #14120B ─── */}
+      <header className="sticky top-0 z-40 bg-[#14120B] border-b border-white/10 px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           
           <div className="flex items-center gap-4">
             <button
               onClick={onBack}
-              className="p-1.5 rounded-lg text-[#66635c] hover:text-[#1f1e1d] hover:bg-[#eae8e1] transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-semibold"
+              className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-semibold"
               title="Return to previous page"
             >
               <ArrowLeft size={16} />
               <span>Back</span>
             </button>
-            <div className="h-4 w-px bg-[#dcd9d0]" />
+            <div className="h-4 w-px bg-white/15" />
             <div className="flex items-center gap-2">
               <img src="/sidebar-logo.jpeg" alt="Calvras" className="w-6 h-6 rounded-md object-contain" />
-              <span className="font-extrabold text-base tracking-tight text-[#1f1e1d]">CALVRAS</span>
+              <span className="font-extrabold text-base tracking-tight text-white uppercase">CALVRAS</span>
             </div>
           </div>
 
-          <nav className="hidden md:flex items-center gap-6 text-xs text-[#66635c] font-medium">
+          <nav className="hidden md:flex items-center gap-6 text-xs text-neutral-400 font-medium">
             <button 
               onClick={() => setActiveDoc('privacy')} 
-              className={`transition-colors cursor-pointer ${activeDoc === 'privacy' ? 'text-[#1f1e1d] font-bold underline underline-offset-4' : 'hover:text-[#1f1e1d]'}`}
+              className={`transition-colors cursor-pointer ${activeDoc === 'privacy' ? 'text-white font-bold underline underline-offset-4' : 'hover:text-white'}`}
             >
               Privacy
             </button>
             <button 
               onClick={() => setActiveDoc('terms')} 
-              className={`transition-colors cursor-pointer ${activeDoc === 'terms' ? 'text-[#1f1e1d] font-bold underline underline-offset-4' : 'hover:text-[#1f1e1d]'}`}
+              className={`transition-colors cursor-pointer ${activeDoc === 'terms' ? 'text-white font-bold underline underline-offset-4' : 'hover:text-white'}`}
             >
               Terms of Service
             </button>
             <button 
               onClick={() => setActiveDoc('refund')} 
-              className={`transition-colors cursor-pointer ${activeDoc === 'refund' ? 'text-[#1f1e1d] font-bold underline underline-offset-4' : 'hover:text-[#1f1e1d]'}`}
+              className={`transition-colors cursor-pointer ${activeDoc === 'refund' ? 'text-white font-bold underline underline-offset-4' : 'hover:text-white'}`}
             >
               Shipping & Refunds
             </button>
             <button 
               onClick={() => setActiveDoc('about')} 
-              className={`transition-colors cursor-pointer ${activeDoc === 'about' ? 'text-[#1f1e1d] font-bold underline underline-offset-4' : 'hover:text-[#1f1e1d]'}`}
+              className={`transition-colors cursor-pointer ${activeDoc === 'about' ? 'text-white font-bold underline underline-offset-4' : 'hover:text-white'}`}
             >
               About
             </button>
             <button 
               onClick={onNavigatePricing} 
-              className="hover:text-[#1f1e1d] transition-colors cursor-pointer"
+              className="hover:text-white transition-colors cursor-pointer"
             >
               Pricing
             </button>
@@ -70,7 +70,7 @@ export default function LegalDocumentPage({ documentType = 'privacy', onBack, on
             <button
               type="button"
               onClick={onSignIn || onBack}
-              className="text-xs font-semibold px-4 py-1.5 rounded-full bg-[#1f1e1d] text-white hover:bg-[#33312e] transition-all cursor-pointer"
+              className="text-xs font-semibold px-4 py-1.5 rounded-full bg-white text-black hover:bg-neutral-200 transition-all cursor-pointer"
             >
               Enter App →
             </button>
@@ -86,18 +86,18 @@ export default function LegalDocumentPage({ documentType = 'privacy', onBack, on
             DOCUMENT 1: PRIVACY POLICY (Exhaustive, matching Anthropic)
         ═══════════════════════════════════════════════════════════════════ */}
         {activeDoc === 'privacy' && (
-          <article className="space-y-10 text-[#33312e] leading-relaxed text-[15px] animate-fade-in font-serif">
+          <article className="space-y-10 text-neutral-300 leading-relaxed text-[15px] animate-fade-in font-sans">
             
-            <div className="border-b border-[#e5e3dc] pb-8 font-sans">
-              <h1 className="text-4xl sm:text-5xl font-black text-[#1f1e1d] tracking-tight mb-4">
+            <div className="border-b border-white/10 pb-8">
+              <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight mb-4">
                 Privacy Policy
               </h1>
-              <div className="flex flex-wrap items-center gap-3 text-xs text-[#8c887b] font-mono">
+              <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-400 font-mono">
                 <span>Effective July 8, 2026</span>
                 <span>•</span>
                 <span>English</span>
                 <span>•</span>
-                <span className="text-emerald-700 font-semibold bg-emerald-100/60 px-2 py-0.5 rounded">PCI-DSS Level 1 Secure</span>
+                <span className="text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">PCI-DSS Level 1 Secure</span>
               </div>
             </div>
 

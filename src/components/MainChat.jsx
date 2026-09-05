@@ -711,56 +711,37 @@ function formatLiveInline(text) {
   });
 }
 
-function LiveActivityIndicator({ liveThinkingText, liveThinkingDuration, statusText, activeFile, hasCodeFiles }) {
-  const [isThinkingOpen, setIsThinkingOpen] = useState(true);
-  const thinkingScrollRef = useRef(null);
-
-  useEffect(() => {
-    if (thinkingScrollRef.current) {
-      thinkingScrollRef.current.scrollTop = thinkingScrollRef.current.scrollHeight;
+function LiveActivityIndicator({ isThinking, isStreaming, statusText, elapsedDuration }) {
+  const getStageText = () => {
+    if (statusText) return statusText;
+    const duration = elapsedDuration || 1;
+    if (isThinking && !isStreaming) {
+      if (duration < 3) return 'Thinking...';
+      if (duration < 6) return 'Analyzing requirements...';
+      if (duration < 9) return 'Architecting system & components...';
+      return 'Reasoning through layout logic...';
     }
-  }, [liveThinkingText]);
+    if (isStreaming) {
+      if (duration < 4) return 'Applying backend & state logic...';
+      if (duration < 8) return 'Generating React UI...';
+      return 'Assembling pixel-perfect code...';
+    }
+    return 'Processing...';
+  };
 
-  const hasThinking = Boolean(liveThinkingText && liveThinkingText.trim().length > 0);
-  const durationText = liveThinkingDuration ? `${liveThinkingDuration}s` : '1s';
+  const displayText = getStageText();
 
   return (
-    <div className="w-full max-w-[660px] mx-auto py-2 px-4 text-left animate-in fade-in duration-150 select-none space-y-2">
-      {/* Real Live Thinking Accordion */}
-      {hasThinking && (
-        <div className="rounded-xl bg-[#18181c]/90 border border-neutral-800/80 overflow-hidden shadow-sm">
-          <div 
-            onClick={() => setIsThinkingOpen(prev => !prev)}
-            className="flex items-center justify-between px-3.5 py-2 bg-[#1f1f24]/70 border-b border-neutral-800/40 cursor-pointer hover:bg-[#25252b]/70 transition-colors"
-          >
-            <div className="flex items-center gap-2 text-neutral-300 text-[12.5px] font-medium">
-              <span className="text-sm">🧠</span>
-              <span className="text-neutral-200">Thinking</span>
-              <span className="text-neutral-500 font-mono text-[11px]">({durationText})</span>
-            </div>
-            <div className="flex items-center gap-1 text-[11px] text-neutral-400">
-              <span>{isThinkingOpen ? 'Hide' : 'Show'}</span>
-              {isThinkingOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-            </div>
-          </div>
-          {isThinkingOpen && (
-            <div 
-              ref={thinkingScrollRef}
-              className="p-3.5 max-h-[180px] overflow-y-auto text-[12px] font-mono text-neutral-300 leading-relaxed whitespace-pre-wrap bg-[#121215]/90 border-t border-neutral-800/40 scrollbar-thin scrollbar-thumb-neutral-700 select-text"
-            >
-              {liveThinkingText}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Real Live Activity / Status */}
-      {statusText && (
-        <div className="flex items-center gap-2.5 text-[13px] text-neutral-300 px-1 py-0.5">
-          <div className="w-3.5 h-3.5 rounded-full border-[2px] border-blue-400 border-t-transparent animate-spin flex-shrink-0" />
-          <span className="text-neutral-200 font-medium">{statusText}</span>
-        </div>
-      )}
+    <div className="w-full max-w-[660px] mx-auto py-2 px-4 text-left animate-in fade-in duration-200 select-none">
+      <div className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-[#1c1a14] border border-[#2e2a20] shadow-sm">
+        <span className="relative flex h-2 w-2 flex-shrink-0">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+        </span>
+        <span className="text-[13px] text-[#e2ddd5] font-medium tracking-tight transition-all duration-300">
+          {displayText}
+        </span>
+      </div>
     </div>
   );
 }
@@ -1007,7 +988,7 @@ export default function MainChat({
   const [activeWorkspaceTab, setActiveWorkspaceTab] = useState(() => {
     return localStorage.getItem('malvos_active_workspace_tab') || 'preview';
   });
-  const [workspaceWidthPercent, setWorkspaceWidthPercent] = useState(52);
+  const [workspaceWidthPercent, setWorkspaceWidthPercent] = useState(70);
   const [isResizing, setIsResizing] = useState(false);
 
   // Restore workspace files from external session change event
@@ -2452,8 +2433,8 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
               }
             }
 
-            // Ultimate fail-safe: if still 0 files on an explicit build or workspace edit
-            if ((isExplicitBuild || isWorkspaceEdit) && Object.keys(extractedFiles).length === 0) {
+            // Ultimate fail-safe: if still 0 files on an explicit build ONLY (never on an edit that already has files)
+            if (isExplicitBuild && !isWorkspaceEdit && Object.keys(extractedFiles).length === 0) {
               try {
                 const fullApp = generateFullArchitectureApp(query || finalContent || 'Production Application UI', 'build');
                 if (fullApp && Object.keys(fullApp).length > 0) {
@@ -2464,11 +2445,13 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
               }
             }
 
-            // For in-place edits: merge changes into existing workspace files
-            if (isWorkspaceEdit && Object.keys(extractedFiles).length > 0) {
-              extractedFiles = { ...workspaceFiles, ...extractedFiles };
-            } else if (isWorkspaceEdit && Object.keys(extractedFiles).length === 0) {
-              extractedFiles = { ...workspaceFiles };
+            // For in-place edits: merge changes into existing workspace files, preserving all existing files
+            if (isWorkspaceEdit) {
+              if (Object.keys(extractedFiles).length > 0) {
+                extractedFiles = { ...workspaceFiles, ...extractedFiles };
+              } else {
+                extractedFiles = { ...workspaceFiles };
+              }
             }
 
             let fileNames = Object.keys(extractedFiles);
@@ -2668,7 +2651,7 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
 
 
   return (
-    <div className={`relative flex flex-1 h-full overflow-hidden bg-[#1c1c1c] text-[#ededed] select-none ${isResizing ? 'cursor-col-resize select-none' : ''}`}>
+    <div className={`relative flex flex-1 h-full overflow-hidden bg-[#14120B] text-[#ededed] select-none ${isResizing ? 'cursor-col-resize select-none' : ''}`}>
       
       {/* ── Left Pane: Chat Conversation ── */}
       <div 
@@ -2705,7 +2688,7 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
         </div>
         
         {/* ── Scrollable chat area ── */}
-        <div ref={scrollRef} className="relative z-10 flex-1 overflow-y-auto px-4 sm:px-6 w-full scrollbar-thin scroll-smooth bg-[#1c1c1c]">
+        <div ref={scrollRef} className="relative z-10 flex-1 overflow-y-auto px-4 sm:px-6 w-full scrollbar-thin scroll-smooth bg-[#14120B]">
 
           {/* ── Hero / empty state: prompt box centered ── */}
           {messages.length === 0 && (
@@ -2853,16 +2836,12 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
               })}
 
               {(isThinking || isStreaming) && (
-                <div className="w-full max-w-[620px] mx-auto space-y-3">
+                <div className="w-full max-w-[660px] mx-auto">
                   <LiveActivityIndicator
-                    liveThinkingText={liveThinkingText}
-                    liveThinkingDuration={liveThinkingDuration}
-                    isLiveThinkingOpen={isLiveThinkingOpen}
-                    setIsLiveThinkingOpen={setIsLiveThinkingOpen}
+                    isThinking={isThinking}
+                    isStreaming={isStreaming}
                     statusText={streamingText}
-                    activeFile={activeFileName}
-                    hasCodeFiles={Object.keys(workspaceFiles).length > 0 && isStreaming}
-                    isCodePrompt={true}
+                    elapsedDuration={liveThinkingDuration}
                   />
                 </div>
               )}
@@ -2887,7 +2866,7 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
 
         {/* ── Sticky reply dock with outer task shell and nested input ── */}
         {messages.length > 0 && (
-          <div className="sticky bottom-0 left-0 right-0 p-2 sm:p-3.5 bg-gradient-to-t from-[#141414] via-[#141414]/95 to-transparent z-30">
+          <div className="sticky bottom-0 left-0 right-0 p-2 sm:p-3.5 bg-gradient-to-t from-[#14120B] via-[#14120B]/95 to-transparent z-30">
             <div className="max-w-[660px] mx-auto relative">
               {activeSelectionQuestion ? (
                 <SelectionBlock
