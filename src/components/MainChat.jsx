@@ -33,6 +33,7 @@ import ProjectWorkspacePane from './ProjectWorkspacePane';
 import { generateFullArchitectureApp } from '../services/fullAppGenerator';
 import { BUILD_MODES } from '../data/mockData';
 import { generateAIResponse, streamAIResponse, MALVOS_SYSTEM_PROMPT } from '../services/aiService';
+import { searchWeb, browseUrl } from '../services/webSearchService';
 
 // ─── Extract Real Generated Files from AI Output (Zero Hardcoding) ───────────
 export function extractFilesFromAIResponse(rawText, query = '') {
@@ -895,6 +896,7 @@ function CalvrasActionStatus({ action }) {
   if (!action) return null;
   const isCmd = action.type === 'cmd';
   const isBrowse = action.type === 'browse';
+  const isSearch = action.type === 'search';
   return (
     <div className="w-full px-4 py-2 animate-in fade-in duration-200 select-none">
       <div className="flex items-center gap-2 text-[12px]" style={{ fontFamily: 'Consolas, "Segoe UI Mono", monospace' }}>
@@ -911,7 +913,13 @@ function CalvrasActionStatus({ action }) {
             <span className="text-blue-400 truncate max-w-[480px]">{action.text}</span>
           </>
         )}
-        {!isCmd && !isBrowse && (
+        {isSearch && (
+          <>
+            <span className="text-neutral-500">Searching web</span>
+            <span className="text-amber-400 truncate max-w-[480px]">{action.text}</span>
+          </>
+        )}
+        {!isCmd && !isBrowse && !isSearch && (
           <span className="text-neutral-400 truncate max-w-[480px]">{action.text}</span>
         )}
       </div>
@@ -1494,7 +1502,7 @@ export default function MainChat({
     }
 
     // Collect all tool calls in order
-    const toolPattern = /<(run_cmd|browse)>([\s\S]*?)<\/\1>/gi;
+    const toolPattern = /<(run_cmd|browse|search)>([\s\S]*?)<\/\1>/gi;
     const calls = [];
     let match;
     while ((match = toolPattern.exec(rawText)) !== null) {
@@ -1529,17 +1537,28 @@ export default function MainChat({
         setCalvrasAction({ type: 'browse', text: call.value });
         executed.push({ type: 'browse', text: `Browsed ${call.value}` });
         try {
-          const r = await fetch('http://localhost:3001/api/browse', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url: call.value })
-          });
-          const data = await r.json();
-          const pageText = data.ok ? `Title: ${data.title}\n\n${data.text}` : `Error: ${data.error}`;
+          const data = await browseUrl(call.value);
+          const pageText = data.ok ? `Title: ${data.title}\n\n${data.text}` : `Error: ${data.error || 'Could not load page'}`;
           const toolResult = `\n[Browsed: ${call.value}]\n${pageText.slice(0, 6000)}\n`;
           result = result.replace(call.tag, toolResult);
         } catch (e) {
           result = result.replace(call.tag, `\n[Browse error: ${e.message}]\n`);
+        }
+        setCalvrasAction(null);
+      } else if (call.type === 'search') {
+        setCalvrasAction({ type: 'search', text: call.value });
+        executed.push({ type: 'search', text: `Searched web for "${call.value}"` });
+        try {
+          const data = await searchWeb(call.value);
+          if (data.ok && data.results && data.results.length > 0) {
+            const formatted = data.results.map(r => `• ${r.title} (${r.url})\n  ${r.snippet}`).join('\n\n');
+            const toolResult = `\n[Web Search Results for "${call.value}"]:\n${formatted}\n`;
+            result = result.replace(call.tag, toolResult);
+          } else {
+            result = result.replace(call.tag, `\n[Web Search for "${call.value}": No direct results found]\n`);
+          }
+        } catch (e) {
+          result = result.replace(call.tag, `\n[Search error: ${e.message}]\n`);
         }
         setCalvrasAction(null);
       }
@@ -1940,39 +1959,32 @@ CRITICAL:
       // Fall through to the normal AI call below
     }
 
-    // ── 4. URL Browse Interception — when a URL is in the query, fetch its content ──
+    // ── 4. Web Search & URL Browse Interception ──
+    let webSearchContext = '';
     const urlInQuery = query.match(/https?:\/\/[^\s]+/i);
 
     if (urlInQuery && attachedFiles.length === 0) {
       const cleanUrl = urlInQuery[0].replace(/[.,!?]+$/, '');
       const isUrlDuplicateRequest = /duplicate|clone|copy|replicate|build|make|recreate|rebuild|same\s+as|match|pixel/i.test(query);
 
-      // Fetch page content via server browse endpoint
+      // Fetch page content via robust browse service (local API or Jina reader fallback)
       setCalvrasAction({ type: 'browse', text: cleanUrl });
-      let browseContext = '';
       try {
-        const browseRes = await fetch('http://localhost:3001/api/browse', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: cleanUrl })
-        });
-        if (browseRes.ok) {
-          const browseData = await browseRes.json();
-          if (browseData.ok && browseData.text) {
-            browseContext = `\n\n[Live page content from ${cleanUrl}]\nTitle: ${browseData.title}\n\n${browseData.text.slice(0, 8000)}\n`;
-          }
+        const browseData = await browseUrl(cleanUrl);
+        if (browseData.ok && browseData.text) {
+          webSearchContext = `\n\n[Live website content from ${cleanUrl}]\nTitle: ${browseData.title}\n\n${browseData.text.slice(0, 8000)}\n`;
         }
       } catch (e) {
         console.warn('[Browse] failed:', e.message);
       }
       setCalvrasAction(null);
 
-      if (browseContext) {
-        // Inject fetched content into history for the AI
+      if (webSearchContext && isUrlDuplicateRequest) {
+        // Inject fetched content into history for the AI duplication flow
         const lastMsg = history[history.length - 1];
         const enrichedHistory = [
           ...history.slice(0, -1),
-          { ...lastMsg, content: lastMsg.content + browseContext }
+          { ...lastMsg, content: lastMsg.content + webSearchContext }
         ];
 
         setIsThinking(true);
@@ -1982,10 +1994,8 @@ CRITICAL:
         setIsLiveThinkingOpen(true);
         setStreamingText('');
         setRunningTasks([]);
-        if (isUrlDuplicateRequest) {
-          setIsSplitScreen(true);
-          setActiveWorkspaceTab('preview');
-        }
+        setIsSplitScreen(true);
+        setActiveWorkspaceTab('preview');
 
         let thinkingTimer = setInterval(() => setLiveThinkingDuration(d => d + 1), 1000);
 
@@ -2007,6 +2017,8 @@ CRITICAL:
             if (cmdMatch) setCalvrasAction({ type: 'cmd', text: cmdMatch[1].trim() });
             const bMatch = full.match(/<browse>([^<]{1,300})<\/browse>/i);
             if (bMatch) setCalvrasAction({ type: 'browse', text: bMatch[1].trim() });
+            const sMatch = full.match(/<search>([^<]{1,200})<\/search>/i);
+            if (sMatch) setCalvrasAction({ type: 'search', text: sMatch[1].trim() });
           },
           onDone: async (res) => {
             clearInterval(thinkingTimer);
@@ -2016,8 +2028,10 @@ CRITICAL:
             const prose = rawFull
               .replace(/<run_cmd>[\s\S]*?<\/run_cmd>/gi, '')
               .replace(/<browse>[\s\S]*?<\/browse>/gi, '')
+              .replace(/<search>[\s\S]*?<\/search>/gi, '')
               .replace(/\[Terminal:.*?\]\n[\s\S]*?Exit code: -?\d+\n/g, '')
               .replace(/\[Browsed:.*?\]\n[\s\S]{0,6100}/g, '')
+              .replace(/\[Web Search Results for:.*?\]\n[\s\S]{0,6100}/g, '')
               .replace(/```[\s\S]*?```/g, '')
               .replace(/<[^>]+>/g, '')
               .replace(/\n{3,}/g, '\n\n')
@@ -2102,7 +2116,35 @@ CRITICAL:
             setCalvrasAction(null);
           }
         });
-        return;
+      }
+    }
+
+    // ── 4b. Web Search Intent Interception ──
+    if (!urlInQuery && attachedFiles.length === 0) {
+      const isSearchIntent = /\b(?:search(?:\s+(?:the\s+)?(?:web|internet|online|google|sites?|websites?))?|look\s+up|find\s+online|latest\s+news|check\s+(?:the\s+)?(?:web|internet|site|website)|check\s+online|research)\b/i.test(query) ||
+        /\b(?:can\s+(?:you|calvras)\s+search|does\s+it\s+search|what\s+is\s+the\s+latest|who\s+won|latest\s+version|release\s+date)\b/i.test(query) ||
+        /^check\s+([a-zA-Z0-9_\-./ ]+?)\s+(?:and\s+build|and\s+create|and\s+clone)/i.test(query);
+
+      if (isSearchIntent) {
+        let queryToSearch = query
+          .replace(/^(?:can\s+(?:you|calvras)\s+)?(?:please\s+)?(?:search(?:\s+(?:the\s+)?(?:web|internet|online|google|sites?|websites?))?(?:\s+for)?|check\s+(?:out\s+)?(?:the\s+)?(?:web|internet|online|site|website)?|look\s+up|find\s+online|research)\s+/i, '')
+          .replace(/\b(?:and\s+build\s+.*|and\s+create\s+.*|for\s+me)\b/i, '')
+          .trim();
+        if (!queryToSearch || queryToSearch.length < 3) queryToSearch = query;
+
+        setCalvrasAction({ type: 'search', text: queryToSearch });
+        try {
+          const searchData = await searchWeb(queryToSearch);
+          if (searchData.ok && searchData.results && searchData.results.length > 0) {
+            const formattedResults = searchData.results
+              .map(r => `• Title: ${r.title}\n  URL: ${r.url}\n  Snippet: ${r.snippet}`)
+              .join('\n\n');
+            webSearchContext = `\n\n[Live Web Search Results for "${queryToSearch}"]:\n${formattedResults}\n\n(Use these verified real-time web search results to inform your response/code, cite sources with markdown links where appropriate.)\n`;
+          }
+        } catch (e) {
+          console.warn('[WebSearch] failed:', e.message);
+        }
+        setCalvrasAction(null);
       }
     }
 
@@ -2205,25 +2247,21 @@ CRITICAL:
 
     // ── Live Web Search Interception ─────────────────────────────────────────
     const isExplicitSearch = /search\s+for|search\s+the\s+web\s+for|look\s+up|search\s+web|what\s+is\s+https?:\/\/|tell\s+me\s+about\s+[a-zA-Z0-9-]+\.(?:com|org|net|io|ai)/i.test(query) || webSearchMode === 'on';
-    let webSearchContext = '';
-    if (isExplicitSearch) {
+    if (!webSearchContext && isExplicitSearch) {
       const searchMatch = query.match(/search(?:\s+the\s+web)?(?:\s+for)?\s+["']?([^"'\n.?!]+)["']?/i);
       const searchTerm = searchMatch ? searchMatch[1].trim() : query.replace(/^(search|look up|what is|tell me about)\s+/i, '').trim();
 
       setTerminalLogs(prev => [...prev, { type: 'info', text: `[WebSearch] Querying real-time search index for "${searchTerm}"...` }]);
 
       try {
-        const searchRes = await fetch(`http://localhost:3001/api/search?q=${encodeURIComponent(searchTerm)}`);
-        if (searchRes.ok) {
-          const searchData = await searchRes.json();
-          if (Array.isArray(searchData.results) && searchData.results.length > 0) {
-            const items = searchData.results.map(r => `- **${r.title}**: ${r.snippet} (URL: ${r.url})`);
-            webSearchContext = `\n\n[Live Real-time Web Search Results for "${searchTerm}"]:\n${items.join('\n')}\n\n[CRITICAL INSTRUCTION: You have live web search capabilities. Synthesize, summarize, and explain these live search results directly, thoroughly, and helpfully to the user.]\n`;
-            setTerminalLogs(prev => [...prev, { type: 'success', text: `✓ Retrieved ${items.length} live search sources for "${searchTerm}"` }]);
-          }
+        const searchData = await searchWeb(searchTerm);
+        if (searchData.ok && Array.isArray(searchData.results) && searchData.results.length > 0) {
+          const items = searchData.results.map(r => `- **${r.title}**: ${r.snippet} (URL: ${r.url})`);
+          webSearchContext = `\n\n[Live Real-time Web Search Results for "${searchTerm}"]:\n${items.join('\n')}\n\n[CRITICAL INSTRUCTION: You have live web search capabilities. Synthesize, summarize, and explain these live search results directly, thoroughly, and helpfully to the user.]\n`;
+          setTerminalLogs(prev => [...prev, { type: 'success', text: `✓ Retrieved ${items.length} live search sources for "${searchTerm}"` }]);
         }
       } catch (e) {
-        console.warn('Backend search error, falling back to direct DDG:', e.message);
+        console.warn('Search error:', e.message);
       }
     }
 
@@ -2393,6 +2431,9 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
           // Show browse in progress
           const browseMatch = fullContent.match(/<browse>([^<]{1,300})<\/browse>/i);
           if (browseMatch) setCalvrasAction({ type: 'browse', text: browseMatch[1].trim() });
+          // Show search in progress
+          const searchMatch = fullContent.match(/<search>([^<]{1,200})<\/search>/i);
+          if (searchMatch) setCalvrasAction({ type: 'search', text: searchMatch[1].trim() });
         },
         onDone: async (res) => {
           clearInterval(thinkingTimer);
@@ -2504,6 +2545,8 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
               .replace(/<browse>[\s\S]*?<\/browse>/gi, '')
               .replace(/\[Terminal:.*?\]\n[\s\S]*?Exit code: -?\d+\n/g, '')
               .replace(/\[Browsed:.*?\]\n[\s\S]{0,6100}/g, '')
+              .replace(/\[Web Search Results for:.*?\]\n[\s\S]{0,6100}/g, '')
+              .replace(/<search>[\s\S]*?<\/search>/gi, '')
               .replace(/<function_calls>[\s\S]*?<\/function_calls>/gi, '')
               .replace(/<invoke[\s\S]*?<\/invoke>/gi, '')
               .replace(/<parameter[\s\S]*?<\/parameter>/gi, '')

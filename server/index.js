@@ -55,6 +55,108 @@ app.post('/api/generate-image', (req, res) => {
   return res.json({ url, prompt });
 });
 
+// ─── POST /api/search ──────────────────────────────────────────────────────────
+// body: { query: string }
+app.post('/api/search', async (req, res) => {
+  const { query } = req.body;
+  if (!query) return res.status(400).json({ error: 'query required' });
+
+  try {
+    const ddgUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+    const ddgRes = await fetch(ddgUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9'
+      }
+    });
+
+    if (!ddgRes.ok) throw new Error(`DDG response ${ddgRes.status}`);
+    const html = await ddgRes.text();
+
+    const results = [];
+    const regex = /<h2 class="result__title">[\s\S]*?<a[^>]*class="result__a"[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>[\s\S]*?<\/h2>[\s\S]*?<a[^>]*class="result__snippet"[^>]*>([\s\S]*?)<\/a>/gi;
+    let match;
+    while ((match = regex.exec(html)) !== null && results.length < 6) {
+      const rawUrl = match[1];
+      let cleanUrl = rawUrl;
+      if (rawUrl.includes('uddg=')) {
+        try {
+          cleanUrl = decodeURIComponent(rawUrl.split('uddg=')[1].split('&')[0]);
+        } catch {}
+      }
+      const title = match[2].replace(/<[^>]+>/g, '').trim();
+      const snippet = match[3].replace(/<[^>]+>/g, '').trim();
+      if (title && cleanUrl) {
+        results.push({ title, url: cleanUrl, snippet });
+      }
+    }
+
+    return res.json({ ok: true, query, results });
+  } catch (err) {
+    console.error('Search API error:', err.message);
+    return res.status(500).json({ ok: false, error: err.message, results: [] });
+  }
+});
+
+// ─── POST /api/browse ─────────────────────────────────────────────────────────
+// body: { url: string }
+app.post('/api/browse', async (req, res) => {
+  const { url } = req.body;
+  if (!url) return res.status(400).json({ error: 'url required' });
+
+  let cleanUrl = url.trim();
+  if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+    cleanUrl = `https://${cleanUrl}`;
+  }
+
+  try {
+    // 1. Try Jina Reader
+    const jinaRes = await fetch(`https://r.jina.ai/${cleanUrl}`, {
+      headers: { 'Accept': 'text/plain' },
+      signal: AbortSignal.timeout(15000)
+    });
+
+    if (jinaRes.ok) {
+      const text = await jinaRes.text();
+      const titleMatch = text.match(/^Title:\s*(.+)$/m);
+      const title = titleMatch ? titleMatch[1].trim() : cleanUrl;
+      return res.json({
+        ok: true,
+        url: cleanUrl,
+        title,
+        text: text.slice(0, 10000)
+      });
+    }
+
+    // 2. Direct HTML fetch fallback
+    const directRes = await fetch(cleanUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      },
+      signal: AbortSignal.timeout(15000)
+    });
+    const html = await directRes.text();
+    const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+    const title = titleMatch ? titleMatch[1].replace(/<[^>]+>/g, '').trim() : cleanUrl;
+    const cleanText = html
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[\s\S]*?<\/style>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    return res.json({
+      ok: true,
+      url: cleanUrl,
+      title,
+      text: cleanText.slice(0, 10000)
+    });
+  } catch (err) {
+    console.error('Browse API error:', err.message);
+    return res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 // ─── POST /api/clone ─────────────────────────────────────────────────────────
 // body: { url: string, token?: string }
 // Streams SSE logs, ends with { type: 'done', port, files } or { type: 'error' }
