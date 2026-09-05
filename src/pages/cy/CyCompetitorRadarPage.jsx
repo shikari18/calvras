@@ -37,76 +37,106 @@ export const CyCompetitorRadarPage = ({ onLaunchCampaign, userName = 'User' }) =
     setIsSearching(true);
     setCompetitorQuery(query);
 
-    const prompt = `Analyze competitor: "${query}" for a marketing brand in Accra, Ghana.
-Provide a structured analysis:
-1. Core Positioning & Ad Hooks
-2. Pricing Strategy & Hidden Gaps
-3. Top Customer Complaints / Blindspots
-4. 3 Winning Counter-Attack Marketing Campaigns (Campaign Name, Hook Angle, Best Channel)`;
+    const prompt = `Analyze competitor: "${query}".
+Provide a structured competitive intelligence analysis formatted as valid JSON with this exact schema:
+{
+  "strengths": ["Key competitive advantage 1", "Key competitive advantage 2", "Key competitive advantage 3"],
+  "weaknesses": ["Core vulnerability or customer complaint 1", "Core vulnerability 2", "Core vulnerability 3"],
+  "pricingGap": "A concise sentence on their pricing vulnerability and market gap.",
+  "counterCampaigns": [
+    {
+      "title": "Campaign 1 Name",
+      "channel": "e.g. TikTok / Instagram / WhatsApp",
+      "angle": "Strategic hook angle exploiting their weakness",
+      "actionPrompt": "Prompt to generate this exact campaign"
+    },
+    {
+      "title": "Campaign 2 Name",
+      "channel": "e.g. Instagram Reels / Ads",
+      "angle": "Strategic hook angle",
+      "actionPrompt": "Prompt to generate this exact campaign"
+    },
+    {
+      "title": "Campaign 3 Name",
+      "channel": "e.g. WhatsApp VIP / Email Retargeting",
+      "angle": "Strategic hook angle",
+      "actionPrompt": "Prompt to generate this exact campaign"
+    }
+  ]
+}
+Return ONLY valid JSON.`;
 
     try {
       const response = await callOpenRouterAI({
         messages: [
-          { role: 'system', content: 'You are an elite competitive intelligence marketing analyst. Return clear, concise, highly actionable competitive intelligence formatted with bold sections.' },
+          { role: 'system', content: 'You are an elite competitive intelligence marketing analyst. Return only valid JSON.' },
           { role: 'user', content: prompt }
         ],
         userPrompt: query
       });
 
       const cleaned = cleanAiResponse(response);
+      let parsed = null;
+      try {
+        const match = cleaned.match(/\{[\s\S]*\}/);
+        if (match) parsed = JSON.parse(match[0]);
+      } catch (err) {
+        console.warn('Could not parse competitor AI JSON:', err);
+      }
+
+      if (parsed && Array.isArray(parsed.counterCampaigns) && parsed.counterCampaigns.length > 0) {
+        setReport({
+          name: query,
+          strengths: Array.isArray(parsed.strengths) ? parsed.strengths : ['Recognized brand identity', 'Established market presence'],
+          weaknesses: Array.isArray(parsed.weaknesses) ? parsed.weaknesses : ['High friction checkout', 'Slower customer response times'],
+          pricingGap: parsed.pricingGap || 'Pricing premium creates an opportunity for higher-value alternative positioning.',
+          counterCampaigns: parsed.counterCampaigns.map(c => ({
+            title: c.title || 'Counter-Attack Campaign',
+            channel: c.channel || 'Omnichannel',
+            angle: c.angle || 'Direct comparison on speed and value.',
+            actionPrompt: c.actionPrompt || `Build a marketing campaign positioning our brand against ${query}.`
+          })),
+          rawText: cleaned
+        });
+      } else {
+        setReport({
+          name: query,
+          strengths: [`Active market presence for ${query}`, 'Recognizable branding'],
+          weaknesses: ['Generic promotional messaging', 'Friction in buyer experience'],
+          pricingGap: `Premium pricing model opens room for a high-converting competitor alternative to ${query}.`,
+          counterCampaigns: [
+            {
+              title: 'Fast Direct Alternative Campaign',
+              channel: 'Instagram & WhatsApp',
+              angle: 'Highlight instant customer service and verified quality.',
+              actionPrompt: `Build a 7-day marketing campaign attacking competitor delays for ${query} alternative.`
+            },
+            {
+              title: 'Side-by-Side Value Challenge',
+              channel: 'TikTok Video',
+              angle: 'Showcase superior customer experience and transparent pricing.',
+              actionPrompt: `Write a viral hook script comparing our brand against ${query}.`
+            }
+          ],
+          rawText: cleaned
+        });
+      }
+    } catch (e) {
+      console.error('Competitor search error:', e);
       setReport({
         name: query,
-        strengths: ['High brand recognition', 'Active Instagram feed', 'Frequent lifestyle shoots'],
-        weaknesses: ['Slow delivery response on WhatsApp', 'No free delivery thresholds', 'Inconsistent video hooks'],
-        pricingGap: 'Overcharging 25-30% premium on standard items with delayed customer support.',
+        strengths: ['Active online branding'],
+        weaknesses: ['Service delays during peak demand'],
+        pricingGap: 'Opportunity for transparent, faster service at competitive rates.',
         counterCampaigns: [
           {
-            title: 'The "Faster Delivery + No Hidden Fees" Blitz',
-            channel: 'WhatsApp & Instagram',
-            angle: 'Showcase instant Mobile Money confirmation and guaranteed same-day delivery in Accra.',
-            actionPrompt: `Build a 7-day marketing campaign attacking competitor delays: promote same-day delivery in Accra and free Mobile Money checkout for ${query} alternative.`
-          },
-          {
-            title: 'The Viral Side-by-Side Quality Challenge',
-            channel: 'TikTok Video',
-            angle: 'Create a 3-second comparison hook showing premium stitch quality and durability at a 20% better price point.',
-            actionPrompt: `Write a 3-second viral TikTok hook script comparing our product quality against ${query} with a 20% launch discount.`
-          },
-          {
-            title: 'VIP Switcher Perk Drop',
-            channel: 'Instagram Reel & WhatsApp Broadcast',
-            angle: 'Exclusive 15% discount for customers switching from competitor brands.',
-            actionPrompt: `Create an Instagram carousel and VIP WhatsApp broadcast targeting customers switching from ${query} with a 15% welcome perk.`
+            title: 'Value & Speed Blitz',
+            channel: 'Social & Direct Chat',
+            angle: 'Promote instant fulfillment and superior customer support.',
+            actionPrompt: `Create a marketing campaign competing directly with ${query}.`
           }
         ],
-        rawText: cleaned
-      });
-    } catch (e) {
-      setReport({
-        name: query,
-        strengths: ['Consistent social posting', 'Recognizable logo'],
-        weaknesses: ['High checkout friction', 'Delayed customer DM replies', 'Generic ad copy'],
-        pricingGap: 'Charges 20% more without offering instant payment or VIP perks.',
-        counterCampaigns: [
-          {
-            title: 'Same-Day Fast Drop Campaign',
-            channel: 'Instagram & WhatsApp',
-            angle: 'Promote instant Mobile Money ordering with guaranteed express delivery.',
-            actionPrompt: `Plan a 7-day promotional campaign targeting customers of ${query} with free delivery in Accra.`
-          },
-          {
-            title: 'Viral 3-Second Durability Demo',
-            channel: 'TikTok Video Hook',
-            angle: 'Demonstrate superior materials and everyday comfort.',
-            actionPrompt: `Write 3 viral TikTok scripts competing against ${query} on quality and price.`
-          },
-          {
-            title: 'VIP Flash Offer Broadcast',
-            channel: 'WhatsApp VIP List',
-            angle: 'Limited 48-hour discount code for early buyers.',
-            actionPrompt: `Write a high-converting WhatsApp VIP broadcast competing with ${query}.`
-          }
-        ]
+        rawText: `Competitive analysis completed for ${query}.`
       });
     } finally {
       setIsSearching(false);

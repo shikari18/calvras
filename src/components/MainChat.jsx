@@ -30,7 +30,12 @@ import PlusActionMenu from './PlusActionMenu';
 import InteractiveQuestionCard from './InteractiveQuestionCard';
 import { extractSelectionQuestion } from './SelectionBlock';
 import ProjectWorkspacePane from './ProjectWorkspacePane';
-import { BUILD_MODES } from '../data/mockData';
+export const BUILD_MODES = [
+  { id: 'build', name: 'Build', desc: 'Generate complete full-stack web applications' },
+  { id: 'chat', name: 'Chat', desc: 'Discuss architecture and get technical advice' },
+  { id: 'plan', name: 'Plan', desc: 'Create technical specifications and database schemas' },
+  { id: 'edit', name: 'Edit', desc: 'Refactor existing code and implement components' },
+];
 import { generateAIResponse, streamAIResponse, MALVOS_SYSTEM_PROMPT } from '../services/aiService';
 import { searchWeb, browseUrl } from '../services/webSearchService';
 

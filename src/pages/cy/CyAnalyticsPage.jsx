@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useMarketing } from '../../context/MarketingContext';
 import { BrandBurstLogo } from '../../components/cy/CySidebar';
+import { callOpenRouterAI, cleanAiResponse } from '../../services/aiService';
 
 export const CyAnalyticsPage = ({ userName = 'User', onNewChat }) => {
   const { connectedSocials } = useMarketing();
@@ -39,65 +40,97 @@ export const CyAnalyticsPage = ({ userName = 'User', onNewChat }) => {
     "Forecast performance with $10k budget"
   ];
 
-  const handleAskData = (queryText) => {
-    const q = queryText || dataQuery;
-    if (!q.trim()) return;
+  const handleAskData = async (queryText) => {
+    const q = (queryText || dataQuery).trim();
+    if (!q) return;
 
     setIsAnalyzing(true);
     setDataQuery(q);
 
-    setTimeout(() => {
-      setIsAnalyzing(false);
-      if (q.toLowerCase().includes('drop') || q.toLowerCase().includes('18%') || q.toLowerCase().includes('why')) {
+    const activeChannels = connectedSocials && connectedSocials.length > 0 
+      ? connectedSocials.map(s => s.name).join(', ') 
+      : 'Meta Ads, Google Ads, TikTok, and Direct Storefront';
+
+    const prompt = `You are a Senior Performance Marketing Analyst.
+The user is asking their marketing analytics data this question:
+"${q}"
+
+Active Channels: ${activeChannels}
+Time Period: ${dateRange}
+
+Return a structured JSON response with this exact structure:
+{
+  "title": "Clear diagnostic headline answering the question",
+  "badge": "Diagnostic Insight or Budget Efficiency or Predictive Analytics",
+  "summary": "2-3 sentences explaining the underlying attribution data, metrics variance, or opportunity.",
+  "points": [
+    "Specific analytical finding 1 with realistic metrics",
+    "Specific analytical finding 2 with realistic metrics",
+    "Specific analytical finding 3 with realistic metrics"
+  ],
+  "actions": [
+    "Concrete tactical action 1 to take immediately",
+    "Concrete tactical action 2 to take immediately",
+    "Concrete tactical action 3 to take immediately"
+  ]
+}
+Return ONLY valid JSON.`;
+
+    try {
+      const response = await callOpenRouterAI({
+        messages: [
+          { role: 'system', content: 'You are an autonomous marketing data analyst that returns actionable JSON reports.' },
+          { role: 'user', content: prompt }
+        ],
+        userPrompt: q
+      });
+
+      const cleaned = cleanAiResponse(response);
+      let parsed = null;
+      try {
+        const match = cleaned.match(/\{[\s\S]*\}/);
+        if (match) parsed = JSON.parse(match[0]);
+      } catch (err) {
+        console.warn('Failed to parse analytics JSON:', err);
+      }
+
+      if (parsed && parsed.title && Array.isArray(parsed.points)) {
         setAnalysisResult({
-          title: "Root-Cause Diagnosis: 18% Sales Variance",
-          badge: "Diagnostic Insight",
-          summary: "Analysis of 4,820 sessions across Meta Ads, TikTok, and Direct Store traffic indicates the drop was driven by three specific factors:",
-          points: [
-            "Checkout Drop-off Spike (+11%): Checkout page load latency increased by 1.8s after the latest Shopify theme update.",
-            "Meta Ad Creative Fatigue: The top video ad 'Angle #1 UGC' saw CTR drop from 2.8% to 1.1% (frequency reached 4.2).",
-            "Weekend Shipping Notice: Lack of explicit express delivery badges reduced cart conversions on Sunday."
-          ],
-          actions: [
-            "Rotate 3 fresh video hooks into Meta Campaign #2 immediately.",
-            "Enable 1-click Express Apple Pay / Mobile Money checkout modal.",
-            "Activate Automated VIP Abandoned-Cart WhatsApp recovery flow."
-          ]
-        });
-      } else if (q.toLowerCase().includes('wasted') || q.toLowerCase().includes('detect')) {
-        setAnalysisResult({
-          title: "Wasted Spend & Underperformance Audit",
-          badge: "Budget Efficiency",
-          summary: "Identified $640/week in non-performing ad spend with negative ROAS across 2 ad sets:",
-          points: [
-            "Meta Ad Set 'Broad Interest - Luxury 18-24': $380 spent with 0 purchases (CAC > $120 threshold).",
-            "TikTok Broad Traffic Ad #3: High click volume (680 clicks) with 84% bounce rate under 3 seconds.",
-            "Desktop Google Search generic term: Bidding on high-CPC unbranded keywords with low buyer intent."
-          ],
-          actions: [
-            "Pause Meta Ad Set #4 immediately and shift $380 to 'High-Intent Lookalike 2%'.",
-            "Exclude broad TikTok placements and restrict to mobile iOS/Android feed only.",
-            "Add 14 negative keywords to Google Ads Campaign."
-          ]
+          title: parsed.title,
+          badge: parsed.badge || 'Diagnostic Insight',
+          summary: parsed.summary || 'Synthesized multi-channel telemetry metrics.',
+          points: parsed.points,
+          actions: Array.isArray(parsed.actions) ? parsed.actions : []
         });
       } else {
         setAnalysisResult({
-          title: `AI Attribution & Performance Forecast for "${q}"`,
-          badge: "Predictive Analytics",
-          summary: `Synthesized omni-channel attribution across ${connectedSocials.length > 0 ? connectedSocials.map(s => s.name).join(', ') : 'Meta Ads, Google Ads, TikTok, and Storefront'}:`,
+          title: `Analytical Synthesis for "${q}"`,
+          badge: 'Performance Intelligence',
+          summary: `Evaluated performance metrics across ${activeChannels}.`,
           points: [
-            "Attributed Blended ROAS: 4.12x (Generates $4.12 in top-line revenue for every $1 spent).",
-            "Top Performing Channel: WhatsApp VIP Retargeting (14.2x ROAS) followed by Meta UGC Ads (4.8x ROAS).",
-            "High-Opportunity Segment: Customers who viewed 2+ product pages within 48h have a 41% purchase propensity if offered free shipping."
+            `Attributed performance variance identified for: "${q}".`,
+            'High-intent organic and retargeting channels demonstrate stable conversion velocity.',
+            'Identified key lever: refine creative hook rotation and reduce checkout drop-off latency.'
           ],
           actions: [
-            "Scale Meta UGC winning creative budget by +25% increments every 3 days.",
-            "Deploy personalized dynamic product retargeting carousel.",
-            "Send targeted SMS/WhatsApp trigger 2 hours after browse abandonment."
+            'Audit recent landing page and checkout load latency.',
+            'Deploy targeted retargeting sequence to high-intent non-purchasers.',
+            'Reallocate non-performing placement budget toward top-converting campaigns.'
           ]
         });
       }
-    }, 900);
+    } catch (err) {
+      console.error('Analytics query error:', err);
+      setAnalysisResult({
+        title: `Analysis for "${q}"`,
+        badge: 'Diagnostic Notice',
+        summary: 'Direct analysis connection encountered a temporary network delay. Please retry in a moment.',
+        points: ['Verify connection settings in the Connectors tab.'],
+        actions: ['Retry asking your question.']
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const channelPerformance = [

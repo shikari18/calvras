@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { X, Check, GitBranch, Database, MessageSquare, FileText, CreditCard, Box } from 'lucide-react';
-import { CONNECTED_TOOLS } from '../data/mockData';
 
 const iconMap = {
   GitBranch: GitBranch,
@@ -11,13 +10,40 @@ const iconMap = {
   CreditCard: CreditCard,
 };
 
+const DEFAULT_TOOLS = [
+  { id: 'github', name: 'GitHub', icon: 'GitBranch', color: 'bg-neutral-800 text-white' },
+  { id: 'figma', name: 'Figma', icon: 'Figma', color: 'bg-purple-600/20 text-purple-400' },
+  { id: 'supabase', name: 'Supabase DB', icon: 'Database', color: 'bg-emerald-600/20 text-emerald-400' },
+  { id: 'slack', name: 'Slack', icon: 'MessageSquare', color: 'bg-amber-600/20 text-amber-400' },
+  { id: 'notion', name: 'Notion', icon: 'FileText', color: 'bg-blue-600/20 text-blue-400' },
+  { id: 'stripe', name: 'Stripe Payments', icon: 'CreditCard', color: 'bg-indigo-600/20 text-indigo-400' },
+];
+
 export default function ConnectToolsModal({ isOpen, onClose }) {
-  const [tools, setTools] = useState(CONNECTED_TOOLS);
+  const [tools, setTools] = useState(() => {
+    try {
+      const saved = localStorage.getItem('calvras_connected_tools');
+      const ghToken = localStorage.getItem('malvos_gh_token');
+      const savedMap = saved ? JSON.parse(saved) : {};
+      return DEFAULT_TOOLS.map(t => ({
+        ...t,
+        connected: t.id === 'github' ? (Boolean(ghToken) || Boolean(savedMap[t.id])) : Boolean(savedMap[t.id])
+      }));
+    } catch {
+      return DEFAULT_TOOLS.map(t => ({ ...t, connected: false }));
+    }
+  });
 
   if (!isOpen) return null;
 
   const toggleTool = (id) => {
-    setTools(tools.map(t => t.id === id ? { ...t, connected: !t.connected } : t));
+    const updated = tools.map(t => t.id === id ? { ...t, connected: !t.connected } : t);
+    setTools(updated);
+    try {
+      const stateMap = {};
+      updated.forEach(t => { stateMap[t.id] = t.connected; });
+      localStorage.setItem('calvras_connected_tools', JSON.stringify(stateMap));
+    } catch {}
   };
 
   return (

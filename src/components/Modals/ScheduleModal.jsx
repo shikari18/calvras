@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { X, Clock, Play, Calendar, CheckCircle2 } from 'lucide-react';
+import { X, Clock, Play, Calendar, CheckCircle2, Trash2 } from 'lucide-react';
 
 export default function ScheduleModal({ isOpen, onClose }) {
-  const [tasks, setTasks] = useState([
-    { id: 1, name: 'Daily Codebase Health & Dependency Audit', schedule: 'Every day at 09:00 AM', status: 'Active' },
-    { id: 2, name: 'Weekly Deep Competitor Tech Radar', schedule: 'Every Monday at 08:00 AM', status: 'Active' },
-    { id: 3, name: 'PR Auto-Reviewer & Lint Fixer Swarm', schedule: 'On new Pull Request', status: 'Active' },
-  ]);
+  const [tasks, setTasks] = useState(() => {
+    try {
+      const saved = localStorage.getItem('calvras_scheduled_tasks');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return [];
+  });
   const [taskName, setTaskName] = useState('');
   const [scheduleTime, setScheduleTime] = useState('Daily at 9:00 AM');
 
@@ -15,8 +17,21 @@ export default function ScheduleModal({ isOpen, onClose }) {
   const handleAddTask = (e) => {
     e.preventDefault();
     if (!taskName.trim()) return;
-    setTasks([...tasks, { id: Date.now(), name: taskName.trim(), schedule: scheduleTime, status: 'Active' }]);
+    const updated = [...tasks, { id: Date.now(), name: taskName.trim(), schedule: scheduleTime, status: 'Active' }];
+    setTasks(updated);
+    try {
+      localStorage.setItem('calvras_scheduled_tasks', JSON.stringify(updated));
+    } catch {}
     setTaskName('');
+  };
+
+  const handleDeleteTask = (id, e) => {
+    e.stopPropagation();
+    const updated = tasks.filter(t => t.id !== id);
+    setTasks(updated);
+    try {
+      localStorage.setItem('calvras_scheduled_tasks', JSON.stringify(updated));
+    } catch {}
   };
 
   return (
@@ -75,24 +90,39 @@ export default function ScheduleModal({ isOpen, onClose }) {
 
         {/* Existing Tasks */}
         <div className="space-y-2 max-h-56 overflow-y-auto">
-          {tasks.map((task) => (
-            <div
-              key={task.id}
-              className="flex items-center justify-between p-3 rounded-xl bg-[#171720] border border-[#242432]"
-            >
-              <div>
-                <div className="text-xs font-semibold text-white">{task.name}</div>
-                <div className="text-[11px] text-neutral-400 flex items-center gap-1.5 mt-0.5">
-                  <Calendar size={12} className="text-neutral-500" />
-                  <span>{task.schedule}</span>
+          {tasks.length === 0 ? (
+            <div className="p-6 text-center rounded-2xl bg-[#171720] border border-[#242432] text-xs text-neutral-400">
+              No scheduled background tasks configured yet. Add your first task above.
+            </div>
+          ) : (
+            tasks.map((task) => (
+              <div
+                key={task.id}
+                className="flex items-center justify-between p-3 rounded-xl bg-[#171720] border border-[#242432]"
+              >
+                <div>
+                  <div className="text-xs font-semibold text-white">{task.name}</div>
+                  <div className="text-[11px] text-neutral-400 flex items-center gap-1.5 mt-0.5">
+                    <Calendar size={12} className="text-neutral-500" />
+                    <span>{task.schedule}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 text-[11px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                    <CheckCircle2 size={12} />
+                    <span>{task.status}</span>
+                  </div>
+                  <button
+                    onClick={(e) => handleDeleteTask(task.id, e)}
+                    className="p-1.5 text-neutral-500 hover:text-red-400 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer"
+                    title="Delete task"
+                  >
+                    <Trash2 size={13} />
+                  </button>
                 </div>
               </div>
-              <div className="flex items-center gap-1 text-[11px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                <CheckCircle2 size={12} />
-                <span>{task.status}</span>
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>

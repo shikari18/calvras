@@ -11,17 +11,26 @@ export const CyTeamPage = ({ userName = 'Admin', userEmail = 'admin@example.com'
   const [orgName, setOrgName] = useState("Workspace Team");
   const [isEditingOrg, setIsEditingOrg] = useState(false);
 
-  const [members, setMembers] = useState([
-    {
-      id: 1,
-      name: userName,
-      isYou: true,
-      email: userEmail,
-      joined: '8/20/2026',
-      role: 'Admin',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'
-    }
-  ]);
+  const [members, setMembers] = useState(() => {
+    try {
+      const saved = localStorage.getItem('calvras_team_members');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return [
+      {
+        id: 1,
+        name: userName || 'Admin',
+        isYou: true,
+        email: userEmail || 'user@example.com',
+        joined: new Date().toLocaleDateString('en-US'),
+        role: 'Admin',
+        avatar: null
+      }
+    ];
+  });
 
   const handleInvite = (e) => {
     e.preventDefault();
@@ -37,7 +46,11 @@ export const CyTeamPage = ({ userName = 'Admin', userEmail = 'admin@example.com'
       avatar: null
     };
 
-    setMembers([...members, newMember]);
+    const updated = [...members, newMember];
+    setMembers(updated);
+    try {
+      localStorage.setItem('calvras_team_members', JSON.stringify(updated));
+    } catch {}
     setInviteEmail('');
     setShowInviteModal(false);
     try { confetti({ particleCount: 50, spread: 60 }); } catch (err) {}

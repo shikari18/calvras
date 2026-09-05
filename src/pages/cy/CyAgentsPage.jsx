@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { useMarketing } from '../../context/MarketingContext';
 import { BrandBurstLogo } from '../../components/cy/CySidebar';
+import { callOpenRouterAI, cleanAiResponse } from '../../services/aiService';
 import confetti from 'canvas-confetti';
 
 export const CyAgentsPage = ({ onNewChat }) => {
@@ -59,90 +60,185 @@ export const CyAgentsPage = ({ onNewChat }) => {
   };
 
   // Autonomous Execution Loop
-  const handleRunAutonomousGrowthAgent = () => {
+  const handleRunAutonomousGrowthAgent = async () => {
     if (!goalPrompt.trim() || isExecuting) return;
 
     setIsExecuting(true);
     setExecutionStep(0);
     setGrowthPlan(null);
 
-    // Sequence through autonomous observation and synthesis steps
+    // Sequence through visual pipeline steps while AI processes
     let step = 0;
     const interval = setInterval(() => {
-      step++;
+      step = Math.min(step + 1, pipelineSteps.length - 1);
       setExecutionStep(step);
-      if (step >= pipelineSteps.length) {
-        clearInterval(interval);
-        setTimeout(() => {
-          setIsExecuting(false);
-          setGrowthPlan({
-            goal: goalPrompt,
-            estimatedOpportunity: "+22% to +35% Conversions",
-            projectedRevenue: "$18,400 – $26,500",
-            projectedCAC: "$16.20 (-28% reduction)",
-            autonomousStatement: "I found 3 critical bottlenecks in your funnel. I drafted the fixes, reallocated projected budget toward top-ROI channels, and prepared 5 prioritized actions. Here is what I am executing next.",
-            priorities: [
-              {
-                id: 'p1',
-                number: '01',
-                title: 'Fix Landing-Page Conversion Friction',
-                tag: 'CRO & Funnel',
-                tagColor: 'text-amber-700 bg-amber-50 border-amber-200',
-                impact: 'High (+12% Conversion Rate)',
-                problem: 'Current headline and CTA have a 68% bounce rate in under 4 seconds on mobile.',
-                fix: 'Deploy high-urgency hero headline with 3 trust badges and sticky 1-click checkout button.',
-                actionCopy: 'Hero Headline: "The Smarter Way to Get Results — Guaranteed in 14 Days."\nCTA: "Claim Your VIP Offer (Limited Spots)"'
-              },
-              {
-                id: 'p2',
-                number: '02',
-                title: 'Launch Meta & TikTok High-Intent Retargeting',
-                tag: 'Paid Ads',
-                tagColor: 'text-purple-700 bg-purple-50 border-purple-200',
-                impact: 'High (4.8x Target ROAS)',
-                problem: '3,400 recent store visitors browsed products without seeing a follow-up ad.',
-                fix: 'Allocate $600 to 2-stage retargeting with customer review videos and time-sensitive voucher.',
-                actionCopy: 'Target: Website Visitors (Last 14 Days) Exclude Buyers\nAd Hook: "Still thinking about it? Here is why 1,200+ customers switched this month."'
-              },
-              {
-                id: 'p3',
-                number: '03',
-                title: 'Test 4 High-Converting Creative Angles',
-                tag: 'Creative Lab',
-                tagColor: 'text-blue-700 bg-blue-50 border-blue-200',
-                impact: 'Medium (+40% Click-Through Rate)',
-                problem: 'Existing ad creatives have frequency fatigue (> 3.4).',
-                fix: 'Rotate 4 distinct direct-response angles: 1) Problem-Agitation, 2) Social Proof, 3) Loss Aversion, 4) Founder Story.',
-                actionCopy: 'Angle #1: "The 3 biggest mistakes people make when buying..."\nAngle #2: "Before vs After using this for 7 days."'
-              },
-              {
-                id: 'p4',
-                number: '04',
-                title: 'Deploy Automated Abandoned-Cart WhatsApp & Email Flow',
-                tag: 'Lifecycle',
-                tagColor: 'text-emerald-700 bg-emerald-50 border-emerald-200',
-                impact: 'Very High (14.2x ROI)',
-                problem: '24% of checkout carts are abandoned without automated reminder notifications.',
-                fix: 'Set up 3-stage automated sequence triggered at 15m, 6h, and 24h with dynamic 5% incentive.',
-                actionCopy: 'WhatsApp Trigger (15m): "Hey {customer_name}! Your cart is waiting. Use code FLASH5 to complete your order in 1 click: {cart_link}"'
-              },
-              {
-                id: 'p5',
-                number: '05',
-                title: 'Launch High-Intent SEO Buyer Content Cluster',
-                tag: 'SEO & Organic',
-                tagColor: 'text-indigo-700 bg-indigo-50 border-indigo-200',
-                impact: 'Long-term (Zero Ad Spend Traffic)',
-                problem: 'Competitors are ranking for 18 high-volume transactional search terms.',
-                fix: 'Publish 4 comparison & review articles targeting top-of-funnel decision makers.',
-                actionCopy: 'Keyword 1: "Best {product_category} in 2026 (Full Review)"\nKeyword 2: "{product_category} vs competitor pricing breakdown"'
-              }
-            ]
-          });
-          try { confetti({ particleCount: 50, spread: 70 }); } catch (e) {}
-        }, 300);
+    }, 600);
+
+    const businessContext = [
+      businessProfile?.name ? `Brand: ${businessProfile.name}` : '',
+      businessProfile?.industry ? `Industry: ${businessProfile.industry}` : '',
+      businessProfile?.location ? `Location: ${businessProfile.location}` : '',
+      businessProfile?.products ? `Products: ${businessProfile.products}` : '',
+      businessProfile?.goals ? `Strategic Goals: ${businessProfile.goals}` : ''
+    ].filter(Boolean).join('\n');
+
+    const prompt = `You are an elite Autonomous Chief Marketing Officer agent.
+Analyze this growth objective: "${goalPrompt}"
+${businessContext ? `Business Context:\n${businessContext}` : ''}
+
+Generate an autonomous growth optimization plan formatted as valid JSON with this exact structure:
+{
+  "estimatedOpportunity": "+XX% to +YY% Conversions",
+  "projectedRevenue": "e.g. $XX,XXX - $YY,YYY",
+  "projectedCAC": "e.g. $XX.XX (-XX% reduction)",
+  "autonomousStatement": "1-2 sentences summarizing discovered bottlenecks and strategic execution direction.",
+  "priorities": [
+    {
+      "id": "p1",
+      "number": "01",
+      "title": "Action title",
+      "tag": "e.g. CRO & Funnel / Paid Ads / Creative Lab / Lifecycle / SEO",
+      "impact": "e.g. High (+XX% Conversion Rate)",
+      "problem": "Specific failure mode identified",
+      "fix": "Specific tactical action deployed",
+      "actionCopy": "Exact copy, headline, hook, or implementation snippet"
+    },
+    {
+      "id": "p2",
+      "number": "02",
+      "title": "Action title",
+      "tag": "Paid Ads",
+      "impact": "High (e.g. 4.5x Target ROAS)",
+      "problem": "Problem description",
+      "fix": "Fix description",
+      "actionCopy": "Exact copy or targeting details"
+    },
+    {
+      "id": "p3",
+      "number": "03",
+      "title": "Action title",
+      "tag": "Creative Lab",
+      "impact": "Medium (+XX% CTR)",
+      "problem": "Problem description",
+      "fix": "Fix description",
+      "actionCopy": "Exact hooks and angles"
+    },
+    {
+      "id": "p4",
+      "number": "04",
+      "title": "Action title",
+      "tag": "Lifecycle",
+      "impact": "Very High",
+      "problem": "Problem description",
+      "fix": "Fix description",
+      "actionCopy": "Exact automated sequence copy"
+    },
+    {
+      "id": "p5",
+      "number": "05",
+      "title": "Action title",
+      "tag": "SEO & Organic",
+      "impact": "Compounding Organic",
+      "problem": "Problem description",
+      "fix": "Fix description",
+      "actionCopy": "Target keywords & content outlines"
+    }
+  ]
+}
+Return ONLY valid JSON.`;
+
+    try {
+      const response = await callOpenRouterAI({
+        messages: [
+          { role: 'system', content: 'You are an autonomous marketing AI agent that outputs structured JSON plans.' },
+          { role: 'user', content: prompt }
+        ],
+        userPrompt: goalPrompt
+      });
+
+      clearInterval(interval);
+      setExecutionStep(pipelineSteps.length);
+
+      const cleaned = cleanAiResponse(response);
+      let parsed = null;
+      try {
+        const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          parsed = JSON.parse(jsonMatch[0]);
+        }
+      } catch (err) {
+        console.warn('Could not parse AI response as JSON:', err);
       }
-    }, 450);
+
+      const tagColors = {
+        'CRO & Funnel': 'text-amber-700 bg-amber-50 border-amber-200',
+        'Paid Ads': 'text-purple-700 bg-purple-50 border-purple-200',
+        'Creative Lab': 'text-blue-700 bg-blue-50 border-blue-200',
+        'Lifecycle': 'text-emerald-700 bg-emerald-50 border-emerald-200',
+        'SEO & Organic': 'text-indigo-700 bg-indigo-50 border-indigo-200'
+      };
+
+      if (parsed && Array.isArray(parsed.priorities) && parsed.priorities.length > 0) {
+        setGrowthPlan({
+          goal: goalPrompt,
+          estimatedOpportunity: parsed.estimatedOpportunity || '+25% to +38% Conversions',
+          projectedRevenue: parsed.projectedRevenue || 'Target Scaled Revenue',
+          projectedCAC: parsed.projectedCAC || 'Target Reduced CAC',
+          autonomousStatement: parsed.autonomousStatement || 'Autonomous audit completed. Multi-channel optimization sequence compiled.',
+          priorities: parsed.priorities.map((p, idx) => ({
+            id: p.id || `p${idx + 1}`,
+            number: p.number || `0${idx + 1}`,
+            title: p.title || 'Growth Opportunity',
+            tag: p.tag || 'Growth',
+            tagColor: tagColors[p.tag] || 'text-blue-700 bg-blue-50 border-blue-200',
+            impact: p.impact || 'High Impact',
+            problem: p.problem || 'Identified bottleneck',
+            fix: p.fix || 'Automated remedy',
+            actionCopy: p.actionCopy || ''
+          }))
+        });
+      } else {
+        // Dynamic fallback constructed from the user's actual prompt
+        setGrowthPlan({
+          goal: goalPrompt,
+          estimatedOpportunity: '+20% to +35% Conversions',
+          projectedRevenue: 'Optimized Channel Return',
+          projectedCAC: 'Lowered Acquisition Cost',
+          autonomousStatement: `Evaluated "${goalPrompt}". Generated prioritized optimization sequence across your active marketing channels.`,
+          priorities: [
+            {
+              id: 'p1',
+              number: '01',
+              title: `Align Offer & Landing Funnel for "${goalPrompt.slice(0, 30)}..."`,
+              tag: 'CRO & Funnel',
+              tagColor: 'text-amber-700 bg-amber-50 border-amber-200',
+              impact: 'High (+18% Conversion)',
+              problem: 'Traffic lands on friction-heavy pages without urgent value proposition.',
+              fix: 'Deploy clear single-call-to-action hero banner and frictionless mobile checkout.',
+              actionCopy: `Offer Hero: "Transform your results with ${goalPrompt.slice(0, 30)}..."`
+            },
+            {
+              id: 'p2',
+              number: '02',
+              title: 'Multi-Channel Ad Retargeting Blitz',
+              tag: 'Paid Ads',
+              tagColor: 'text-purple-700 bg-purple-50 border-purple-200',
+              impact: 'High (3.8x Target ROAS)',
+              problem: 'High-intent store visitors bounce without seeing follow-up ad touchpoints.',
+              fix: 'Deploy 2-tier retargeting on Instagram and TikTok targeting recent viewers.',
+              actionCopy: 'Ad Hook: "Still looking for the best solution? See why customers choose us."'
+            }
+          ]
+        });
+      }
+
+      try { confetti({ particleCount: 50, spread: 70 }); } catch (e) {}
+    } catch (e) {
+      console.error('Agent execution error:', e);
+      clearInterval(interval);
+    } finally {
+      setIsExecuting(false);
+    }
   };
 
   // Run on initial page mount if empty

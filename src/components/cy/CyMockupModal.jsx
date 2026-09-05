@@ -78,7 +78,7 @@ export const CyMockupModal = ({ item, isOpen, onClose, userName = 'User' }) => {
                       <span className="text-xs font-bold text-neutral-900">{userName.toLowerCase().replace(/\s+/g, '_')}</span>
                       <ShieldCheck size={12} className="text-blue-500 fill-blue-500" />
                     </div>
-                    <span className="text-[10px] text-neutral-400 font-normal">Sponsored • Accra, Ghana</span>
+                    <span className="text-[10px] text-neutral-400 font-normal">Sponsored • Verified Business</span>
                   </div>
                 </div>
                 <MoreHorizontal size={16} className="text-neutral-500" />

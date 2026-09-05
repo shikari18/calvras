@@ -116,8 +116,8 @@ const INITIAL_CONNECTORS = [
     id: 'paystack',
     name: 'Paystack Store & Payments',
     tag: 'E-COMMERCE & MOMO',
-    connected: true,
-    statusText: 'Connected & Listening',
+    connected: false,
+    statusText: 'Not connected',
     isStoreApp: true,
     logo: BrandLogos.paystack,
     desc: 'Auto-trigger instant VIP WhatsApp post-purchase upsells, Mobile Money checkout confirmations, and automated receipt messaging.'
@@ -156,8 +156,8 @@ const INITIAL_CONNECTORS = [
     id: 'whatsapp-business',
     name: 'WhatsApp Business API',
     tag: 'MANAGED',
-    connected: true,
-    statusText: 'Connected (Live Broadcast)',
+    connected: false,
+    statusText: 'Not connected',
     isStoreApp: true,
     logo: BrandLogos.whatsapp,
     desc: 'Automate direct broadcast messages, order confirmations, VIP offers, and customer engagement directly via WhatsApp.'
@@ -166,8 +166,8 @@ const INITIAL_CONNECTORS = [
     id: 'meta-ads',
     name: 'Meta Ads Manager',
     tag: 'MANAGED',
-    connected: true,
-    statusText: 'Platform',
+    connected: false,
+    statusText: 'Not connected',
     logo: BrandLogos.meta,
     desc: 'Automate ad campaign creation, budget optimization, and lead collection across Instagram and Facebook.'
   },
@@ -184,8 +184,8 @@ const INITIAL_CONNECTORS = [
     id: 'twitter',
     name: 'Twitter / X',
     tag: 'MANAGED',
-    connected: true,
-    statusText: 'Platform',
+    connected: false,
+    statusText: 'Not connected',
     logo: BrandLogos.twitter,
     desc: 'Twitter / X is a social media platform for sharing real-time updates, conversations, and trending topics.'
   },
@@ -246,7 +246,23 @@ const INITIAL_CONNECTORS = [
 ];
 
 export const CyConnectorsPage = ({ userName = 'User' }) => {
-  const [connectors, setConnectors] = useState(INITIAL_CONNECTORS);
+  const [connectors, setConnectors] = useState(() => {
+    try {
+      const saved = localStorage.getItem('calvras_connectors_state');
+      if (saved) {
+        const savedMap = JSON.parse(saved);
+        return INITIAL_CONNECTORS.map(c => {
+          const isConn = Boolean(savedMap[c.id]);
+          return {
+            ...c,
+            connected: isConn,
+            statusText: isConn ? (c.isStoreApp ? 'Connected & Listening' : 'Platform') : 'Not connected'
+          };
+        });
+      }
+    } catch {}
+    return INITIAL_CONNECTORS;
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('All');
   
@@ -305,17 +321,25 @@ export const CyConnectorsPage = ({ userName = 'User' }) => {
   }, [connectors, searchQuery, activeFilter]);
 
   const toggleConnect = (id) => {
-    setConnectors(prev => prev.map(c => {
-      if (c.id === id) {
-        const nextState = !c.connected;
-        return {
-          ...c,
-          connected: nextState,
-          statusText: nextState ? (c.isStoreApp ? 'Connected & Listening' : 'Platform') : 'Not connected'
-        };
-      }
-      return c;
-    }));
+    setConnectors(prev => {
+      const updated = prev.map(c => {
+        if (c.id === id) {
+          const nextState = !c.connected;
+          return {
+            ...c,
+            connected: nextState,
+            statusText: nextState ? (c.isStoreApp ? 'Connected & Listening' : 'Platform') : 'Not connected'
+          };
+        }
+        return c;
+      });
+      try {
+        const stateMap = {};
+        updated.forEach(c => { stateMap[c.id] = c.connected; });
+        localStorage.setItem('calvras_connectors_state', JSON.stringify(stateMap));
+      } catch {}
+      return updated;
+    });
   };
 
   const handleSendTestUpsell = () => {

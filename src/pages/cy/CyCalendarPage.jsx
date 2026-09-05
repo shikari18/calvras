@@ -20,9 +20,9 @@ import { callOpenRouterAI, cleanAiResponse } from '../../services/aiService';
 import { useMarketing } from '../../context/MarketingContext';
 import confetti from 'canvas-confetti';
 
-const SAMPLE_30_DAY_PLAN = Array.from({ length: 30 }, (_, idx) => {
+const createDefaultPlan = (prod = 'Our Products') => Array.from({ length: 30 }, (_, idx) => {
   const day = idx + 1;
-  const pillars = ['Hook / Viral', 'Product Showcase', 'Customer Proof', 'Behind The Scenes', 'Educational / Tip', 'Flash Offer'];
+  const pillars = ['Viral Hook', 'Product Showcase', 'Customer Proof', 'Behind The Scenes', 'Educational / Tip', 'Flash Offer'];
   const platforms = ['TikTok', 'Instagram', 'WhatsApp VIP', 'Facebook'];
   const pillar = pillars[idx % pillars.length];
   const platform = platforms[idx % platforms.length];
@@ -33,25 +33,25 @@ const SAMPLE_30_DAY_PLAN = Array.from({ length: 30 }, (_, idx) => {
     platform,
     time: ['12:30 PM', '6:00 PM', '8:15 PM', '10:00 AM'][idx % 4],
     hook: [
-      'Stop making this 1 huge mistake with your orders...',
-      'Why everyone in Accra is switching to this brand this week:',
-      'POV: You ordered on WhatsApp and it arrived in 45 minutes.',
-      'Unboxing what 150 GHS gets you in 2026 🔥',
-      'The secret behind how we make our top-selling product...',
-      'Flash Friday VIP: 20% off for the first 15 people who DM'
+      `Stop making this 1 huge mistake when choosing ${prod}...`,
+      `Why customers are switching to ${prod} this week:`,
+      `POV: You received your ${prod} order and tested it immediately.`,
+      `Unboxing what makes our ${prod} unique 🔥`,
+      `The production process behind how we craft ${prod}...`,
+      `Flash VIP drop: exclusive perks for the first 20 orders today!`
     ][idx % 6],
-    caption: `Full breakdown of how to get the most value today. Drop a comment or tap the link in bio to claim before stock runs out! 📦 #accra #ghana #brandgrowth #trending`,
-    cta: 'Click link in bio or WhatsApp us directly'
+    caption: `Full breakdown of how to get the most value from ${prod}. Tap the link in bio or send a direct message to secure yours! 📦 #growth #trending #product`,
+    cta: 'Click link in bio or message us directly'
   };
 });
 
 export const CyCalendarPage = ({ onNewChat }) => {
-  const { deductCredits, addContent, userProfile } = useMarketing();
-  const [niche, setNiche] = useState('Food & Restaurant');
-  const [productName, setProductName] = useState('Gourmet Burger & Wings');
+  const { deductCredits, addContent, userProfile, businessProfile } = useMarketing();
+  const [niche, setNiche] = useState(businessProfile?.industry || 'E-commerce Store');
+  const [productName, setProductName] = useState(businessProfile?.products || 'Featured Collection');
   const [goal, setGoal] = useState('Viral Growth & Sales');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [calendarData, setCalendarData] = useState(SAMPLE_30_DAY_PLAN);
+  const [calendarData, setCalendarData] = useState(() => createDefaultPlan(businessProfile?.products || 'Our Collection'));
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [copiedDay, setCopiedDay] = useState(null);
   const [savedDay, setSavedDay] = useState(null);
@@ -78,52 +78,60 @@ export const CyCalendarPage = ({ onNewChat }) => {
     deductCredits(10);
 
     const prompt = `Generate a high-converting 30-Day Social Media Content Calendar for a brand in "${niche}" selling "${productName}" with the primary goal of "${goal}".
-    Return a structured JSON-like array of 30 days or clear day-by-day blueprint where each day has:
-    - Day (1-30)
-    - Pillar (Viral Hook, Educational, Product Demo, Customer Proof, BTS, Promo)
-    - Platform (TikTok, Instagram, WhatsApp VIP)
-    - The First 3-Second Hook (High retention)
-    - Caption Summary & CTA
-    - Optimal Posting Time`;
+    Return a valid JSON array of 30 day objects with this exact structure:
+    [
+      {
+        "day": 1,
+        "pillar": "Viral Hook",
+        "platform": "TikTok",
+        "time": "12:30 PM",
+        "hook": "The exact high-retention 3-second hook script",
+        "caption": "Engaging caption with hashtags and value proposition",
+        "cta": "Clear call to action"
+      }
+    ]
+    Return ONLY valid JSON array with 30 items.`;
 
     try {
       const response = await callOpenRouterAI({
         messages: [
-          { role: 'system', content: 'You are an elite social media growth strategist. Generate engaging viral hooks and content schedules for TikTok, Instagram, and WhatsApp.' },
+          { role: 'system', content: 'You are an elite social media growth strategist. Return only a valid JSON array of 30 days.' },
           { role: 'user', content: prompt }
         ],
         userPrompt: prompt
       });
 
-      // Update calendar data
       const cleaned = cleanAiResponse(response);
-      // Fallback update with dynamic product data
-      const updated = Array.from({ length: 30 }, (_, idx) => {
-        const day = idx + 1;
-        const pillars = ['Viral Hook', 'Product Showcase', 'Customer Proof', 'Behind The Scenes', 'Educational / Tip', 'Flash Offer'];
-        const platforms = ['TikTok', 'Instagram', 'WhatsApp VIP', 'Facebook'];
-        return {
-          day,
-          pillar: pillars[idx % pillars.length],
-          platform: platforms[idx % platforms.length],
-          time: ['12:30 PM', '6:00 PM', '8:15 PM', '10:00 AM'][idx % 4],
-          hook: `Day ${day} Hook for ${productName}: ${[
-            'If you love ' + productName + ', you need to see this...',
-            'The real reason our ' + productName + ' sells out every weekend:',
-            'POV: You finally tried our ' + productName + ' in Accra 🔥',
-            '3 things you did not know about our ' + productName,
-            'Behind the scenes preparing orders for ' + productName,
-            'Exclusive VIP offer for ' + productName + ' today only!'
-          ][idx % 6]}`,
-          caption: `Order your ${productName} directly on WhatsApp or tap the link in bio. Fast delivery available across the city! 🚀 #viral #brand`,
-          cta: 'DM us or tap bio link to order'
-        };
-      });
+      let parsed = null;
+      try {
+        const jsonMatch = cleaned.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          parsed = JSON.parse(jsonMatch[0]);
+        }
+      } catch (err) {
+        console.warn('Could not parse AI calendar as JSON:', err);
+      }
 
-      setCalendarData(updated);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const mapped = parsed.map((item, idx) => ({
+          day: item.day || idx + 1,
+          pillar: item.pillar || 'Viral Hook',
+          platform: item.platform || 'Instagram',
+          time: item.time || '12:00 PM',
+          hook: item.hook || `Day ${idx + 1} Spotlight on ${productName}`,
+          caption: item.caption || `Learn more about ${productName}. Tap link in bio to order.`,
+          cta: item.cta || 'DM or tap bio link'
+        }));
+        setCalendarData(mapped);
+      } else {
+        // Dynamic fallback customized with the user's actual product name
+        setCalendarData(createDefaultPlan(productName));
+      }
+
       try { confetti({ particleCount: 70, spread: 70 }); } catch (err) {}
     } catch (e) {
       console.error(e);
+      setCalendarData(createDefaultPlan(productName));
     } finally {
       setIsGenerating(false);
     }

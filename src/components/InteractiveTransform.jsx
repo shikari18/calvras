@@ -7,14 +7,14 @@ const PRESETS = [
     prompt: 'Launch a weekend campaign for our new sneakers.', 
     strategy: 'High-impact weekend push with urgency and exclusivity for retro high-tops.', 
     content: 'Instagram Reel, WhatsApp VIP broadcast, and TikTok shorts.', 
-    audience: 'Sneaker enthusiasts 18–34 in Greater Accra.', 
+    audience: 'Sneaker enthusiasts & active shoppers 18–34.', 
     schedule: 'Launches Friday 6:00 PM. Runs through Sunday midnight.' 
   },
   { 
     prompt: 'Promote our Summer Flash Sale with 20% off all stock.', 
     strategy: 'Limited-time seasonal impulse buy campaign with countdown timers.', 
     content: 'Hero email blast, Instagram carousel, WhatsApp direct blast.', 
-    audience: 'Active streetwear fans & university students in Accra.', 
+    audience: 'Active streetwear fans & digital consumers.', 
     schedule: 'Starts Thursday morning. Concludes Sunday midnight.' 
   },
   { 
@@ -65,7 +65,7 @@ Request: ${customInput}`,
         prompt: customInput,
         strategy: extractField('Strategy', 'Custom high-conversion marketing strategy for ' + customInput),
         content: extractField('Content', 'Instagram Reel, WhatsApp broadcast, and TikTok shorts'),
-        audience: extractField('Audience', '18–34 urban consumers in Greater Accra'),
+        audience: extractField('Audience', '18–34 high-intent online consumers'),
         schedule: extractField('Schedule', '3-day targeted campaign duration')
       });
       setSelectedIndex(-1);
@@ -75,7 +75,7 @@ Request: ${customInput}`,
         prompt: customInput,
         strategy: 'High-impact conversion strategy for ' + customInput,
         content: 'Multi-channel social reels, WhatsApp direct message, and ad hooks',
-        audience: 'Targeted customer segment in Accra',
+        audience: 'Targeted high-intent customer segment',
         schedule: 'Phased 3-day promotional cadence'
       });
     } finally {
