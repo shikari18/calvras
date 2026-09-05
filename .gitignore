@@ -11,3 +11,4 @@ server/*.bin
 server/*.wav
 server/__pycache__/
 .vscode/
+scratch/

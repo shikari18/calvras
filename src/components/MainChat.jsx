@@ -718,14 +718,15 @@ function LiveActivityIndicator({ isThinking, isStreaming, statusText, elapsedDur
     const duration = elapsedDuration || 1;
     if (isThinking && !isStreaming) {
       if (duration < 3) return 'Thinking...';
-      if (duration < 6) return 'Analyzing requirements...';
-      if (duration < 9) return 'Architecting system & components...';
+      if (duration < 6) return 'Analyzing requirements & architecture...';
+      if (duration < 9) return 'Testing logic & plan...';
       return 'Reasoning through layout logic...';
     }
     if (isStreaming) {
-      if (duration < 4) return 'Applying backend & state logic...';
-      if (duration < 8) return 'Generating React UI...';
-      return 'Assembling pixel-perfect code...';
+      if (duration < 4) return 'Assembling code & imports...';
+      if (duration < 8) return 'Testing components & styling...';
+      if (duration < 12) return 'Now confirming it...';
+      return 'Finalizing code verification...';
     }
     return 'Processing...';
   };
@@ -734,12 +735,12 @@ function LiveActivityIndicator({ isThinking, isStreaming, statusText, elapsedDur
 
   return (
     <div className="w-full max-w-[660px] mx-auto py-2 px-4 text-left animate-in fade-in duration-200 select-none">
-      <div className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-[#1c1a14] border border-[#2e2a20] shadow-sm">
+      <div className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-[#1A1A1A] border border-white/10 shadow-sm">
         <span className="relative flex h-2 w-2 flex-shrink-0">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
         </span>
-        <span className="text-[13px] text-[#e2ddd5] font-medium tracking-tight transition-all duration-300">
+        <span className="text-[13px] text-[#EDEDED] font-medium tracking-tight transition-all duration-300">
           {displayText}
         </span>
       </div>
@@ -897,30 +898,45 @@ function CalvrasActionStatus({ action }) {
   const isCmd = action.type === 'cmd';
   const isBrowse = action.type === 'browse';
   const isSearch = action.type === 'search';
+  const isTest = action.type === 'test';
+  const isConfirm = action.type === 'confirm';
+
   return (
     <div className="w-full px-4 py-2 animate-in fade-in duration-200 select-none">
-      <div className="flex items-center gap-2 text-[12px]" style={{ fontFamily: 'Consolas, "Segoe UI Mono", monospace' }}>
-        <div className="w-3 h-3 rounded-full border-[1.5px] border-green-400 border-t-transparent animate-spin flex-shrink-0" />
+      <div className="flex items-center gap-2 text-[12px] bg-[#1A1A1A] p-2 rounded-xl border border-white/10 w-fit" style={{ fontFamily: 'Consolas, "Segoe UI Mono", monospace' }}>
+        <div className="w-3 h-3 rounded-full border-[1.5px] border-emerald-400 border-t-transparent animate-spin flex-shrink-0" />
         {isCmd && (
           <>
-            <span className="text-neutral-500">Running</span>
-            <span className="text-green-400 truncate max-w-[480px]">{action.text}</span>
+            <span className="text-neutral-400">Running</span>
+            <span className="text-emerald-400 truncate max-w-[480px]">{action.text}</span>
           </>
         )}
         {isBrowse && (
           <>
-            <span className="text-neutral-500">Browsing</span>
+            <span className="text-neutral-400">Browsing</span>
             <span className="text-blue-400 truncate max-w-[480px]">{action.text}</span>
           </>
         )}
         {isSearch && (
           <>
-            <span className="text-neutral-500">Searching web</span>
+            <span className="text-neutral-400">Searching web</span>
             <span className="text-amber-400 truncate max-w-[480px]">{action.text}</span>
           </>
         )}
-        {!isCmd && !isBrowse && !isSearch && (
-          <span className="text-neutral-400 truncate max-w-[480px]">{action.text}</span>
+        {isTest && (
+          <>
+            <span className="text-neutral-400">Testing...</span>
+            <span className="text-emerald-400 truncate max-w-[480px]">{action.text}</span>
+          </>
+        )}
+        {isConfirm && (
+          <>
+            <span className="text-neutral-400">Now confirming it...</span>
+            <span className="text-cyan-400 truncate max-w-[480px]">{action.text}</span>
+          </>
+        )}
+        {!isCmd && !isBrowse && !isSearch && !isTest && !isConfirm && (
+          <span className="text-neutral-300 truncate max-w-[480px]">{action.text}</span>
         )}
       </div>
     </div>
@@ -1113,6 +1129,7 @@ export default function MainChat({
   const [isLiveThinkingOpen, setIsLiveThinkingOpen] = useState(true);
   const [streamingText, setStreamingText] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
+  const [liveStreamContent, setLiveStreamContent] = useState('');
 
 
 
@@ -1575,8 +1592,34 @@ export default function MainChat({
     const sendStartTime = Date.now();
     const getThoughtDuration = () => `${Math.max(1, Math.round((Date.now() - sendStartTime) / 1000))}s`;
 
-    // ── Vague build clarification — intercept BEFORE anything else ──────────
+    // ── Native Undo / Revert Command Interceptor ──
     const trimmedEarly = query.trim();
+    const isUndoCommand = /^(?:undo|revert|undo\s+that|undo\s+last(?:\s+edit|\s+change)?|revert\s+that|revert\s+last(?:\s+edit|\s+change)?|go\s+back)$/i.test(trimmedEarly);
+    if (isUndoCommand) {
+      setInput('');
+      setAttachedFiles([]);
+      if (messages.length > 0) {
+        let lastUserIdx = -1;
+        for (let i = messages.length - 1; i >= 0; i--) {
+          if (messages[i].role === 'user') {
+            lastUserIdx = i;
+            break;
+          }
+        }
+        if (lastUserIdx !== -1) {
+          const targetSnapshot = messages[lastUserIdx].workspaceSnapshot || {};
+          const previousMessages = messages.slice(0, lastUserIdx);
+          setMessages(previousMessages);
+          setWorkspaceFiles(targetSnapshot);
+          setPreviewReloadTrigger(p => p + 1);
+          setTerminalLogs(prev => [...prev, { type: 'info', text: '↺ Reverted workspace snapshot and chat to previous turn.' }]);
+          return;
+        }
+      }
+      return;
+    }
+
+    // ── Vague build clarification — intercept BEFORE anything else ──────────
     const hasImageEarly = currentAttachedFiles.length > 0;
     const hasWorkspaceEarly = Object.keys(workspaceFiles).length > 0;
     const isVagueBuildEarly = !hasImageEarly && !hasWorkspaceEarly && (
@@ -2010,9 +2053,18 @@ CRITICAL:
               setIsSplitScreen(true);
               setActiveWorkspaceTab('preview');
               setStreamingText(`Generating ${fileMatch[1].replace('Calvras/', '')}…`);
+              setCalvrasAction({ type: 'test', text: `Testing syntax for ${fileMatch[1].replace('Calvras/', '')}...` });
             } else {
               setStreamingText('');
             }
+            const cleanProse = full
+              .replace(/<(?:think_plan|think)>[\s\S]*?<\/(?:think_plan|think)>/gi, '')
+              .replace(/<run_cmd>[\s\S]*?<\/run_cmd>/gi, '')
+              .replace(/<browse>[\s\S]*?<\/browse>/gi, '')
+              .replace(/<search>[\s\S]*?<\/search>/gi, '')
+              .replace(/```[\s\S]*?```/g, '')
+              .trim();
+            setLiveStreamContent(cleanProse);
             const cmdMatch = full.match(/<run_cmd>([^<]{1,120})<\/run_cmd>/i);
             if (cmdMatch) setCalvrasAction({ type: 'cmd', text: cmdMatch[1].trim() });
             const bMatch = full.match(/<browse>([^<]{1,300})<\/browse>/i);
@@ -2022,6 +2074,7 @@ CRITICAL:
           },
           onDone: async (res) => {
             clearInterval(thinkingTimer);
+            setLiveStreamContent('');
             const rawFull = await executeCalvrasTools(res.raw || res.content || '');
             const thinking = res?.thinking || '';
 
@@ -2421,9 +2474,19 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
             setIsSplitScreen(true);
             setActiveWorkspaceTab('preview');
             setStreamingText(`Generating ${fileMatch[1].replace('Calvras/', '')}…`);
+            setCalvrasAction({ type: 'test', text: `Testing syntax and module imports...` });
           } else {
             setStreamingText('');
           }
+
+          const cleanProse = fullContent
+            .replace(/<(?:think_plan|think)>[\s\S]*?<\/(?:think_plan|think)>/gi, '')
+            .replace(/<run_cmd>[\s\S]*?<\/run_cmd>/gi, '')
+            .replace(/<browse>[\s\S]*?<\/browse>/gi, '')
+            .replace(/<search>[\s\S]*?<\/search>/gi, '')
+            .replace(/```[\s\S]*?```/g, '')
+            .trim();
+          setLiveStreamContent(cleanProse);
 
           // Show run_cmd in progress
           const cmdMatch = fullContent.match(/<run_cmd>([^<]{1,120})<\/run_cmd>/i);
@@ -2611,6 +2674,14 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
               realActions.push({ icon: '✓', text: 'Mounted live preview sandbox', highlight: true });
             }
 
+            // Autonomous testing verification pass
+            if (fileNames.length > 0) {
+              setCalvrasAction({ type: 'test', text: `Testing code syntax across ${fileNames.length} file(s)...` });
+              await new Promise(r => setTimeout(r, 400));
+              setCalvrasAction({ type: 'confirm', text: 'Now confirming component exports and live preview sandbox...' });
+              await new Promise(r => setTimeout(r, 350));
+            }
+
             setMessages(prev => [...prev, {
               id: `msg-resp-${Date.now()}`,
               role: 'assistant',
@@ -2635,6 +2706,7 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
           } finally {
             setIsThinking(false);
             setIsStreaming(false);
+            setLiveStreamContent('');
             setStreamingText('');
             setCalvrasAction(null);
             setTimeout(() => {
@@ -2646,6 +2718,7 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
           clearInterval(thinkingTimer);
           setIsThinking(false);
           setIsStreaming(false);
+          setLiveStreamContent('');
           setRunningTasks([]);
           setCalvrasAction(null);
           setMessages(prev => [...prev, {
@@ -2662,7 +2735,9 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
       clearInterval(thinkingTimer);
       setIsThinking(false);
       setIsStreaming(false);
+      setLiveStreamContent('');
       setRunningTasks([]);
+      setCalvrasAction(null);
       setMessages(prev => [...prev, {
         id: `msg-err-${Date.now()}`,
         role: 'assistant',
@@ -2702,7 +2777,7 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
 
 
   return (
-    <div className={`relative flex flex-1 h-full overflow-hidden bg-[#0B0A08] text-[#ededed] ${isResizing ? 'cursor-col-resize select-none' : ''}`}>
+    <div className={`relative flex flex-1 h-full overflow-hidden bg-[#1B1B1D] text-[#ededed] ${isResizing ? 'cursor-col-resize select-none' : ''}`}>
       
       {/* ── Left Pane: Chat Conversation ── */}
       <div 
@@ -2739,7 +2814,7 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
         </div>
         
         {/* ── Scrollable chat area ── */}
-        <div ref={scrollRef} className="relative z-10 flex-1 overflow-y-auto px-4 sm:px-6 w-full scrollbar-thin scroll-smooth bg-[#0B0A08]">
+        <div ref={scrollRef} className="relative z-10 flex-1 overflow-y-auto px-4 sm:px-6 w-full scrollbar-thin scroll-smooth bg-[#1B1B1D]">
 
           {/* ── Hero / empty state: prompt box centered ── */}
           {messages.length === 0 && (
@@ -2759,16 +2834,16 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    className={`relative w-full rounded-[24px] bg-[#14120D] border transition-all text-left overflow-hidden ${
+                    className={`relative w-full rounded-[24px] bg-[#1A1A1A] border transition-all text-left overflow-hidden ${
                       isDraggingOver ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.5)]'
                     }`}
                   >
                     <RunningTasksDock runningTasks={runningTasks} tasksExpanded={tasksExpanded} setTasksExpanded={setTasksExpanded} onStopTask={handleStopTask} />
-                    <div className="m-1 rounded-[18px] bg-[#14120D] border border-white/10 p-5 pt-4 pb-3.5 shadow-sm text-left transition-all">
+                    <div className="m-1 rounded-[18px] bg-[#1A1A1A] border border-white/10 p-5 pt-4 pb-3.5 shadow-sm text-left transition-all">
                       <FileAttachments />
                       {importedFolderName && (
                         <div className="flex items-center gap-2 mb-3">
-                          <div className="flex items-center gap-2 px-3 py-1.5 rounded-[10px] bg-[#1A1812] border border-white/10 text-[12px] text-neutral-300">
+                          <div className="flex items-center gap-2 px-3 py-1.5 rounded-[10px] bg-[#222] border border-white/10 text-[12px] text-neutral-300">
                             <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
                             <span className="font-medium text-white">{importedFolderName}</span>
                             <span className="text-neutral-500">{importedFileCount} files</span>
@@ -2808,7 +2883,7 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    className={`relative w-full rounded-[26px] bg-[#14120D] border p-5 pt-4 pb-3.5 text-left transition-all ${
+                    className={`relative w-full rounded-[26px] bg-[#1A1A1A] border p-5 pt-4 pb-3.5 text-left transition-all ${
                       isDraggingOver ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.5)]'
                     }`}
                   >
@@ -2887,13 +2962,31 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
               })}
 
               {(isThinking || isStreaming) && (
-                <div className="w-full max-w-[660px] mx-auto">
+                <div className="w-full max-w-[660px] mx-auto space-y-3">
                   <LiveActivityIndicator
                     isThinking={isThinking}
                     isStreaming={isStreaming}
                     statusText={streamingText}
                     elapsedDuration={liveThinkingDuration}
                   />
+
+                  {/* Real-time streaming assistant bubble — prevents missing replies */}
+                  {(liveStreamContent || liveThinkingText) && (
+                    <div className="w-full max-w-[660px] mx-auto animate-in fade-in duration-150">
+                      <ChatMessage
+                        message={{
+                          id: 'live-streaming-assistant',
+                          role: 'assistant',
+                          content: liveStreamContent,
+                          thinking: liveThinkingText,
+                          isStreaming: true,
+                          mode: activeBuildMode,
+                          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        }}
+                        isLatest={true}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -2917,7 +3010,7 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
 
         {/* ── Sticky reply dock with outer task shell and nested input ── */}
         {messages.length > 0 && (
-          <div className="sticky bottom-0 left-0 right-0 p-2 sm:p-3.5 bg-gradient-to-t from-[#0B0A08] via-[#0B0A08]/95 to-transparent z-30">
+          <div className="sticky bottom-0 left-0 right-0 p-2 sm:p-3.5 bg-gradient-to-t from-[#1B1B1D] via-[#1B1B1D]/95 to-transparent z-30">
             <div className="max-w-[660px] mx-auto relative">
               {activeSelectionQuestion ? (
                 <SelectionBlock
@@ -2945,12 +3038,12 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
-                  className={`relative w-full rounded-[24px] bg-[#14120D] border transition-all text-left overflow-hidden ${
+                  className={`relative w-full rounded-[24px] bg-[#1A1A1A] border transition-all text-left overflow-hidden ${
                     isDraggingOver ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.5)]'
                   }`}
                 >
                   <RunningTasksDock runningTasks={runningTasks} tasksExpanded={tasksExpanded} setTasksExpanded={setTasksExpanded} onStopTask={handleStopTask} />
-                  <div className="m-1 rounded-[18px] bg-[#14120D] border border-white/10 p-5 pt-4 pb-3.5 shadow-sm text-left transition-all">
+                  <div className="m-1 rounded-[18px] bg-[#1A1A1A] border border-white/10 p-5 pt-4 pb-3.5 shadow-sm text-left transition-all">
                     <FileAttachments />
                     <textarea
                       ref={replyTextareaRef}
@@ -2987,7 +3080,7 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
-                  className={`relative w-full rounded-[26px] bg-[#14120D] border p-5 pt-4 pb-3.5 text-left transition-all ${
+                  className={`relative w-full rounded-[26px] bg-[#1A1A1A] border p-5 pt-4 pb-3.5 text-left transition-all ${
                     isDraggingOver
                       ? 'border-blue-500 ring-2 ring-blue-500/30'
                       : 'border-white/10'

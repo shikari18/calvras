@@ -18,7 +18,7 @@ export const PRICING_PLANS = [
     ctaType: 'free',
     tier: 'Includes:',
     features: [
-      '10 chat messages per day',
+      'Standard daily chat limit',
       '3 image uploads per project',
       'Standard response speed',
       'Community support'
@@ -108,10 +108,10 @@ export default function PricingOnboarding({
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#0B0A08] text-white font-sans selection:bg-white selection:text-black flex flex-col items-center">
+    <div className="min-h-screen w-full bg-[#1B1B1D] text-white font-sans selection:bg-white selection:text-black flex flex-col items-center">
       
       {/* ─── Clean Header: Only Close on top right ─── */}
-      <header className="w-full bg-[#0B0A08] px-6 py-4 flex items-center justify-end">
+      <header className="w-full bg-[#1B1B1D] px-6 py-4 flex items-center justify-end">
         <button
           onClick={handleCloseToFree}
           className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-all cursor-pointer font-medium"
@@ -138,15 +138,10 @@ export default function PricingOnboarding({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch w-full max-w-5xl mb-10 text-left">
           
           {/* Card 0: $0 Free */}
-          <div className="flex flex-col bg-[#12110E] rounded-3xl border border-white/10 p-7 hover:border-white/20 transition-all relative">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-[22px] font-bold text-white tracking-tight">calvras <span className="font-normal text-white">free</span></h2>
-            </div>
-            <p className="text-[13px] text-neutral-400 leading-relaxed mb-6 min-h-[38px]">
-              Basic search & coding
-            </p>
-
-            <div className="mb-6 flex items-baseline gap-1.5 pb-6 border-b border-white/10">
+          <div className="flex flex-col p-8 rounded-3xl bg-[#141416] border border-white/10 hover:border-white/20 transition-all">
+            <h3 className="text-[18px] font-semibold text-white mb-1">calvras free</h3>
+            <p className="text-[12px] text-neutral-400 mb-6">Explore the power of Calvras</p>
+            <div className="flex items-baseline gap-1 mb-6">
               <span className="text-[38px] font-bold text-white tracking-tight">$0</span>
               <span className="text-[13px] text-neutral-400">/month</span>
             </div>
@@ -157,7 +152,7 @@ export default function PricingOnboarding({
             <ul className="space-y-3.5 flex-1 mb-8">
               <li className="flex items-center gap-3 text-[13px] text-neutral-300">
                 <Check size={15} className="text-neutral-500 flex-shrink-0" />
-                <span>10 chat messages per day</span>
+                <span>Standard daily chat limit</span>
               </li>
               <li className="flex items-center gap-3 text-[13px] text-neutral-300">
                 <Check size={15} className="text-neutral-500 flex-shrink-0" />

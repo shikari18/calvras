@@ -1791,10 +1791,10 @@ export default function ProjectWorkspacePane({
         />
       )}
 
-      <div className="flex flex-col h-[calc(100%-12px)] w-[calc(100%-6px)] my-1.5 mr-1.5 bg-[rgb(21,21,21)] text-[#ececed] rounded-tl-2xl rounded-bl-2xl border-l border-t border-b border-[rgb(45,45,45)] select-none overflow-hidden font-sans shadow-2xl">
+      <div className="flex flex-col h-[calc(100%-12px)] w-[calc(100%-6px)] my-1.5 mr-1.5 bg-[#1A1A1A] text-[#ececed] rounded-tl-2xl rounded-bl-2xl border-l border-t border-b border-[rgb(45,45,45)] select-none overflow-hidden font-sans shadow-2xl">
 
         {/* ── Top Header ── */}
-        <div className="flex items-center justify-between px-3.5 py-2 border-b border-[rgb(40,40,40)] bg-[rgb(21,21,21)] flex-shrink-0">
+        <div className="flex items-center justify-between px-3.5 py-2 border-b border-[rgb(40,40,40)] bg-[#1A1A1A] flex-shrink-0">
 
           {/* Left: View Tabs */}
           <div className="flex items-center gap-1.5">
@@ -2016,10 +2016,10 @@ export default function ProjectWorkspacePane({
               </div>
 
               {/* Right Editor / Document Preview Canvas */}
-              <div className="flex-1 flex flex-col h-full overflow-hidden bg-[rgb(21,21,21)]">
+              <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#1A1A1A]">
 
                 {/* Breadcrumb Header with Actions */}
-                <div className="flex items-center justify-between px-4 py-2 border-b border-[rgb(40,40,40)] bg-[rgb(21,21,21)] text-xs text-neutral-300 font-mono flex-shrink-0">
+                <div className="flex items-center justify-between px-4 py-2 border-b border-[rgb(40,40,40)] bg-[#1A1A1A] text-xs text-neutral-300 font-mono flex-shrink-0">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="text-neutral-400 truncate">{activeFileKey.includes('/') ? activeFileKey.split('/')[0] : 'root'}</span>
                     <ChevronRight size={11} className="text-neutral-500 flex-shrink-0" />
@@ -2057,7 +2057,7 @@ export default function ProjectWorkspacePane({
                 </div>
 
                 {/* Document Preview or Code Editor */}
-                <div className="flex-1 overflow-auto scrollbar-thin bg-[rgb(21,21,21)]">
+                <div className="flex-1 overflow-auto scrollbar-thin bg-[#1A1A1A]">
                   {activeFileKey ? (
                     isMarkdownDoc ? (
                       /* ─── White Sheet Document Preview ─── */

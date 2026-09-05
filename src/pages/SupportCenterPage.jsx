@@ -215,7 +215,7 @@ export const FAQS = [
   },
   {
     q: 'Is there a Free plan available?',
-    a: 'Yes! Calvras provides a 100% Free plan with 10 chat messages per day, 3 image uploads per project, standard model execution, and community support.'
+    a: 'Yes! Calvras provides a 100% Free plan with a standard daily chat limit, 3 image uploads per project, standard model execution, and community support.'
   },
   {
     q: 'What is included in Unlimited API Key Usage on the Max plan?',
@@ -268,10 +268,10 @@ export default function SupportCenterPage({
   }, [activeArticleId]);
 
   return (
-    <div className="min-h-screen w-full bg-[#0B0A08] text-white font-sans selection:bg-white selection:text-black flex flex-col overflow-y-auto">
+    <div className="min-h-screen w-full bg-[#1B1B1D] text-white font-sans selection:bg-white selection:text-black flex flex-col overflow-y-auto">
       
       {/* ─── Top Apple/Claude-Style Navigation Bar ─── */}
-      <header className="sticky top-0 z-40 bg-[#0B0A08]/90 backdrop-blur-xl border-b border-white/10 px-6 py-4">
+      <header className="sticky top-0 z-40 bg-[#1B1B1D]/90 backdrop-blur-xl border-b border-white/10 px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button

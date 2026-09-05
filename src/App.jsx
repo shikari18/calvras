@@ -17,6 +17,9 @@ import ProjectsPage from './components/ProjectsPage';
 import DeveloperPage from './components/DeveloperPage';
 import SupportCenterPage from './pages/SupportCenterPage';
 import LegalDocumentPage from './pages/LegalDocumentPage';
+import AboutUsPage from './pages/AboutUsPage';
+import DynamicTopicPage from './pages/DynamicTopicPage';
+import CustomerServiceWidget from './components/CustomerServiceWidget';
 
 const generateConversationId = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -38,9 +41,20 @@ function getSessionIdFromPath() {
   }
 }
 
+const KNOWN_TOPIC_SLUGS = [
+  'calvras-chat', 'calvras-code', 'calvras-enterprise', 'calvras-teams', 'calvras-education', 'download-app',
+  'model-opus', 'model-sonnet', 'model-haiku', 'models-overview',
+  'solution-modernization', 'solution-qa-testing', 'solution-support-bot', 'solution-fintech',
+  'api-console', 'documentation', 'platform-search-engine', 'platform-sandbox',
+  'research-papers', 'changelog', 'customer-stories', 'cookbook',
+  'program-architect', 'program-startups', 'program-opensource',
+  'status', 'trust-safety', 'careers', 'security', 'press', 'acceptable-use'
+];
+
 function getInitialRoute() {
   try {
     const path = window.location.pathname.toLowerCase();
+    const cleanPath = path.replace(/^\//, '').replace(/\/$/, '');
     const hash = window.location.hash.toLowerCase();
     const savedUser = localStorage.getItem('coded_user');
 
@@ -61,6 +75,10 @@ function getInitialRoute() {
     if (path.startsWith('/refund') || path.startsWith('/shipping')) return 'refund';
     if (path.startsWith('/about')) return 'about';
     if (path.startsWith('/help') || path.startsWith('/support')) return 'help';
+    if (path.startsWith('/topic/') || KNOWN_TOPIC_SLUGS.includes(cleanPath) ||
+        cleanPath.startsWith('model-') || cleanPath.startsWith('solution-') || cleanPath.startsWith('program-')) {
+      return 'topic';
+    }
     if (path.startsWith('/chat') || path.startsWith('/app') || hash.includes('chat')) {
       return savedUser ? 'chat' : 'landing';
     }
@@ -73,7 +91,7 @@ function getInitialRoute() {
     if (savedUser) return 'chat';
 
     const saved = localStorage.getItem('malvos_current_route');
-    if (['privacy', 'terms', 'refund', 'about', 'help'].includes(saved)) return saved;
+    if (['privacy', 'terms', 'refund', 'about', 'help', 'topic'].includes(saved)) return saved;
     if (saved === 'auth') return 'auth';
 
     // First visit for guest — go to landing
@@ -92,6 +110,15 @@ export default function App() {
     return localStorage.getItem('coded_user') ? 'chat' : 'pricing';
   });
   const [helpArticleId, setHelpArticleId] = useState(null);
+  const [isCustomerServiceOpen, setIsCustomerServiceOpen] = useState(false);
+  const [topicSlug, setTopicSlug] = useState(() => {
+    try {
+      const p = window.location.pathname.replace(/^\/(topic\/)?/, '').replace(/\/$/, '').toLowerCase();
+      return p || 'calvras-code';
+    } catch {
+      return 'calvras-code';
+    }
+  });
   const [pendingUser, setPendingUser] = useState(() => {
     try {
       const saved = localStorage.getItem('coded_pending_user');
@@ -188,7 +215,25 @@ export default function App() {
       setHelpArticleId(null);
     }
 
-    if (!['privacy', 'terms', 'refund', 'about', 'help', 'support'].includes(currentRoute)) {
+    if (target === 'topic' && meta) {
+      setTopicSlug(meta);
+    }
+
+    const footerSlugs = [
+      'calvras-chat', 'calvras-code', 'calvras-enterprise', 'calvras-teams', 'calvras-education', 'download-app',
+      'model-opus', 'model-sonnet', 'model-haiku', 'models-overview',
+      'solution-modernization', 'solution-qa-testing', 'solution-support-bot', 'solution-fintech',
+      'api-console', 'documentation', 'platform-search-engine', 'platform-sandbox',
+      'research-papers', 'changelog', 'customer-stories', 'cookbook',
+      'program-architect', 'program-startups', 'program-opensource',
+      'status', 'trust-safety', 'careers', 'security', 'press', 'acceptable-use'
+    ];
+    if (footerSlugs.includes(target) || (typeof target === 'string' && (target.startsWith('model-') || target.startsWith('solution-') || target.startsWith('program-')))) {
+      setTopicSlug(target);
+      target = 'topic';
+    }
+
+    if (!['privacy', 'terms', 'refund', 'about', 'help', 'support', 'topic'].includes(currentRoute)) {
       setPreviousRoute(currentRoute);
     }
 
@@ -200,6 +245,8 @@ export default function App() {
         window.history.pushState(null, '', url);
       } else if (target === 'landing') {
         window.history.pushState(null, '', '/');
+      } else if (target === 'topic') {
+        window.history.pushState(null, '', `/${meta || target}`);
       } else {
         window.history.pushState(null, '', `/${target}`);
       }
@@ -224,7 +271,12 @@ export default function App() {
 
   useEffect(() => {
     const handlePopState = () => {
-      setCurrentRoute(getInitialRoute());
+      const init = getInitialRoute();
+      if (init === 'topic') {
+        const slug = window.location.pathname.replace(/^\/(topic\/)?/, '').replace(/\/$/, '').toLowerCase();
+        if (slug) setTopicSlug(slug);
+      }
+      setCurrentRoute(init);
     };
     window.addEventListener('popstate', handlePopState);
     window.addEventListener('hashchange', handlePopState);
@@ -450,8 +502,45 @@ export default function App() {
     navigateTo('landing');
   };
 
-  // ─── Standalone Editorial Legal Pages (Privacy, Terms, Shipping & Refund, About) ───
-  if (['privacy', 'terms', 'refund', 'about'].includes(currentRoute)) {
+  // ─── Standalone Launch-Grade About Us Page (Images 1 & 2) ───
+  if (currentRoute === 'about') {
+    return (
+      <AboutUsPage
+        onBack={() => {
+          navigateTo(previousRoute || (user ? 'chat' : 'landing'));
+        }}
+        onNavigatePricing={() => navigateTo('pricing')}
+        onNavigateTopic={(slug) => {
+          setTopicSlug(slug);
+          navigateTo('topic', slug);
+        }}
+        onOpenCustomerService={() => setIsCustomerServiceOpen(true)}
+        onSignIn={() => navigateTo(user ? 'chat' : 'auth')}
+      />
+    );
+  }
+
+  // ─── Standalone Dynamic Topic Page (All Footer Links) ───
+  if (currentRoute === 'topic') {
+    return (
+      <DynamicTopicPage
+        topicSlug={topicSlug}
+        onBack={() => {
+          navigateTo(previousRoute || (user ? 'chat' : 'landing'));
+        }}
+        onNavigateTopic={(slug) => {
+          setTopicSlug(slug);
+          navigateTo('topic', slug);
+        }}
+        onNavigatePricing={() => navigateTo('pricing')}
+        onOpenCustomerService={() => setIsCustomerServiceOpen(true)}
+        onSignIn={() => navigateTo(user ? 'chat' : 'auth')}
+      />
+    );
+  }
+
+  // ─── Standalone Editorial Legal Pages (Privacy, Terms, Shipping & Refund) ───
+  if (['privacy', 'terms', 'refund'].includes(currentRoute)) {
     return (
       <LegalDocumentPage
         documentType={currentRoute}
@@ -539,7 +628,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#14120B] text-[#ececed]">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#1B1B1D] text-[#ececed]">
       {/* Mobile sidebar overlay backdrop */}
       {!sidebarCollapsed && (
         <div
@@ -567,7 +656,7 @@ export default function App() {
           onOpenCustomize={() => navigateTo('pricing')}
           onOpenDeveloper={() => setActiveNav('developer')}
           onOpenAccount={() => setIsAccountOpen(true)}
-          onOpenCustomerService={() => setIsFeedbackOpen(true)}
+          onOpenCustomerService={() => setIsCustomerServiceOpen(true)}
           onOpenHelp={() => navigateTo('help')}
           onNavigateLegal={(doc) => navigateTo(doc)}
           onSignOut={handleSignOut}
@@ -580,8 +669,8 @@ export default function App() {
       </div>
 
       {/* Main Chat / Projects / Developer Frame — flush connection */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0 bg-[#14120B]">
-        <div className="relative flex flex-col flex-1 h-full overflow-hidden border-l border-[#242016] bg-[#14120B]">
+      <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0 bg-[#1B1B1D]">
+        <div className="relative flex flex-col flex-1 h-full overflow-hidden border-l border-white/[0.08] bg-[#1B1B1D]">
           {activeNav === 'projects' ? (
             <ProjectsPage
               sessions={sessions}
@@ -678,6 +767,14 @@ export default function App() {
         isOpen={isDeveloperOpen}
         onClose={() => setIsDeveloperOpen(false)}
       />
+
+      {/* Floating Customer Service Mini-Bot (Claude-Style) */}
+      <CustomerServiceWidget
+        isOpen={isCustomerServiceOpen}
+        onClose={() => setIsCustomerServiceOpen(false)}
+        onNavigateHelp={() => navigateTo('help')}
+        onNavigateLegal={(doc) => navigateTo(doc)}
+      />
     </div>
   );
 }
@@ -700,7 +797,7 @@ export class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-[#14120B] text-white p-6 text-center">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-[#1B1B1D] text-white p-6 text-center">
           <h2 className="text-xl font-bold text-red-400 mb-2">Something went wrong</h2>
           <p className="text-sm text-neutral-400 max-w-md mb-4">{this.state.error?.message || 'Unknown render error'}</p>
           <button

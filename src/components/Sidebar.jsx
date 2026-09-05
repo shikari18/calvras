@@ -51,7 +51,7 @@ export default function Sidebar({
 
   return (
     <aside 
-      className={`relative flex flex-col h-full bg-[#14120B] text-[#b4b4b8] border-r border-[#242016] transition-all duration-200 z-30 select-none overflow-hidden ${
+      className={`relative flex flex-col h-full bg-[#1A1A1A] text-[#b4b4b8] border-r border-white/[0.08] transition-all duration-200 z-30 select-none overflow-hidden ${
         collapsed ? 'w-14' : 'w-[230px]'
       }`}
     >
@@ -153,7 +153,6 @@ export default function Sidebar({
           type="button"
           onClick={() => {
             if (onOpenHelp) onOpenHelp();
-            else if (onOpenCustomerService) onOpenCustomerService();
           }}
           className={`flex items-center gap-2.5 w-full px-2.5 py-2 rounded-xl text-[13.5px] font-medium transition-colors cursor-pointer text-neutral-300 hover:text-white hover:bg-white/[0.06] border border-transparent ${collapsed ? 'justify-center' : ''}`}
           title="Get Help"
@@ -163,17 +162,37 @@ export default function Sidebar({
           </div>
           {!collapsed && <span>Get Help</span>}
         </button>
+
+        {/* Customer Service Mini-Bot Trigger */}
+        <button 
+          type="button"
+          onClick={() => {
+            if (onOpenCustomerService) onOpenCustomerService();
+          }}
+          className={`flex items-center gap-2.5 w-full px-2.5 py-2 rounded-xl text-[13.5px] font-medium transition-colors cursor-pointer text-neutral-300 hover:text-white hover:bg-white/[0.06] border border-transparent ${collapsed ? 'justify-center' : ''}`}
+          title="Customer Service"
+        >
+          <div className="w-5 h-5 flex items-center justify-center">
+            <Headphones size={16} className="text-emerald-400" />
+          </div>
+          {!collapsed && (
+            <div className="flex items-center justify-between flex-1">
+              <span>Customer Service</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)] animate-pulse" />
+            </div>
+          )}
+        </button>
       </div>
 
       {/* Spacer */}
       <div className="flex-1" />
 
       {/* ── Bottom User Profile Card & Redesigned Dropdown Popover ── */}
-      <div ref={userMenuRef} className="relative p-2.5 border-t border-white/[0.06] bg-[#0d0d0f]">
+      <div ref={userMenuRef} className="relative p-2.5 border-t border-white/[0.06] bg-[#171717]">
         
         {/* Exact Claude-Style Floating User Menu */}
         {userMenuOpen && (
-          <div className="fixed bottom-16 left-3 w-[240px] rounded-2xl bg-[#1f1e1d] border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.85)] p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150 select-none text-[13px] text-neutral-200">
+          <div className="fixed bottom-16 left-3 w-[240px] rounded-2xl bg-[#1A1A1A] border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.85)] p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150 select-none text-[13px] text-neutral-200">
             {/* Top user email header */}
             <div className="px-3 py-2 text-[12px] text-neutral-400 font-normal truncate border-b border-white/[0.08] mb-1">
               {user?.email || 'user@calvras.ai'}
@@ -245,7 +264,7 @@ export default function Sidebar({
               {learnMoreOpen && (
                 <div 
                   onMouseLeave={() => setLearnMoreOpen(false)}
-                  className="sm:absolute sm:left-full sm:bottom-0 sm:ml-1.5 w-full sm:w-[220px] rounded-2xl bg-[#1f1e1d] border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.85)] p-1.5 space-y-0.5 z-50 animate-in fade-in zoom-in-95 duration-100"
+                  className="sm:absolute sm:left-full sm:bottom-0 sm:ml-1.5 w-full sm:w-[220px] rounded-2xl bg-[#1A1A1A] border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.85)] p-1.5 space-y-0.5 z-50 animate-in fade-in zoom-in-95 duration-100"
                 >
                   <button
                     type="button"
