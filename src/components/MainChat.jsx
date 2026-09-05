@@ -881,13 +881,39 @@ function InputToolbar({
   );
 }
 
+// ─── Dynamic Action Synthesizer (Describes What It Is Doing, Not Raw File Paths) ───
+function deriveActionDescription(filePath, content = '') {
+  const clean = (filePath || '').toLowerCase();
+  if (clean.includes('app.tsx') || clean.includes('app.jsx') || clean.includes('index.html')) {
+    if (content.includes('fetch(') || content.includes('openrouter') || content.includes('api') || content.includes('sk-or-v1')) {
+      return 'Connecting API endpoints & streaming handlers…';
+    }
+    return 'Architecting interface layout & component structure…';
+  }
+  if (clean.includes('style') || clean.includes('.css') || clean.includes('tailwind')) {
+    return 'Applying responsive theme tokens & visual styling…';
+  }
+  if (clean.includes('auth') || clean.includes('login') || clean.includes('user')) {
+    return 'Implementing authentication & user session state…';
+  }
+  if (clean.includes('route') || clean.includes('server') || clean.includes('api') || clean.includes('db')) {
+    return 'Constructing backend routing & database schema…';
+  }
+  if (clean.includes('hook') || clean.includes('context') || clean.includes('state') || clean.includes('store')) {
+    return 'Wiring state management & reactive data stores…';
+  }
+  if (clean.includes('component')) {
+    return 'Composing reusable UI elements & interactions…';
+  }
+  return 'Synthesizing application components & logic…';
+}
+
 // ─── Calvras Action Status (shows terminal/browse actions above input, invisible to user controls) ─
 function CalvrasActionStatus({ action }) {
   if (!action) return null;
   const isCmd = action.type === 'cmd';
   const isBrowse = action.type === 'browse';
   const isSearch = action.type === 'search';
-  const isTest = action.type === 'test';
   const isConfirm = action.type === 'confirm';
 
   return (
@@ -912,19 +938,13 @@ function CalvrasActionStatus({ action }) {
             <span className="text-amber-400 truncate max-w-[480px]">{action.text}</span>
           </>
         )}
-        {isTest && (
-          <>
-            <span className="text-neutral-400">Testing...</span>
-            <span className="text-emerald-400 truncate max-w-[480px]">{action.text}</span>
-          </>
-        )}
         {isConfirm && (
           <>
             <span className="text-neutral-400">Now confirming it...</span>
             <span className="text-cyan-400 truncate max-w-[480px]">{action.text}</span>
           </>
         )}
-        {!isCmd && !isBrowse && !isSearch && !isTest && !isConfirm && (
+        {!isCmd && !isBrowse && !isSearch && !isConfirm && (
           <span className="text-neutral-300 truncate max-w-[480px]">{action.text}</span>
         )}
       </div>
@@ -2035,14 +2055,43 @@ CRITICAL:
       // Fall through to the normal AI call below
     }
 
-    // ── 4. Autonomous Web Search & URL Browse Interception ──
-    let webSearchContext = '';
+    // ── 4. Autonomous API Key Live Verification & Integration ──
+    const apiKeyMatch = query.match(/\b(sk-or-v1-[a-zA-Z0-9_-]{20,})\b/i) || query.match(/\b(sk-[a-zA-Z0-9_-]{20,})\b/i);
+    const isApiKeyInput = Boolean(apiKeyMatch);
+    let apiKeyVerificationContext = '';
+
+    if (isApiKeyInput && apiKeyMatch) {
+      const rawKey = apiKeyMatch[1];
+      try {
+        setStreamingText('Connecting to OpenRouter endpoint to verify authentication credentials…');
+        const vRes = await fetch('https://openrouter.ai/api/v1/auth/key', {
+          headers: { Authorization: `Bearer ${rawKey}` }
+        });
+        if (vRes.ok) {
+          const vData = await vRes.json();
+          const isFreeTier = vData?.data?.is_free_tier ?? true;
+          apiKeyVerificationContext = `\n\n[LIVE VERIFICATION STATUS: OpenRouter API key verified ACTIVE and VALID (Free tier: ${isFreeTier ? 'true' : 'false'}).
+DIRECTIVES FOR WIRING THIS KEY IN USER APP:
+1. Connect this key directly in the user app (src/App.tsx) fetch call to https://openrouter.ai/api/v1/chat/completions.
+2. MODEL SELECTION: ${isFreeTier ? 'This key is free tier. You MUST use verified free models: "google/gemini-2.0-flash-exp:free", "meta-llama/llama-3.3-70b-instruct:free", or "qwen/qwen-2.5-72b-instruct:free". Do NOT call paid models like Claude 3.5 or GPT-4o without credits!' : 'Use "openai/gpt-4o" or "anthropic/claude-3.5-sonnet".'}
+3. SYSTEM PROMPT: Include a dedicated system prompt suited for the specific app (e.g. for Shi: "You are Shi, a fast, knowledgeable, and helpful AI assistant..."). NEVER hardcode Calvras prompt!
+4. ERROR HANDLING: If OpenRouter returns any error, render the actual HTTP status and error text in the chat bubble so the user can see it. NEVER use fake silent fallbacks ("Based on my analysis...").]`;
+        } else {
+          apiKeyVerificationContext = `\n\n[LIVE VERIFICATION STATUS: OpenRouter returned HTTP ${vRes.status} (${vRes.statusText}). Report this exact status code to the user directly instead of guessing.]`;
+        }
+      } catch (err) {
+        console.warn('[API Key Check Error]', err);
+      }
+    }
+
+    // ── 5. Autonomous Web Search & URL Browse Interception ──
+    let webSearchContext = apiKeyVerificationContext || '';
     // Detect domain names or URLs (e.g. examglow.com, https://examglow.com, sub.domain.co)
     const domainOrUrlMatch = query.match(/(?:https?:\/\/)?((?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(?:\/[^\s]*)?)/i);
     const isExplicitBuildRequest = /duplicate|clone|copy|replicate|build|make|recreate|rebuild|same\s+as|match|pixel|develop|implement/i.test(query);
 
     // Case A: Informational search or domain check (e.g., "check examglow.com", "search examglow", "examglow.com", "Deeply research...")
-    const isInformationalSearchOrCheck = !isExplicitBuildRequest && (
+    const isInformationalSearchOrCheck = !isExplicitBuildRequest && !isApiKeyInput && (
       Boolean(domainOrUrlMatch) ||
       /\b(?:search(?:\s+(?:the\s+)?(?:web|internet|online|google|sites?|websites?))?|look\s+up|find\s+online|latest\s+news|check\s+(?:the\s+)?(?:web|internet|site|website)?|check\s+online|research|deeply\s+research)\b/i.test(query)
     );
@@ -2204,8 +2253,7 @@ CRITICAL:
             if (fileMatch) {
               setIsSplitScreen(true);
               setActiveWorkspaceTab('preview');
-              setStreamingText(`Generating ${fileMatch[1].replace('Calvras/', '')}…`);
-              setCalvrasAction({ type: 'test', text: `Testing syntax for ${fileMatch[1].replace('Calvras/', '')}...` });
+              setStreamingText(deriveActionDescription(fileMatch[1], full));
             } else {
               setStreamingText('');
             }
@@ -2215,6 +2263,7 @@ CRITICAL:
               .replace(/<browse>[\s\S]*?<\/browse>/gi, '')
               .replace(/<search>[\s\S]*?<\/search>/gi, '')
               .replace(/```[\s\S]*?```/g, '')
+              .replace(/```[\s\S]*$/g, '')
               .trim();
             setLiveStreamContent(cleanProse);
             const cmdMatch = full.match(/<run_cmd>([^<]{1,120})<\/run_cmd>/i);
@@ -2236,9 +2285,9 @@ CRITICAL:
               .replace(/<search>[\s\S]*?<\/search>/gi, '')
               .replace(/\[Terminal:.*?\]\n[\s\S]*?Exit code: -?\d+\n/g, '')
               .replace(/\[Browsed:.*?\]\n[\s\S]{0,6100}/g, '')
-              .replace(/\[Web Search Results for:.*?\]\n[\s\S]{0,6100}/g, '')
               .replace(/```[\s\S]*?```/g, '')
-              .replace(/<[^>]+>/g, '')
+              .replace(/```[\s\S]*$/g, '')
+              .replace(/^(?:I'll|I will|Let me|I'm going to)\s+[^.\n]+(?:\.|\n)+\s*(?=(?:I(?:'ve| have| did)|(?:Wired|Built|Added|Created|Updated|Connected|Configured|Implemented|Integrated|Fixed))\b)/i, '')
               .replace(/\n{3,}/g, '\n\n')
               .trim();
 
@@ -2596,8 +2645,7 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
           if (fileMatch) {
             setIsSplitScreen(true);
             setActiveWorkspaceTab('preview');
-            setStreamingText(`Generating ${fileMatch[1].replace('Calvras/', '')}…`);
-            setCalvrasAction({ type: 'test', text: `Testing syntax and module imports...` });
+            setStreamingText(deriveActionDescription(fileMatch[1], fullContent));
           } else {
             setStreamingText('');
           }
@@ -2608,6 +2656,7 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
             .replace(/<browse>[\s\S]*?<\/browse>/gi, '')
             .replace(/<search>[\s\S]*?<\/search>/gi, '')
             .replace(/```[\s\S]*?```/g, '')
+            .replace(/```[\s\S]*$/g, '')
             .trim();
           setLiveStreamContent(cleanProse);
 
@@ -2647,7 +2696,7 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
             // ── Autonomous Self-Healing Code Generation ──
             // If the model gave a conversational promise without code, IMMEDIATELY generate the complete code
             if ((isExplicitBuild || isWorkspaceEdit) && Object.keys(extractedFiles).length === 0) {
-              setStreamingText('Generating full application code for preview…');
+              setStreamingText('Synthesizing application components & logic…');
               try {
                 const promptInstruction = isWorkspaceEdit 
                   ? `Update the active project code to fulfill this request: "${query}". Output the FULL, COMPLETE runnable React 18 TypeScript code for src/App.tsx including all imports, real high-resolution Unsplash images (never number placeholders), and mobile-responsive styling. Wrap in:\n\`\`\`tsx file=src/App.tsx\n// Complete code\n\`\`\``
@@ -2738,8 +2787,10 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
               .replace(/<parameter[\s\S]*?<\/parameter>/gi, '')
               .replace(/<ask_question[\s\S]*?<\/ask_question>/gi, '')
               .replace(/```[\s\S]*?```/g, '')
+              .replace(/```[\s\S]*$/g, '')
               .replace(/<write_file[\s\S]*?>/gi, '')
               .replace(/<\/?[a-z_]+(?:\s[^>]*)?>?/gi, '')
+              .replace(/^(?:I'll|I will|Let me|I'm going to)\s+[^.\n]+(?:\.|\n)+\s*(?=(?:I(?:'ve| have| did)|(?:Wired|Built|Added|Created|Updated|Connected|Configured|Implemented|Integrated|Fixed))\b)/i, '')
               .replace(/\n{3,}/g, '\n\n')
               .trim();
 

@@ -20,8 +20,7 @@ import {
   Terminal,
   BookOpen,
   Clock,
-  ChevronUp,
-  Layout
+  ChevronUp
 } from 'lucide-react';
 import { splitThinkingAndContent } from '../services/aiService';
 import { generateLivePreviewSrcdoc } from './ProjectWorkspacePane';
@@ -376,15 +375,11 @@ export default function ChatMessage({ message, onRegenerate, onOpenDetails, onOp
 
       if (!trimmed) return;
 
-      // File header indicator (e.g. tsx file=src/App.tsx)
-      if (/^(?:tsx|jsx|js|ts|html|css|json|py|python|bash|sh)\s+file=([^\s]+)/i.test(trimmed)) {
-        const match = trimmed.match(/^(?:tsx|jsx|js|ts|html|css|json|py|python|bash|sh)\s+file=([^\s]+)/i);
-        elements.push(
-          <div key={lIdx} className="my-1.5 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-[#1a1a1a] border border-white/10 font-mono text-[11.5px] text-blue-400 font-medium shadow-sm">
-            <span className="text-neutral-500">file:</span>
-            <span>{match[1]}</span>
-          </div>
-        );
+      // Strip file header indicators and raw code lines (code lives in workspace only)
+      if (/^(?:tsx|jsx|js|ts|html|css|json|py|python|bash|sh)\s+(?:file=|filename=)/i.test(trimmed)) {
+        return;
+      }
+      if (/^(?:import\s|export\s|const\s|function\s|let\s|var\s|class\s|interface\s|type\s)/.test(trimmed) && trimmed.length > 25) {
         return;
       }
 
@@ -682,6 +677,12 @@ export default function ChatMessage({ message, onRegenerate, onOpenDetails, onOp
   cleanContent = cleanContent.replace(/\[TOOL_CALL\][\s\S]*?\[\/TOOL_CALL\]/gi, '').trim();
   cleanContent = cleanContent.replace(/<tool_call>[\s\S]*?<\/tool_call>/gi, '').trim();
 
+  // Strip all code blocks from conversational chat (code belongs exclusively in workspace)
+  cleanContent = cleanContent
+    .replace(/```[a-zA-Z0-9_-]*(?:\s+(?:file=|filename=)[^\n]+)?[\s\S]*?```/g, '')
+    .replace(/```[\s\S]*$/g, '')
+    .trim();
+
   // Clean JSON payloads if raw string leaked into message
   if (/^(?:```json|json\s*\{|\{)/i.test(cleanContent.trim())) {
     try {
@@ -726,41 +727,8 @@ export default function ChatMessage({ message, onRegenerate, onOpenDetails, onOp
       : (thoughtContent ? 'Reasoned through response' : null)
   );
 
-  const appName = (() => {
-    if (cleanContent) {
-      const h1Match = cleanContent.match(/#+\s+([^\n]+)/);
-      if (h1Match && h1Match[1].length < 40) return h1Match[1].replace(/[*`_]/g, '').trim();
-      const boldMatch = cleanContent.match(/\*\*([^\n*]+)\*\*/);
-      if (boldMatch && boldMatch[1].length < 40 && !boldMatch[1].includes('Updated') && !boldMatch[1].includes('Built')) return boldMatch[1].trim();
-    }
-    return 'Application Workspace';
-  })();
-
   return (
     <div className="w-full max-w-[660px] mx-auto px-4 py-2.5 text-left font-sans animate-message-in">
-
-
-      {/* ── Interactive Artifact Card (Website / Preview link) ── */}
-      {hasCode && (
-        <div className="mb-3.5 flex items-center justify-between p-3 rounded-xl bg-[#18181f] border border-neutral-800 shadow-md hover:border-neutral-700 transition-all">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 flex-shrink-0">
-              <Layout size={16} />
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-white tracking-wide">{appName}</p>
-              <p className="text-[10px] text-neutral-400">Website • Live Preview</p>
-            </div>
-          </div>
-          <button
-            onClick={onOpenPreview}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-medium transition-colors border border-neutral-700 cursor-pointer shadow-sm"
-          >
-            <span>Open</span>
-            <ExternalLink size={12} />
-          </button>
-        </div>
-      )}
 
       {/* Main Response Content */}
       <div className="text-[15px] leading-relaxed text-[#ededed] font-normal mb-2.5 space-y-2.5">
