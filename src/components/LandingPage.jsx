@@ -541,18 +541,12 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onN
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch max-w-4xl mx-auto mb-10 text-left">
           
           {/* Card 1: $14 Pro */}
-          <div className="flex flex-col bg-[#14120B] rounded-3xl border border-teal-500/40 p-8 shadow-[0_0_50px_rgba(20,184,166,0.08)] relative">
+          <div className="flex flex-col bg-[#14120B] rounded-3xl border border-white/20 p-8 hover:border-white/30 transition-all relative">
             
-            {/* Top Badge Banner */}
-            <div className="flex items-center justify-between text-[11px] font-mono text-teal-400 font-semibold mb-6">
-              <span>+$40 free Computer credits</span>
-              <span className="text-neutral-500 uppercase">LIMITED TIME</span>
-            </div>
-
             {/* Title & Badge */}
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-[26px] font-bold text-white tracking-tight">calvras <span className="font-normal text-teal-400">pro</span></h3>
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-400 border border-teal-500/30">
+              <h3 className="text-[26px] font-bold text-white tracking-tight">calvras <span className="font-normal text-white">pro</span></h3>
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-white/10 text-white border border-white/20">
                 Popular
               </span>
             </div>
@@ -572,19 +566,19 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onN
             </div>
             <ul className="space-y-3.5 flex-1 mb-8">
               <li className="flex items-center gap-3 text-[13px] text-neutral-200">
-                <Search size={15} className="text-teal-400 flex-shrink-0" />
+                <Search size={15} className="text-neutral-400 flex-shrink-0" />
                 <span>built in web search</span>
               </li>
               <li className="flex items-center gap-3 text-[13px] text-neutral-200">
-                <Zap size={15} className="text-teal-400 flex-shrink-0" />
+                <Zap size={15} className="text-neutral-400 flex-shrink-0" />
                 <span>high usage limit</span>
               </li>
               <li className="flex items-center gap-3 text-[13px] text-neutral-200">
-                <Sparkles size={15} className="text-teal-400 flex-shrink-0" />
+                <Sparkles size={15} className="text-neutral-400 flex-shrink-0" />
                 <span>early access to Calvras feaatures</span>
               </li>
               <li className="flex items-center gap-3 text-[13px] text-neutral-200">
-                <Cpu size={15} className="text-teal-400 flex-shrink-0" />
+                <Cpu size={15} className="text-neutral-400 flex-shrink-0" />
                 <span>priority access to new models</span>
               </li>
             </ul>
@@ -601,12 +595,6 @@ export default function LandingPage({ onSignUp, onSignIn, onNavigatePricing, onN
           {/* Card 2: $40 Max */}
           <div className="flex flex-col bg-[#14120B] rounded-3xl border border-white/15 p-8 hover:border-white/25 transition-all text-left">
             
-            {/* Top Badge Banner */}
-            <div className="flex items-center justify-between text-[11px] font-mono text-neutral-400 font-semibold mb-6">
-              <span>+$450 free Computer credits</span>
-              <span className="text-neutral-500 uppercase">LIMITED TIME</span>
-            </div>
-
             {/* Title */}
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-[26px] font-bold text-white tracking-tight">calvras <span className="font-normal text-white">max</span></h3>

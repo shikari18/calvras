@@ -17,7 +17,6 @@ export const PRICING_PLANS = [
     cta: 'Get Pro',
     ctaType: 'pro',
     tier: 'Everything in Free and:',
-    creditBonus: '+$40 free Computer credits',
     isPopular: true,
     features: [
       'built in web search',
@@ -36,7 +35,6 @@ export const PRICING_PLANS = [
     cta: 'Get Max',
     ctaType: 'team',
     tier: 'Everything in Pro and:',
-    creditBonus: '+$450 free Computer credits',
     features: [
       'everything in pro',
       'unlimited usage of api key',
@@ -46,7 +44,16 @@ export const PRICING_PLANS = [
   }
 ];
 
-export default function PricingOnboarding({ onBack, onComplete, onNavigateLegal, onNavigateHelp, initialPlan = 'pro' }) {
+export default function PricingOnboarding({ 
+  onBack, 
+  onComplete, 
+  onCompletePlan,
+  onSkip,
+  user,
+  onNavigateLegal, 
+  onNavigateHelp, 
+  initialPlan = 'pro' 
+}) {
   const [paymentPlan, setPaymentPlan] = useState(null);
   const [legalModalTab, setLegalModalTab] = useState(null);
 
@@ -57,6 +64,22 @@ export default function PricingOnboarding({ onBack, onComplete, onNavigateLegal,
   const handlePaymentSuccess = (reference) => {
     setPaymentPlan(null);
     if (onComplete) onComplete(reference);
+    if (onCompletePlan) {
+      onCompletePlan({ ...(user || {}), plan: paymentPlan?.name || 'Pro Plan' });
+    }
+  };
+
+  const handleCloseToFree = () => {
+    // If closed, user automatically proceeds on Free tier
+    if (onSkip) {
+      onSkip();
+    } else if (onComplete) {
+      onComplete({ freePlan: true });
+    } else if (onCompletePlan) {
+      onCompletePlan({ ...(user || {}), plan: 'Free Plan' });
+    } else if (onBack) {
+      onBack();
+    }
   };
 
   const handleOpenLegal = (tab) => {
@@ -87,9 +110,16 @@ export default function PricingOnboarding({ onBack, onComplete, onNavigateLegal,
         </div>
 
         <div className="flex items-center gap-4 text-xs text-neutral-400">
-          <button onClick={() => handleOpenLegal('privacy')} className="hover:text-white transition-colors cursor-pointer">Privacy Policy</button>
-          <button onClick={() => handleOpenLegal('refund')} className="hover:text-white transition-colors cursor-pointer">Refund Guarantee</button>
-          <button onClick={() => handleOpenLegal('terms')} className="hover:text-white transition-colors cursor-pointer">Terms</button>
+          <button onClick={() => handleOpenLegal('privacy')} className="hover:text-white transition-colors cursor-pointer hidden sm:inline">Privacy Policy</button>
+          <button onClick={() => handleOpenLegal('refund')} className="hover:text-white transition-colors cursor-pointer hidden sm:inline">Refund Guarantee</button>
+          <button onClick={() => handleOpenLegal('terms')} className="hover:text-white transition-colors cursor-pointer hidden sm:inline">Terms</button>
+          <button
+            onClick={handleCloseToFree}
+            className="flex items-center gap-1.5 text-xs text-neutral-300 hover:text-white px-3 py-1.5 rounded-lg bg-white/5 border border-white/15 hover:border-white/30 transition-all cursor-pointer font-medium"
+            title="Close to Chat (Free Plan)"
+          >
+            <span>✕ Close</span>
+          </button>
         </div>
       </header>
 
@@ -106,22 +136,16 @@ export default function PricingOnboarding({ onBack, onComplete, onNavigateLegal,
           </p>
         </div>
 
-        {/* ─── 2 Cards Grid (Exact matching Perplexity Image 4) ─── */}
+        {/* ─── 2 Cards Grid (Exact matching Perplexity Image 4, Subtle clean border) ─── */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch w-full max-w-4xl mb-8 text-left">
           
           {/* Card 1: $14 Pro */}
-          <div className="flex flex-col bg-[#14120B] rounded-3xl border border-teal-500/40 p-8 shadow-[0_0_50px_rgba(20,184,166,0.08)] relative">
+          <div className="flex flex-col bg-[#14120B] rounded-3xl border border-white/20 p-8 hover:border-white/30 transition-all relative">
             
-            {/* Top Badge Banner */}
-            <div className="flex items-center justify-between text-[11px] font-mono text-teal-400 font-semibold mb-6">
-              <span>+$40 free Computer credits</span>
-              <span className="text-neutral-500 uppercase">LIMITED TIME</span>
-            </div>
-
             {/* Title & Badge */}
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-[26px] font-bold text-white tracking-tight">calvras <span className="font-normal text-teal-400">pro</span></h2>
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-400 border border-teal-500/30">
+              <h2 className="text-[26px] font-bold text-white tracking-tight">calvras <span className="font-normal text-white">pro</span></h2>
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-white/10 text-white border border-white/20">
                 Popular
               </span>
             </div>
@@ -135,25 +159,25 @@ export default function PricingOnboarding({ onBack, onComplete, onNavigateLegal,
               <span className="text-[13px] text-neutral-400">/month</span>
             </div>
 
-            {/* Features (Exact user specifications) */}
+            {/* Features */}
             <div className="text-[12px] font-medium text-neutral-300 mb-4">
               Everything in Free and:
             </div>
             <ul className="space-y-3.5 flex-1 mb-8">
               <li className="flex items-center gap-3 text-[13px] text-neutral-200">
-                <Search size={15} className="text-teal-400 flex-shrink-0" />
+                <Search size={15} className="text-neutral-400 flex-shrink-0" />
                 <span>built in web search</span>
               </li>
               <li className="flex items-center gap-3 text-[13px] text-neutral-200">
-                <Zap size={15} className="text-teal-400 flex-shrink-0" />
+                <Zap size={15} className="text-neutral-400 flex-shrink-0" />
                 <span>high usage limit</span>
               </li>
               <li className="flex items-center gap-3 text-[13px] text-neutral-200">
-                <Sparkles size={15} className="text-teal-400 flex-shrink-0" />
+                <Sparkles size={15} className="text-neutral-400 flex-shrink-0" />
                 <span>early access to Calvras feaatures</span>
               </li>
               <li className="flex items-center gap-3 text-[13px] text-neutral-200">
-                <Cpu size={15} className="text-teal-400 flex-shrink-0" />
+                <Cpu size={15} className="text-neutral-400 flex-shrink-0" />
                 <span>priority access to new models</span>
               </li>
             </ul>
@@ -171,12 +195,6 @@ export default function PricingOnboarding({ onBack, onComplete, onNavigateLegal,
           {/* Card 2: $40 Max */}
           <div className="flex flex-col bg-[#14120B] rounded-3xl border border-white/15 p-8 hover:border-white/25 transition-all text-left">
             
-            {/* Top Badge Banner */}
-            <div className="flex items-center justify-between text-[11px] font-mono text-neutral-400 font-semibold mb-6">
-              <span>+$450 free Computer credits</span>
-              <span className="text-neutral-500 uppercase">LIMITED TIME</span>
-            </div>
-
             {/* Title */}
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-[26px] font-bold text-white tracking-tight">calvras <span className="font-normal text-white">max</span></h2>
@@ -191,7 +209,7 @@ export default function PricingOnboarding({ onBack, onComplete, onNavigateLegal,
               <span className="text-[13px] text-neutral-400">/month</span>
             </div>
 
-            {/* Features (Exact user specifications) */}
+            {/* Features */}
             <div className="text-[12px] font-medium text-neutral-300 mb-4">
               Everything in Pro and:
             </div>
@@ -226,49 +244,7 @@ export default function PricingOnboarding({ onBack, onComplete, onNavigateLegal,
 
         </div>
 
-        {/* Privacy Policy Link Underneath (Per user instruction) */}
-        <div className="text-[12.5px] text-neutral-400 max-w-xl mx-auto leading-relaxed">
-          All subscriptions are protected by Paystack with immediate digital delivery. View our{' '}
-          <button
-            type="button"
-            onClick={() => handleOpenLegal('privacy')}
-            className="underline text-neutral-200 hover:text-white cursor-pointer transition-colors"
-          >
-            Privacy Policy
-          </button>{' '}
-          and{' '}
-          <button
-            type="button"
-            onClick={() => handleOpenLegal('refund')}
-            className="underline text-neutral-200 hover:text-white cursor-pointer transition-colors"
-          >
-            14-Day Refund Guarantee
-          </button>.
-        </div>
-
       </main>
-
-      {/* ─── Compliance & Legal Footer on #14120B ─── */}
-      <footer className="w-full border-t border-white/10 bg-[#14120B] py-12 px-6 text-xs text-neutral-500 mt-auto">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <img src="/sidebar-logo.jpeg" alt="Calvras" className="w-6 h-6 rounded object-contain" />
-            <span className="text-white font-bold text-sm">Calvras Technologies</span>
-            <span className="text-neutral-600">© {new Date().getFullYear()} All rights reserved.</span>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-center gap-6 text-neutral-400">
-            <button onClick={() => handleOpenLegal('about')} className="hover:text-white transition-colors cursor-pointer">About Page</button>
-            <button onClick={() => handleOpenLegal('refund')} className="hover:text-white transition-colors cursor-pointer">Shipping & Refund Policy</button>
-            <button onClick={() => handleOpenLegal('terms')} className="hover:text-white transition-colors cursor-pointer">Terms of Service</button>
-            <button onClick={() => handleOpenLegal('privacy')} className="hover:text-white transition-colors cursor-pointer">Privacy Policy</button>
-          </div>
-        </div>
-
-        <div className="max-w-6xl mx-auto mt-6 pt-6 border-t border-white/5 text-[11px] text-neutral-600 text-center leading-relaxed">
-          Calvras provides digital software-as-a-service (SaaS) products. All subscription payments and refunds are securely processed via Paystack in accordance with international digital commerce regulations. Immediate electronic fulfillment with 14-day money-back guarantee.
-        </div>
-      </footer>
 
       {/* Payment Checkout Modal */}
       {paymentPlan && (

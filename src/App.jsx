@@ -42,10 +42,15 @@ function getInitialRoute() {
   try {
     const path = window.location.pathname.toLowerCase();
     const hash = window.location.hash.toLowerCase();
+    const savedUser = localStorage.getItem('coded_user');
+
+    // /new always opens chat for logged-in user, or landing for guests
+    if (path.startsWith('/new')) {
+      return savedUser ? 'chat' : 'landing';
+    }
 
     // Explicit URL-based route detection
     if (path.startsWith('/c/')) {
-      const savedUser = localStorage.getItem('coded_user');
       return savedUser ? 'chat' : 'auth';
     }
     if (path.startsWith('/pricing')) return 'pricing';
@@ -57,7 +62,6 @@ function getInitialRoute() {
     if (path.startsWith('/about')) return 'about';
     if (path.startsWith('/help') || path.startsWith('/support')) return 'help';
     if (path.startsWith('/chat') || path.startsWith('/app') || hash.includes('chat')) {
-      const savedUser = localStorage.getItem('coded_user');
       return savedUser ? 'chat' : 'landing';
     }
     if (path.startsWith('/landing') || hash.includes('landing')) {
@@ -65,21 +69,15 @@ function getInitialRoute() {
       return 'landing';
     }
 
-    // For root "/" or unknown paths — restore from last saved route
-    const saved = localStorage.getItem('malvos_current_route');
-    if (['pricing', 'privacy', 'terms', 'refund', 'about', 'help'].includes(saved)) return saved;
-    if (saved === 'chat') {
-      const savedUser = localStorage.getItem('coded_user');
-      return savedUser ? 'chat' : 'landing';
-    }
-    if (saved === 'auth') {
-      const savedUser = localStorage.getItem('coded_user');
-      return savedUser ? 'chat' : 'auth';
-    }
+    // For root "/" or unknown paths — if user is logged in, ALWAYS keep them on chat (never redirect to pricing)
+    if (savedUser) return 'chat';
 
-    // First visit — if user is logged in go to chat, else landing
-    const savedUser = localStorage.getItem('coded_user');
-    return savedUser ? 'chat' : 'landing';
+    const saved = localStorage.getItem('malvos_current_route');
+    if (['privacy', 'terms', 'refund', 'about', 'help'].includes(saved)) return saved;
+    if (saved === 'auth') return 'auth';
+
+    // First visit for guest — go to landing
+    return 'landing';
   } catch {
     return 'landing';
   }
@@ -343,9 +341,7 @@ export default function App() {
     setActiveNav('home');
     setSidebarCollapsed(false);
     try {
-      if (window.location.pathname.startsWith('/c/')) {
-        window.history.pushState(null, '', '/');
-      }
+      window.history.pushState(null, '', '/new');
     } catch {}
     localStorage.removeItem('malvos_active_messages');
     localStorage.removeItem('coded_active_session');
@@ -570,6 +566,7 @@ export default function App() {
           onOpenAccount={() => navigateTo('pricing')}
           onOpenCustomerService={() => setIsFeedbackOpen(true)}
           onOpenHelp={() => navigateTo('help')}
+          onNavigateLegal={(doc) => navigateTo(doc)}
           onSignOut={handleSignOut}
           sessions={sessions}
           activeSession={activeSession}
@@ -579,9 +576,9 @@ export default function App() {
         />
       </div>
 
-      {/* Main Chat / Projects / Developer Frame */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0 p-2 sm:py-2.5 sm:pr-2.5 sm:pl-0 bg-[#14120B]">
-        <div className="relative flex flex-col flex-1 h-full overflow-hidden rounded-[20px] border border-[#242016] bg-[#14120B] shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
+      {/* Main Chat / Projects / Developer Frame — flush connection */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0 bg-[#14120B]">
+        <div className="relative flex flex-col flex-1 h-full overflow-hidden border-l border-[#242016] bg-[#14120B]">
           {activeNav === 'projects' ? (
             <ProjectsPage
               sessions={sessions}

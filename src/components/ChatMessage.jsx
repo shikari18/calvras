@@ -86,7 +86,7 @@ export default function ChatMessage({ message, onRegenerate, onOpenDetails, onOp
 
     return (
       <div className="flex justify-end w-full max-w-[660px] mx-auto px-4 py-1.5 animate-message-in group">
-        <div className="flex flex-col items-end gap-1.5 max-w-[85%]">
+        <div className="flex flex-col items-end gap-1.5 max-w-[85%] min-w-0 w-auto">
           {/* Render uploaded images outside the text bubble with 100px by 100px thumbnail */}
           {message.files && message.files.length > 0 && (
             <div className="flex flex-wrap gap-2 justify-end select-none">
@@ -119,7 +119,7 @@ export default function ChatMessage({ message, onRegenerate, onOpenDetails, onOp
             <div
               ref={userBubbleRef}
               onClick={() => isLongMessage && setIsUserExpanded(p => !p)}
-              className={`relative bg-[#262626] text-neutral-200 px-5 py-3.5 rounded-2xl text-[15.5px] font-normal shadow-sm break-words whitespace-pre-wrap leading-relaxed transition-all hover:bg-[#2c2c2c] ${isLongMessage ? 'cursor-pointer select-none' : ''} ${isLongMessage && !isUserExpanded ? 'max-h-[82px] overflow-hidden' : 'max-h-none'}`}
+              className={`relative bg-[#262626] text-neutral-200 px-5 py-3.5 rounded-2xl text-[15.5px] font-normal shadow-sm break-all break-words max-w-full overflow-hidden whitespace-pre-wrap leading-relaxed transition-all hover:bg-[#2c2c2c] ${isLongMessage ? 'cursor-pointer select-none' : ''} ${isLongMessage && !isUserExpanded ? 'max-h-[82px] overflow-hidden' : 'max-h-none'}`}
               title={isLongMessage ? (isUserExpanded ? "Click to collapse" : "Click to expand message") : undefined}
             >
               {renderUserTextWithLinks(message.content)}

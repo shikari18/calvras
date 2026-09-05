@@ -23,16 +23,19 @@ export default function Sidebar({
   onOpenAccount,
   onOpenCustomerService,
   onOpenHelp,
+  onNavigateLegal,
   onSignOut,
   user
 }) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [learnMoreOpen, setLearnMoreOpen] = useState(false);
   const userMenuRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
         setUserMenuOpen(false);
+        setLearnMoreOpen(false);
       }
     };
     if (userMenuOpen) {
@@ -42,7 +45,7 @@ export default function Sidebar({
   }, [userMenuOpen]);
 
   const displayName = user?.name || 'User';
-  const displayPlan = user?.plan || 'Pro Plan';
+  const displayPlan = user?.plan || 'Free Plan';
   const avatarUrl = user?.avatar || null;
   const initial = displayName.charAt(0).toUpperCase() || 'U';
 
@@ -168,68 +171,160 @@ export default function Sidebar({
       {/* ── Bottom User Profile Card & Redesigned Dropdown Popover ── */}
       <div ref={userMenuRef} className="relative p-2.5 border-t border-white/[0.06] bg-[#0d0d0f]">
         
-        {/* Redesigned Floating User Dropdown Menu */}
+        {/* Exact Claude-Style Floating User Menu (media_1788579452801.png, except Claude Academy) */}
         {userMenuOpen && (
-          <div className="absolute bottom-[60px] left-2 right-2 w-[225px] rounded-2xl bg-[#18181f]/98 backdrop-blur-2xl border border-[#2e2e3a] shadow-[0_20px_60px_rgba(0,0,0,0.85)] p-2 space-y-1.5 z-50 animate-in fade-in zoom-in-95 slide-in-from-bottom-2 duration-150 select-none">
-            {/* User Profile Header Card */}
-            <div className="p-2.5 rounded-xl bg-[#22222c]/80 border border-white/[0.06] flex items-center gap-2.5">
-              <div className="relative flex-shrink-0">
-                {avatarUrl ? (
-                  <img
-                    src={avatarUrl}
-                    alt={displayName}
-                    className="w-9 h-9 rounded-full object-cover border border-white/10"
-                  />
-                ) : (
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-500 flex items-center justify-center text-white text-xs font-bold shadow-md">
-                    {initial}
-                  </div>
-                )}
-                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-[#18181f]" />
-              </div>
-              <div className="truncate text-left flex-1 min-w-0">
-                <div className="text-[13px] font-semibold text-white truncate leading-tight">{displayName}</div>
-                <div className="text-[10px] text-neutral-400 truncate mt-0.5">{user?.email || 'Active Account'}</div>
-              </div>
+          <div className="absolute bottom-[58px] left-2 w-[240px] rounded-2xl bg-[#1f1e1d] border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.85)] p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150 select-none text-[13px] text-neutral-200">
+            {/* Top user email header */}
+            <div className="px-3 py-2 text-[12px] text-neutral-400 font-normal truncate border-b border-white/[0.08] mb-1">
+              {user?.email || 'user@calvras.ai'}
             </div>
 
-            {/* Menu Actions */}
-            <div className="space-y-0.5 pt-0.5">
+            {/* Settings with Ctrl , */}
+            <button
+              type="button"
+              onClick={() => {
+                setUserMenuOpen(false);
+                if (onOpenAccount) onOpenAccount();
+              }}
+              className="flex items-center justify-between w-full px-3 py-2 rounded-xl text-neutral-200 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer text-left"
+            >
+              <span>Settings</span>
+              <span className="text-[10px] text-neutral-400 font-mono bg-white/[0.06] px-1.5 py-0.5 rounded border border-white/10">Ctrl ,</span>
+            </button>
+
+            {/* Language with English */}
+            <button
+              type="button"
+              onClick={() => {
+                alert('Language: English (Default)');
+              }}
+              className="flex items-center justify-between w-full px-3 py-2 rounded-xl text-neutral-200 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer text-left"
+            >
+              <span>Language</span>
+              <span className="text-[12px] text-neutral-400">English</span>
+            </button>
+
+            {/* Get help */}
+            <button
+              type="button"
+              onClick={() => {
+                setUserMenuOpen(false);
+                if (onOpenHelp) onOpenHelp();
+              }}
+              className="flex items-center justify-between w-full px-3 py-2 rounded-xl text-neutral-200 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer text-left"
+            >
+              <span>Get help</span>
+            </button>
+
+            <div className="border-t border-white/[0.08] my-1" />
+
+            {/* Upgrade plan */}
+            <button
+              type="button"
+              onClick={() => {
+                setUserMenuOpen(false);
+                if (onOpenUpgrade) onOpenUpgrade();
+              }}
+              className="flex items-center justify-between w-full px-3 py-2 rounded-xl text-neutral-200 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer text-left font-medium"
+            >
+              <span>Upgrade plan</span>
+            </button>
+
+            {/* Get apps and extensions */}
+            <button
+              type="button"
+              onClick={() => {
+                setUserMenuOpen(false);
+                alert('Calvras apps and extensions are available at calvras.ai/cli');
+              }}
+              className="flex items-center justify-between w-full px-3 py-2 rounded-xl text-neutral-200 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer text-left"
+            >
+              <span>Get apps and extensions</span>
+            </button>
+
+            {/* Learn more > with flyout */}
+            <div className="relative">
               <button
                 type="button"
-                onClick={() => {
-                  setUserMenuOpen(false);
-                  if (onOpenAccount) onOpenAccount();
-                }}
-                className="group flex items-center justify-between w-full px-2.5 py-2 rounded-xl text-xs text-neutral-300 hover:text-white hover:bg-white/[0.08] transition-all cursor-pointer text-left"
+                onClick={() => setLearnMoreOpen(prev => !prev)}
+                onMouseEnter={() => setLearnMoreOpen(true)}
+                className="flex items-center justify-between w-full px-3 py-2 rounded-xl text-neutral-200 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer text-left"
               >
-                <div className="flex items-center gap-2">
-                  <Settings size={14} className="text-neutral-400 group-hover:text-white transition-colors" />
-                  <span className="font-medium">Settings & Account</span>
-                </div>
-                <ChevronRight size={13} className="text-neutral-500 group-hover:text-neutral-300 group-hover:translate-x-0.5 transition-all" />
+                <span>Learn more</span>
+                <ChevronRight size={14} className={`text-neutral-400 transition-transform ${learnMoreOpen ? 'rotate-90 sm:rotate-0' : ''}`} />
               </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setUserMenuOpen(false);
-                  if (onOpenHelp) onOpenHelp();
-                  else if (onOpenCustomerService) onOpenCustomerService();
-                }}
-                className="group flex items-center justify-between w-full px-2.5 py-2 rounded-xl text-xs text-neutral-300 hover:text-white hover:bg-white/[0.08] transition-all cursor-pointer text-left"
-              >
-                <div className="flex items-center gap-2">
-                  <HelpCircle size={14} className="text-neutral-400 group-hover:text-white transition-colors" />
-                  <span className="font-medium">Get Help</span>
+              {learnMoreOpen && (
+                <div 
+                  onMouseLeave={() => setLearnMoreOpen(false)}
+                  className="sm:absolute sm:left-full sm:bottom-0 sm:ml-1.5 w-full sm:w-[220px] rounded-2xl bg-[#1f1e1d] border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.85)] p-1.5 space-y-0.5 z-50 animate-in fade-in zoom-in-95 duration-100"
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      setLearnMoreOpen(false);
+                      if (onNavigateLegal) onNavigateLegal('about');
+                    }}
+                    className="flex items-center w-full px-3 py-1.5 rounded-lg text-[12.5px] text-neutral-200 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer text-left"
+                  >
+                    About Calvras
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      setLearnMoreOpen(false);
+                      if (onNavigateLegal) onNavigateLegal('terms');
+                    }}
+                    className="flex items-center w-full px-3 py-1.5 rounded-lg text-[12.5px] text-neutral-200 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer text-left"
+                  >
+                    Usage policy
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      setLearnMoreOpen(false);
+                      if (onNavigateLegal) onNavigateLegal('privacy');
+                    }}
+                    className="flex items-center w-full px-3 py-1.5 rounded-lg text-[12.5px] text-neutral-200 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer text-left"
+                  >
+                    Privacy policy
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      setLearnMoreOpen(false);
+                      if (onNavigateLegal) onNavigateLegal('terms');
+                    }}
+                    className="flex items-center w-full px-3 py-1.5 rounded-lg text-[12.5px] text-neutral-200 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer text-left"
+                  >
+                    Terms of service
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      setLearnMoreOpen(false);
+                      if (onNavigateLegal) onNavigateLegal('privacy');
+                    }}
+                    className="flex items-center w-full px-3 py-1.5 rounded-lg text-[12.5px] text-neutral-200 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer text-left"
+                  >
+                    Your privacy choices
+                  </button>
+                  <div className="flex items-center justify-between w-full px-3 py-1.5 rounded-lg text-[12.5px] text-neutral-200 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer text-left">
+                    <span>Keyboard shortcuts</span>
+                    <span className="text-[10px] text-neutral-400 font-mono bg-white/[0.06] px-1.5 py-0.5 rounded border border-white/10">Ctrl /</span>
+                  </div>
                 </div>
-                <span className="text-[9.5px] px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-medium">24/7</span>
-              </button>
+              )}
             </div>
 
             <div className="border-t border-white/[0.08] my-1" />
 
-            {/* Sign Out */}
+            {/* Log out */}
             <button
               type="button"
               onClick={() => {
@@ -240,10 +335,9 @@ export default function Sidebar({
                   window.location.reload();
                 }
               }}
-              className="group flex items-center gap-2 w-full px-2.5 py-2 rounded-xl text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-all cursor-pointer text-left font-medium"
+              className="flex items-center w-full px-3 py-2 rounded-xl text-neutral-200 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer text-left"
             >
-              <LogOut size={14} />
-              <span>Sign out</span>
+              Log out
             </button>
           </div>
         )}
