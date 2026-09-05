@@ -17,7 +17,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 
-export const CyMockupModal = ({ item, isOpen, onClose, userName = 'SHIKARI' }) => {
+export const CyMockupModal = ({ item, isOpen, onClose, userName = 'User' }) => {
   if (!isOpen || !item) return null;
 
   const [activeChannel, setActiveChannel] = useState(item.channel || 'Instagram');

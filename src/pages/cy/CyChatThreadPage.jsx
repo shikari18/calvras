@@ -28,7 +28,7 @@ export const CyChatThreadPage = ({
   initialMode = 'chat',
   channelName = 'general', 
   threadTitle = 'Strategy Workspace', 
-  userName = 'SHIKARI Ogar', 
+  userName = 'User', 
   onUpdateThreadTitle,
   onToggleSidebar,
   onNavigateToContents
@@ -213,7 +213,7 @@ export const CyChatThreadPage = ({
       const userMsg = {
         id: userMsgId,
         sender: 'user',
-        name: userProfile?.name || userName || 'SHIKARI',
+        name: userProfile?.name || userName || 'User',
         avatar: userProfile?.picture || null,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         text: userText,

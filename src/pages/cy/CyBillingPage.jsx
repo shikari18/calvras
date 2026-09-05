@@ -3,7 +3,7 @@ import { X, Check, Sparkles, CreditCard, Lock, CheckCircle2 } from 'lucide-react
 import { useMarketing } from '../../context/MarketingContext';
 import confetti from 'canvas-confetti';
 
-export const CyBillingPage = ({ userName = 'SHIKARI', onSelectTab }) => {
+export const CyBillingPage = ({ userName = 'User', onSelectTab }) => {
   const { credits, addCredits } = useMarketing();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [isAnnual, setIsAnnual] = useState(false);

@@ -245,7 +245,7 @@ const INITIAL_CONNECTORS = [
   }
 ];
 
-export const CyConnectorsPage = ({ userName = 'SHIKARI' }) => {
+export const CyConnectorsPage = ({ userName = 'User' }) => {
   const [connectors, setConnectors] = useState(INITIAL_CONNECTORS);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('All');

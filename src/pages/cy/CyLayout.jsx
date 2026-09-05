@@ -18,7 +18,7 @@ import { X } from 'lucide-react';
 export const CyLayout = ({ 
   onSignOut, 
   initialTab = 'new-chat',
-  userProfile = { name: 'SHIKARI Ogar', email: 'zenithzone18@gmail.com' },
+  userProfile = { name: 'User', email: 'user@example.com' },
   onOpenLegal
 }) => {
   const { createNewChatThread, selectThread, activeThread, activeThreadId, updateThreadTitleInContext } = useMarketing();
@@ -46,8 +46,8 @@ export const CyLayout = ({
   // Mobile slide-out drawer state
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const userName = userProfile?.name || 'SHIKARI Ogar';
-  const userEmail = userProfile?.email || 'zenithzone18@gmail.com';
+  const userName = userProfile?.name || 'User';
+  const userEmail = userProfile?.email || 'user@example.com';
 
   const handleNewChat = () => {
     setInitialPrompt('');
@@ -86,7 +86,7 @@ export const CyLayout = ({
     const userMsg = {
       id: userMsgId,
       sender: 'user',
-      name: userProfile?.name || userName || 'SHIKARI',
+      name: userProfile?.name || userName || 'User',
       avatar: userProfile?.picture || null,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       text: cleanPrompt,

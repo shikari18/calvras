@@ -14,7 +14,7 @@ import {
   Sparkles
 } from 'lucide-react';
 
-export const CyGenericListPage = ({ tabId, onNewChat, userName = 'SHIKARI' }) => {
+export const CyGenericListPage = ({ tabId, onNewChat, userName = 'User' }) => {
   const configs = {
     artifacts: {
       title: 'Artifacts',

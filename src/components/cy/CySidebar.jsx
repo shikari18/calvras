@@ -53,7 +53,7 @@ export const CySidebar = ({
   onSelectThread,
   onDeleteThread,
   threadTitle = 'Help Making Product Popular',
-  userProfile = { name: 'SHIKARI Ogar', email: 'zenithzone18@gmail.com' },
+  userProfile = { name: 'User', email: 'user@example.com' },
   onSignOut
 }) => {
   const { chatThreads, activeThreadId, deleteThread, credits, hasConnectorsAccess } = useMarketing();

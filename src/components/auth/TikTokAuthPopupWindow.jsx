@@ -8,13 +8,25 @@ export const TikTokAuthPopupWindow = () => {
   const channel = urlParams.get('channel') || 'TikTok';
   const defaultHandle = urlParams.get('handle') || 'cirqnamics';
   
+  const getInitialUser = () => {
+    try {
+      const s = localStorage.getItem('coded_user');
+      if (s) {
+        const p = JSON.parse(s);
+        if (p) return { name: p.name || 'Creator', email: p.email || 'user@example.com' };
+      }
+    } catch {}
+    return { name: 'Creator', email: 'user@example.com' };
+  };
+  const activeUser = getInitialUser();
+
   // Stages: 'login_options' | 'username_input' | 'authorizing' | 'permissions_prompt'
   const [stage, setStage] = useState('login_options');
   const [customHandle, setCustomHandle] = useState('');
   const [loggedInAccount, setLoggedInAccount] = useState({
     handle: defaultHandle,
-    name: 'SHIKARI Ogar',
-    email: 'zenithzone18@gmail.com',
+    name: activeUser.name,
+    email: activeUser.email,
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
     followers: '28.4K'
   });
@@ -28,21 +40,21 @@ export const TikTokAuthPopupWindow = () => {
     setIsProcessing(true);
 
     setTimeout(() => {
-      let handleName = 'shikari_ogar';
+      let handleName = (activeUser.name || 'creator').toLowerCase().replace(/\s+/g, '_');
       let avatar = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
 
       if (provider === 'Google') {
-        handleName = 'shikari.marketing';
+        handleName = handleName + '.google';
       } else if (provider === 'Apple') {
-        handleName = 'shikari_apple';
+        handleName = handleName + '_apple';
       } else if (provider === 'Facebook') {
-        handleName = 'shikari_fb';
+        handleName = handleName + '_fb';
       }
 
       setLoggedInAccount({
         handle: handleName,
-        name: 'SHIKARI Ogar',
-        email: 'zenithzone18@gmail.com',
+        name: activeUser.name,
+        email: activeUser.email,
         avatar: avatar,
         followers: '34.8K'
       });

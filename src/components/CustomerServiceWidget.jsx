@@ -16,6 +16,7 @@ import {
   Zap,
   RotateCcw
 } from 'lucide-react';
+import { generateAIResponse } from '../services/aiService';
 
 export default function CustomerServiceWidget({ isOpen, onClose, onNavigateHelp, onNavigateLegal }) {
   const [activeTab, setActiveTab] = useState('home'); // 'home' | 'messages' | 'help'
@@ -41,7 +42,7 @@ export default function CustomerServiceWidget({ isOpen, onClose, onNavigateHelp,
 
   if (!isOpen) return null;
 
-  const handleSendMessage = (textToSend) => {
+  const handleSendMessage = async (textToSend) => {
     const text = (textToSend || inputMsg).trim();
     if (!text) return;
 
@@ -58,27 +59,42 @@ export default function CustomerServiceWidget({ isOpen, onClose, onNavigateHelp,
     setActiveTab('messages');
     setIsReplying(true);
 
-    setTimeout(() => {
-      let replyText = "Thanks for reaching out! Our autonomous support system has logged this inquiry. If this is an urgent workspace or billing issue, our core engineering team will assist within 15 minutes.";
-      const lower = text.toLowerCase();
-      if (lower.includes('bill') || lower.includes('plan') || lower.includes('refund') || lower.includes('price')) {
-        replyText = "All subscriptions and billing are secured by Paystack with an automatic 14-day refund guarantee. You can manage or upgrade your plan anytime under Settings > Upgrade Plan.";
-      } else if (lower.includes('test') || lower.includes('bug') || lower.includes('error')) {
-        replyText = "Calvras includes autonomous code testing and self-healing. If you encounter any syntax or module error in your preview, simply type 'test and fix this' or click 'undo' to revert safely.";
-      } else if (lower.includes('search') || lower.includes('browse') || lower.includes('web')) {
-        replyText = "Calvras now has full live web search and deep browsing capabilities. You can ask it to 'search for X' or 'check https://example.com and build exact UI' directly in the main prompt.";
-      }
+    try {
+      const messagesForSupport = [
+        {
+          role: 'system',
+          content: 'You are the Calvras Assistant customer service agent. Calvras is an autonomous software engineering platform. Help the user with features, building apps, workspace, pricing, and troubleshooting in a concise, warm, professional manner (1-3 paragraphs max). Never use canned or robotic template lists.'
+        },
+        ...supportMessages.map(m => ({
+          role: m.role === 'user' ? 'user' : 'assistant',
+          content: m.content
+        })),
+        { role: 'user', content: text }
+      ];
+
+      const rawReply = await generateAIResponse({ messages: messagesForSupport, mode: 'chat' });
+      const cleanText = rawReply.replace(/<think>[\s\S]*?<\/think>/i, '').trim();
 
       const botReply = {
         id: `agent-${Date.now()}`,
         role: 'agent',
         name: 'Calvras Assistant',
-        content: replyText,
+        content: cleanText || "How can I help you build or customize your application today?",
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setSupportMessages(prev => [...prev, botReply]);
+    } catch (err) {
+      const botReply = {
+        id: `agent-${Date.now()}`,
+        role: 'agent',
+        name: 'Calvras Assistant',
+        content: "I am connected and ready to assist you. Could you please share more details regarding your question?",
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setSupportMessages(prev => [...prev, botReply]);
+    } finally {
       setIsReplying(false);
-    }, 900);
+    }
   };
 
   const helpArticles = [

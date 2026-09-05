@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { callOpenRouterAI, cleanAiResponse } from '../../services/aiService';
 
-export const CyCompetitorRadarPage = ({ onLaunchCampaign, userName = 'SHIKARI' }) => {
+export const CyCompetitorRadarPage = ({ onLaunchCampaign, userName = 'User' }) => {
   const [competitorQuery, setCompetitorQuery] = useState('AeroStep Footwear');
   const [isSearching, setIsSearching] = useState(false);
   const [report, setReport] = useState(null);

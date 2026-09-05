@@ -23,7 +23,7 @@ import {
 import { useMarketing } from '../../context/MarketingContext';
 import { BrandBurstLogo } from '../../components/cy/CySidebar';
 
-export const CyAnalyticsPage = ({ userName = 'SHIKARI', onNewChat }) => {
+export const CyAnalyticsPage = ({ userName = 'User', onNewChat }) => {
   const { connectedSocials } = useMarketing();
   const [dateRange, setDateRange] = useState('Last 30 Days');
   const [dataQuery, setDataQuery] = useState('');

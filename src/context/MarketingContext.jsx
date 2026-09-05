@@ -23,17 +23,32 @@ const DEFAULT_INITIAL_THREAD = {
   messages: []
 };
 
-export const MarketingProvider = ({ children, currentUserEmail = 'zenithzone18@gmail.com' }) => {
-  const userKey = (key) => `aim_${currentUserEmail}_${key}`;
-  const previousEmailRef = useRef(currentUserEmail);
+const getStoredUser = () => {
+  try {
+    const s = localStorage.getItem('coded_user');
+    if (s) {
+      const parsed = JSON.parse(s);
+      if (parsed && parsed.email) return parsed;
+    }
+  } catch {}
+  return null;
+};
+
+export const MarketingProvider = ({ children, currentUserEmail = null }) => {
+  const activeUser = getStoredUser();
+  const effectiveEmail = currentUserEmail || activeUser?.email || 'user@example.com';
+  const userKey = (key) => `aim_${effectiveEmail}_${key}`;
+  const previousEmailRef = useRef(effectiveEmail);
 
   // User Profile
   const [userProfile, setUserProfile] = useState(() => {
     try {
       const saved = localStorage.getItem('aim_user_profile');
-      return saved ? JSON.parse(saved) : { name: 'SHIKARI Ogar', email: currentUserEmail };
+      if (saved) return JSON.parse(saved);
+      if (activeUser) return activeUser;
+      return { name: 'User', email: effectiveEmail };
     } catch (e) {
-      return { name: 'SHIKARI Ogar', email: currentUserEmail };
+      return { name: 'User', email: effectiveEmail };
     }
   });
 

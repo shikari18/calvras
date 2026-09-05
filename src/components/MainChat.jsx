@@ -30,7 +30,6 @@ import PlusActionMenu from './PlusActionMenu';
 import InteractiveQuestionCard from './InteractiveQuestionCard';
 import { extractSelectionQuestion } from './SelectionBlock';
 import ProjectWorkspacePane from './ProjectWorkspacePane';
-import { generateFullArchitectureApp } from '../services/fullAppGenerator';
 import { BUILD_MODES } from '../data/mockData';
 import { generateAIResponse, streamAIResponse, MALVOS_SYSTEM_PROMPT } from '../services/aiService';
 import { searchWeb, browseUrl } from '../services/webSearchService';
@@ -2972,16 +2971,9 @@ Let them know that as soon as they share their thoughts (or tell you to proceed 
               }
             }
 
-            // Ultimate fail-safe: if still 0 files on an explicit build ONLY (never on an edit that already has files)
+            // If still 0 files on an explicit build, do NOT inject fake hardcoded mockups
             if (isExplicitBuild && !isWorkspaceEdit && Object.keys(extractedFiles).length === 0) {
-              try {
-                const fullApp = generateFullArchitectureApp(query || finalContent || 'Production Application UI', 'build');
-                if (fullApp && Object.keys(fullApp).length > 0) {
-                  Object.assign(extractedFiles, fullApp);
-                }
-              } catch (err) {
-                console.warn('[Full Architecture Generator Fallback]', err);
-              }
+              console.warn('[Build] AI generation did not produce extractable code blocks for query:', query);
             }
 
             // For in-place edits: merge changes into existing workspace files, preserving all existing files

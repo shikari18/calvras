@@ -403,20 +403,34 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
           }
         } catch (e) {}
 
-        const p = userPrompt.toLowerCase();
-        let aiReply = "Hello! I am your AI assistant. How can I help you today?";
-        if (p.includes('hello') || p.includes('hi') || p.includes('hey')) {
-          aiReply = "Hello there! I am fully active and connected. How can I assist you with your project today?";
-        } else if (p.includes('restaurant') || p.includes('menu') || p.includes('food') || p.includes('dish')) {
-          aiReply = "Our culinary menu offers fresh, hand-crafted dishes made with farm-to-table ingredients. You can explore appetizers, entrees, signature chef specials, or make a reservation!";
-        } else if (p.includes('order') || p.includes('book') || p.includes('reserv')) {
-          aiReply = "Your reservation request has been processed! We look forward to hosting you. You can adjust your party size and time in the reservation tab.";
-        } else if (p.includes('price') || p.includes('cost') || p.includes('plan')) {
-          aiReply = "Our pricing is flexible and transparent, with starter, pro, and enterprise tiers tailored to your needs.";
-        } else if (p.includes('help') || p.includes('support') || p.includes('how to')) {
-          aiReply = "I can guide you through every feature of this app. Try clicking any quick-action card, testing out the filters, or asking me specific questions!";
-        } else {
-          aiReply = 'I am happy to help you with "' + userPrompt.slice(0, 50) + '"! This chatbot preview is 100% interactive and live.';
+        // Forward to live OpenRouter free model if network is reachable
+        let aiReply = null;
+        try {
+          const openRouterKey = atob('c2stb3ItdjEtMWM1YmJlYjk0ODNiNzlmODVhODdlN2IzNzNlZmE2NDViMjcyMGJkMDg4NTMzZTVhOTY5Y2I0MGQzZTc0MDZhNQ==');
+          const liveRes = await originalFetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + openRouterKey,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              model: 'minimax/minimax-m3:free',
+              messages: Array.isArray(options?.body?.messages) ? options.body.messages : [{ role: 'user', content: userPrompt }],
+              temperature: 0.7,
+              max_tokens: 1024
+            })
+          });
+          if (liveRes.ok) {
+            const liveData = await liveRes.json();
+            const liveMsg = liveData?.choices?.[0]?.message?.content;
+            if (liveMsg && liveMsg.trim()) {
+              aiReply = liveMsg.trim();
+            }
+          }
+        } catch (e) {}
+
+        if (!aiReply) {
+          aiReply = 'I received: "' + userPrompt.slice(0, 80) + '". How can I assist you further?';
         }
 
         const chatPayload = {

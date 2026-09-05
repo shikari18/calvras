@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { Search, Plus, MoreHorizontal, ChevronDown, Check, Building2, Trash2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
-export const CyTeamPage = ({ userName = 'SHIKARI Ogar', userEmail = 'zenithzone18@gmail.com' }) => {
+export const CyTeamPage = ({ userName = 'Admin', userEmail = 'admin@example.com' }) => {
   const [activeTab, setActiveTab] = useState('members');
   const [searchQuery, setSearchQuery] = useState('');
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('Member');
-  const [orgName, setOrgName] = useState("SHIKARI's Organization");
+  const [orgName, setOrgName] = useState("Workspace Team");
   const [isEditingOrg, setIsEditingOrg] = useState(false);
 
   const [members, setMembers] = useState([

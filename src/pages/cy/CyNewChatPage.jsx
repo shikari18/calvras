@@ -27,7 +27,7 @@ import {
 
 export const CyNewChatPage = ({ 
   onSendMessage, 
-  userName = 'SHIKARI', 
+  userName = 'User', 
   onToggleSidebar, 
   onNewChat 
 }) => {
@@ -63,7 +63,7 @@ export const CyNewChatPage = ({
   const hasConnectorsAccess = userPlan === 'pro' || userPlan === 'agency';
 
   // Dynamic user first name
-  const rawName = userProfile?.name || userName || 'SHIKARI';
+  const rawName = userProfile?.name || userName || 'User';
   const displayFirstName = rawName.split(' ')[0].toUpperCase();
 
   // Auto-expand textarea

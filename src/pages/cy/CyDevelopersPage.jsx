@@ -28,7 +28,7 @@ import confetti from 'canvas-confetti';
 
 const FREE_TIER_PROMPT_LIMIT = 100;
 
-export const CyDevelopersPage = ({ userName = 'SHIKARI' }) => {
+export const CyDevelopersPage = ({ userName = 'User' }) => {
   const { userProfile } = useMarketing();
   
   // Developer Subscription Plan state (persisted in localStorage)

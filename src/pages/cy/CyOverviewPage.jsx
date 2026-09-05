@@ -1,7 +1,7 @@
 import React from 'react';
 import { ArrowRight, Hash } from 'lucide-react';
 
-export const CyOverviewPage = ({ onSelectTab, userName = 'SHIKARI', threadTitle = 'Help Making Product Popular' }) => {
+export const CyOverviewPage = ({ onSelectTab, userName = 'User', threadTitle = 'Help Making Product Popular' }) => {
   return (
     <div className="flex-1 min-h-screen bg-[#1c1c1c] text-[#f4f4ee] p-6 sm:p-10 font-sans antialiased text-white select-none text-left overflow-y-auto">
       
