@@ -7,8 +7,8 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: "#0c0c0e",
-        sidebar: "#0a0a0c",
+        background: "#14120B",
+        sidebar: "#14120B",
         card: "#16161a",
         cardBorder: "#26262c",
         inputBox: "#19191e",

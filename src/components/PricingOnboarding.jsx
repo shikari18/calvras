@@ -204,10 +204,10 @@ export default function PricingOnboarding({ user, onCompletePlan, onSkip, onNavi
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#0f0f0e] text-[#e5e5e5] font-sans selection:bg-white selection:text-black">
+    <div className="min-h-screen w-full bg-[#14120B] text-[#e5e5e5] font-sans selection:bg-white selection:text-black">
       
       {/* ─── Top Header Navigation (Clean, minimal like Cursor) ─── */}
-      <header className="sticky top-0 z-40 bg-[#0f0f0e]/95 backdrop-blur-md border-b border-white/[0.07] px-6 py-3.5">
+      <header className="sticky top-0 z-40 bg-[#14120B]/95 backdrop-blur-md border-b border-white/[0.07] px-6 py-3.5">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div 
             onClick={onBack}

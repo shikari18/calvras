@@ -36,7 +36,10 @@ function getInitialRoute() {
       const savedUser = localStorage.getItem('coded_user');
       return savedUser ? 'chat' : 'landing';
     }
-    if (path.startsWith('/landing') || hash.includes('landing')) return 'landing';
+    if (path.startsWith('/landing') || hash.includes('landing')) {
+      try { window.history.replaceState(null, '', '/'); } catch {}
+      return 'landing';
+    }
 
     // For root "/" or unknown paths — restore from last saved route
     const saved = localStorage.getItem('malvos_current_route');
@@ -94,7 +97,7 @@ export default function App() {
     setCurrentRoute(target);
     try {
       localStorage.setItem('malvos_current_route', target);
-      const url = target === 'chat' ? '/' : `/${target}`;
+      const url = (target === 'chat' || target === 'landing') ? '/' : `/${target}`;
       window.history.pushState(null, '', url);
     } catch {}
   };
@@ -472,7 +475,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#0f0f0e] text-[#ececed]">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#14120B] text-[#ececed]">
       {/* Mobile sidebar overlay backdrop */}
       {!sidebarCollapsed && (
         <div
@@ -512,7 +515,7 @@ export default function App() {
       </div>
 
       {/* Main Chat / Projects / Developer Frame */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0 p-2 sm:py-2.5 sm:pr-2.5 sm:pl-0 bg-[#0d0d0f]">
+      <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0 p-2 sm:py-2.5 sm:pr-2.5 sm:pl-0 bg-[#14120B]">
         <div className="relative flex flex-col flex-1 h-full overflow-hidden rounded-[20px] border border-white/[0.08] bg-[#1c1c1c] shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
           {activeNav === 'projects' ? (
             <ProjectsPage
@@ -626,7 +629,7 @@ export class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-[#0f0f0e] text-white p-6 text-center">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-[#14120B] text-white p-6 text-center">
           <h2 className="text-xl font-bold text-red-400 mb-2">Something went wrong</h2>
           <p className="text-sm text-neutral-400 max-w-md mb-4">{this.state.error?.message || 'Unknown render error'}</p>
           <button
