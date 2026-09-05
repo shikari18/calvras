@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { 
   Plus, 
   ChevronDown, 
@@ -210,11 +210,11 @@ export function extractFilesFromAIResponse(rawText, query = '') {
     }
   }
 
-  // Enrich with full modular Lovable-style production project structure
+  // Enrich with full modular Calvras-style production project structure
   return enrichWithProductionProjectStructure(files);
 }
 
-// ─── Production Project Architecture Scaffolder (Lovable/Production Folder Tree) ──
+// ─── Production Project Architecture Scaffolder (Calvras/Production Folder Tree) ──
 export function enrichWithProductionProjectStructure(files = {}) {
   if (!files || Object.keys(files).length === 0) return files;
 
@@ -348,8 +348,8 @@ export default {
     }, null, 2);
   }
 
-  if (!result[`${prefix}.lovable/project.json`]) {
-    result[`${prefix}.lovable/project.json`] = JSON.stringify({
+  if (!result[`${prefix}.calvras/project.json`]) {
+    result[`${prefix}.calvras/project.json`] = JSON.stringify({
       name: "production-app",
       framework: "react-vite",
       version: "2.0.0"
@@ -939,6 +939,14 @@ export default function MainChat({
   const [importedFolderName, setImportedFolderName] = useState(null);
   const [importedFileCount, setImportedFileCount] = useState(0);
   const lastUserIndex = (messages || []).map(m => m.role).lastIndexOf('user');
+  const userDisplayName = useMemo(() => {
+    try {
+      const u = JSON.parse(localStorage.getItem('coded_user') || localStorage.getItem('calvras_user_profile') || '{}');
+      return u?.name || u?.displayName || '';
+    } catch {
+      return '';
+    }
+  }, []);
 
   // Dynamic Workspace Files State with robust localStorage persistence across refreshes & sessions
   const [workspaceFiles, setWorkspaceFiles] = useState(() => {
@@ -988,7 +996,7 @@ export default function MainChat({
   const [activeWorkspaceTab, setActiveWorkspaceTab] = useState(() => {
     return localStorage.getItem('malvos_active_workspace_tab') || 'preview';
   });
-  const [workspaceWidthPercent, setWorkspaceWidthPercent] = useState(70);
+  const [workspaceWidthPercent, setWorkspaceWidthPercent] = useState(50);
   const [isResizing, setIsResizing] = useState(false);
 
   // Restore workspace files from external session change event
@@ -1625,7 +1633,7 @@ export default function MainChat({
       setActiveWorkspaceTab('preview');
       setCurrentRepo(repoName);
       setTerminalLogs([{ type: 'info', text: `Cloning ${repoName}...` }]);
-      setRunningTasks([{ id: 'clone', name: `subagent [DevOps]: git clone ${repoName}`, canStop: true }]);
+      setRunningTasks([{ id: 'clone', name: `git clone ${repoName}`, canStop: true }]);
       setIsThinking(false);
 
       // Instant local load if repo already exists on disk
@@ -1673,7 +1681,7 @@ export default function MainChat({
               try {
                 const event = JSON.parse(line);
                 if (event.type === 'cmd') {
-                  setRunningTasks(prev => [{ id: 'clone', name: `subagent [DevOps]: ${event.text}`, canStop: true }]);
+                  setRunningTasks(prev => [{ id: 'clone', name: event.text, canStop: true }]);
                 }
                 if (event.type === 'files_ready' || event.type === 'done') {
                   setCurrentRepo(repoName);
@@ -1709,7 +1717,7 @@ export default function MainChat({
                     ]);
                     setTerminalLogs(prev => [...prev, { type: 'success', text: `✓ Dev server running on http://localhost:${port}` }]);
                   } else {
-                    setRunningTasks([{ id: 'server', name: 'subagent [DevServer]: live in-browser sandbox', canStop: true }]);
+                    setRunningTasks([{ id: 'server', name: 'Live in-browser preview active', canStop: true }]);
                   }
                   
                   // Deliver live preview notification card
@@ -1920,7 +1928,7 @@ CRITICAL:
     if (isRunServerCommand && Object.keys(workspaceFiles).length > 0) {
       setIsSplitScreen(true);
       setActiveWorkspaceTab('preview');
-      setRunningTasks([{ id: 'server', name: 'subagent [DevServer]: npm run dev (http://localhost:5173)', canStop: true }]);
+      setRunningTasks([{ id: 'server', name: 'npm run dev (http://localhost:5173)', canStop: true }]);
       setTerminalLogs(prev => [
         ...prev,
         { type: 'info', text: `[Verifier] Scanning ${Object.keys(workspaceFiles).length} files...` },
@@ -2224,11 +2232,11 @@ CRITICAL:
         setActiveFileName('src/App.tsx');
         setIsSplitScreen(true);
         setActiveWorkspaceTab('preview');
-        setRunningTasks([{ id: 'init', name: 'subagent [Architect]: analyzing requirements & designing system...', canStop: false }]);
+        setRunningTasks([{ id: 'init', name: 'Analyzing requirements & designing system architecture...', canStop: false }]);
       } else if (isWorkspaceEdit) {
         setIsSplitScreen(true);
         setActiveWorkspaceTab('preview');
-        setRunningTasks([{ id: 'patch', name: isPreviewFix ? 'subagent [Debugger]: diagnosing and repairing live preview...' : 'subagent [Coder]: inspecting workspace files & applying updates...', canStop: false }]);
+        setRunningTasks([{ id: 'patch', name: isPreviewFix ? 'Diagnosing and repairing live preview...' : 'Inspecting workspace files & applying updates...', canStop: false }]);
       } else {
         setRunningTasks([]);
       }
@@ -2468,7 +2476,7 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
               setActiveWorkspaceTab('preview');
               setPreviewReloadTrigger(prev => prev + 1);
 
-              setRunningTasks([{ id: 'server', name: 'subagent [DevServer]: Ready at http://calvras.preview:5173', canStop: false }]);
+              setRunningTasks([{ id: 'server', name: 'Dev server ready — Live Preview active', canStop: false }]);
               setTimeout(() => {
                 setRunningTasks([]);
               }, 1500);
@@ -2651,7 +2659,7 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
 
 
   return (
-    <div className={`relative flex flex-1 h-full overflow-hidden bg-[#14120B] text-[#ededed] select-none ${isResizing ? 'cursor-col-resize select-none' : ''}`}>
+    <div className={`relative flex flex-1 h-full overflow-hidden bg-[#0B0A08] text-[#ededed] ${isResizing ? 'cursor-col-resize select-none' : ''}`}>
       
       {/* ── Left Pane: Chat Conversation ── */}
       <div 
@@ -2688,17 +2696,17 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
         </div>
         
         {/* ── Scrollable chat area ── */}
-        <div ref={scrollRef} className="relative z-10 flex-1 overflow-y-auto px-4 sm:px-6 w-full scrollbar-thin scroll-smooth bg-[#14120B]">
+        <div ref={scrollRef} className="relative z-10 flex-1 overflow-y-auto px-4 sm:px-6 w-full scrollbar-thin scroll-smooth bg-[#0B0A08]">
 
           {/* ── Hero / empty state: prompt box centered ── */}
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center min-h-[calc(100vh-60px)] sm:min-h-[90vh] max-w-4xl mx-auto w-full text-center px-3 sm:px-4">
               
-              {/* Top Mascot / Logo Placeholder */}
-              <div className="mb-6 sm:mb-8 flex flex-col items-center select-none">
-                <div className="text-[26px] sm:text-[38px] font-black tracking-tight text-white/90">
-                  CALVRAS
-                </div>
+              {/* Top Greeting Header */}
+              <div className="mb-6 sm:mb-8 flex flex-col items-center select-none text-center">
+                <h1 className="text-[24px] sm:text-[34px] font-medium tracking-tight text-white/95">
+                  {userDisplayName ? `${userDisplayName}, what are we working on today?` : 'What are we working on today?'}
+                </h1>
               </div>
 
               {/* Prompt Box Area with outer task shell and nested input */}
@@ -2708,16 +2716,16 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    className={`relative w-full rounded-[24px] bg-[rgb(30,30,34)] border transition-all text-left overflow-hidden ${
-                      isDraggingOver ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-[rgb(55,55,62)] shadow-[0_12px_40px_rgba(0,0,0,0.5)]'
+                    className={`relative w-full rounded-[24px] bg-[#14120D] border transition-all text-left overflow-hidden ${
+                      isDraggingOver ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.5)]'
                     }`}
                   >
                     <RunningTasksDock runningTasks={runningTasks} tasksExpanded={tasksExpanded} setTasksExpanded={setTasksExpanded} onStopTask={handleStopTask} />
-                    <div className="m-1 rounded-[18px] bg-[rgb(38,38,38)] border border-[rgb(65,65,65)] p-5 pt-4 pb-3.5 shadow-sm text-left transition-all">
+                    <div className="m-1 rounded-[18px] bg-[#14120D] border border-white/10 p-5 pt-4 pb-3.5 shadow-sm text-left transition-all">
                       <FileAttachments />
                       {importedFolderName && (
                         <div className="flex items-center gap-2 mb-3">
-                          <div className="flex items-center gap-2 px-3 py-1.5 rounded-[10px] bg-[rgb(30,30,34)] border border-white/[0.1] text-[12px] text-neutral-300">
+                          <div className="flex items-center gap-2 px-3 py-1.5 rounded-[10px] bg-[#1A1812] border border-white/10 text-[12px] text-neutral-300">
                             <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
                             <span className="font-medium text-white">{importedFolderName}</span>
                             <span className="text-neutral-500">{importedFileCount} files</span>
@@ -2757,14 +2765,14 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    className={`relative w-full rounded-[26px] bg-[rgb(38,38,38)] border p-5 pt-4 pb-3.5 text-left transition-all ${
-                      isDraggingOver ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-[rgb(65,65,65)] shadow-[0_12px_40px_rgba(0,0,0,0.5)]'
+                    className={`relative w-full rounded-[26px] bg-[#14120D] border p-5 pt-4 pb-3.5 text-left transition-all ${
+                      isDraggingOver ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.5)]'
                     }`}
                   >
                     <FileAttachments />
                     {importedFolderName && (
                       <div className="flex items-center gap-2 mb-3">
-                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-[10px] bg-[rgb(30,30,34)] border border-white/[0.1] text-[12px] text-neutral-300">
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-[10px] bg-[#1A1812] border border-white/10 text-[12px] text-neutral-300">
                           <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
                           <span className="font-medium text-white">{importedFolderName}</span>
                           <span className="text-neutral-500">{importedFileCount} files</span>
@@ -2866,7 +2874,7 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
 
         {/* ── Sticky reply dock with outer task shell and nested input ── */}
         {messages.length > 0 && (
-          <div className="sticky bottom-0 left-0 right-0 p-2 sm:p-3.5 bg-gradient-to-t from-[#14120B] via-[#14120B]/95 to-transparent z-30">
+          <div className="sticky bottom-0 left-0 right-0 p-2 sm:p-3.5 bg-gradient-to-t from-[#0B0A08] via-[#0B0A08]/95 to-transparent z-30">
             <div className="max-w-[660px] mx-auto relative">
               {activeSelectionQuestion ? (
                 <SelectionBlock
@@ -2894,12 +2902,12 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
-                  className={`relative w-full rounded-[24px] bg-[rgb(30,30,34)] border transition-all text-left overflow-hidden ${
-                    isDraggingOver ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-[rgb(55,55,62)] shadow-[0_12px_40px_rgba(0,0,0,0.5)]'
+                  className={`relative w-full rounded-[24px] bg-[#14120D] border transition-all text-left overflow-hidden ${
+                    isDraggingOver ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.5)]'
                   }`}
                 >
                   <RunningTasksDock runningTasks={runningTasks} tasksExpanded={tasksExpanded} setTasksExpanded={setTasksExpanded} onStopTask={handleStopTask} />
-                  <div className="m-1 rounded-[18px] bg-[rgb(38,38,38)] border border-[rgb(65,65,65)] p-5 pt-4 pb-3.5 shadow-sm text-left transition-all">
+                  <div className="m-1 rounded-[18px] bg-[#14120D] border border-white/10 p-5 pt-4 pb-3.5 shadow-sm text-left transition-all">
                     <FileAttachments />
                     <textarea
                       ref={replyTextareaRef}
@@ -2936,10 +2944,10 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
-                  className={`relative w-full rounded-[26px] bg-[rgb(38,38,38)] border p-5 pt-4 pb-3.5 text-left transition-all ${
+                  className={`relative w-full rounded-[26px] bg-[#14120D] border p-5 pt-4 pb-3.5 text-left transition-all ${
                     isDraggingOver
                       ? 'border-blue-500 ring-2 ring-blue-500/30'
-                      : 'border-[rgb(65,65,65)]'
+                      : 'border-white/10'
                   } shadow-[0_12px_40px_rgba(0,0,0,0.5)]`}
                 >
                   <FileAttachments />

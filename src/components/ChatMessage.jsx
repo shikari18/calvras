@@ -119,7 +119,7 @@ export default function ChatMessage({ message, onRegenerate, onOpenDetails, onOp
             <div
               ref={userBubbleRef}
               onClick={() => isLongMessage && setIsUserExpanded(p => !p)}
-              className={`relative bg-[#262626] text-neutral-200 px-5 py-3.5 rounded-2xl text-[15.5px] font-normal shadow-sm break-all break-words max-w-full overflow-hidden whitespace-pre-wrap leading-relaxed transition-all hover:bg-[#2c2c2c] ${isLongMessage ? 'cursor-pointer select-none' : ''} ${isLongMessage && !isUserExpanded ? 'max-h-[82px] overflow-hidden' : 'max-h-none'}`}
+              className={`relative bg-[#262626] text-neutral-200 px-5 py-3.5 rounded-2xl text-[15.5px] font-normal shadow-sm break-all break-words max-w-full overflow-hidden whitespace-pre-wrap leading-relaxed transition-all hover:bg-[#2c2c2c] ${isLongMessage ? 'cursor-pointer' : ''} ${isLongMessage && !isUserExpanded ? 'max-h-[82px] overflow-hidden' : 'max-h-none'}`}
               title={isLongMessage ? (isUserExpanded ? "Click to collapse" : "Click to expand message") : undefined}
             >
               {renderUserTextWithLinks(message.content)}

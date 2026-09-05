@@ -323,6 +323,9 @@ export default function App() {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setIsCommandPaletteOpen(prev => !prev);
+      } else if ((e.ctrlKey || e.metaKey) && e.key === ',') {
+        e.preventDefault();
+        setIsAccountOpen(prev => !prev);
       }
     };
     const handleOpenTools = () => setIsToolsOpen(true);
@@ -563,7 +566,7 @@ export default function App() {
           onOpenArtifacts={() => setIsCodeStudioOpen(true)}
           onOpenCustomize={() => navigateTo('pricing')}
           onOpenDeveloper={() => setActiveNav('developer')}
-          onOpenAccount={() => navigateTo('pricing')}
+          onOpenAccount={() => setIsAccountOpen(true)}
           onOpenCustomerService={() => setIsFeedbackOpen(true)}
           onOpenHelp={() => navigateTo('help')}
           onNavigateLegal={(doc) => navigateTo(doc)}
@@ -652,6 +655,12 @@ export default function App() {
       <AccountSettingsModal
         isOpen={isAccountOpen}
         onClose={() => setIsAccountOpen(false)}
+        user={user}
+        onUpgrade={() => {
+          setIsAccountOpen(false);
+          navigateTo('pricing');
+        }}
+        onSignOut={handleSignOut}
       />
 
       <FeedbackModal

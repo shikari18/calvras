@@ -171,9 +171,9 @@ export default function Sidebar({
       {/* ── Bottom User Profile Card & Redesigned Dropdown Popover ── */}
       <div ref={userMenuRef} className="relative p-2.5 border-t border-white/[0.06] bg-[#0d0d0f]">
         
-        {/* Exact Claude-Style Floating User Menu (media_1788579452801.png, except Claude Academy) */}
+        {/* Exact Claude-Style Floating User Menu */}
         {userMenuOpen && (
-          <div className="absolute bottom-[58px] left-2 w-[240px] rounded-2xl bg-[#1f1e1d] border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.85)] p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150 select-none text-[13px] text-neutral-200">
+          <div className="fixed bottom-16 left-3 w-[240px] rounded-2xl bg-[#1f1e1d] border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.85)] p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150 select-none text-[13px] text-neutral-200">
             {/* Top user email header */}
             <div className="px-3 py-2 text-[12px] text-neutral-400 font-normal truncate border-b border-white/[0.08] mb-1">
               {user?.email || 'user@calvras.ai'}
@@ -228,18 +228,6 @@ export default function Sidebar({
               className="flex items-center justify-between w-full px-3 py-2 rounded-xl text-neutral-200 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer text-left font-medium"
             >
               <span>Upgrade plan</span>
-            </button>
-
-            {/* Get apps and extensions */}
-            <button
-              type="button"
-              onClick={() => {
-                setUserMenuOpen(false);
-                alert('Calvras apps and extensions are available at calvras.ai/cli');
-              }}
-              className="flex items-center justify-between w-full px-3 py-2 rounded-xl text-neutral-200 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer text-left"
-            >
-              <span>Get apps and extensions</span>
             </button>
 
             {/* Learn more > with flyout */}

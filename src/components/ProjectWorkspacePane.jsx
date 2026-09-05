@@ -400,6 +400,7 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
       X: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
       Check: '<polyline points="20 6 9 17 4 12"/>',
       CheckCircle: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
+      CheckCircle2: '<path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/>',
       Menu: '<line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="18" x2="20" y2="18"/>',
       ArrowRight: '<line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>',
       ArrowLeft: '<line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>',
@@ -423,7 +424,51 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
       MessageSquare: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
       Send: '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>',
       Cpu: '<rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/>',
-      Bot: '<path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>'
+      Bot: '<path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>',
+      Key: '<path d="m21 2-2 2m-1.5 1.5L14 9a5 5 0 1 0 4 4l5.5-5.5a1.5 1.5 0 0 0 0-2.12l-2-2a1.5 1.5 0 0 0-2.12 0l-.38.38"/>',
+      Folder: '<path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/>',
+      FolderGit2: '<path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/><circle cx="12" cy="13" r="2"/><path d="M14 13h3"/>',
+      GitBranch: '<line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/>',
+      GitFork: '<circle cx="12" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><path d="M18 9v2c0 .6-.4 1-1 1H7c-.6 0-1-.4-1-1V9"/><path d="M12 12v3"/>',
+      Share: '<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>',
+      Share2: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>',
+      Terminal: '<polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>',
+      SlidersHorizontal: '<line x1="21" y1="4" x2="14" y2="4"/><line x1="10" y1="4" x2="3" y2="4"/><line x1="21" y1="12" x2="12" y2="12"/><line x1="8" y1="12" x2="3" y2="12"/><line x1="21" y1="20" x2="16" y2="20"/><line x1="12" y1="20" x2="3" y2="20"/><line x1="14" y1="2" x2="14" y2="6"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="16" y1="18" x2="16" y2="22"/>',
+      History: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>',
+      RotateCcw: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+      RotateCw: '<path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24L21 8"/><path d="M21 3v5h-5"/>',
+      Eye: '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
+      EyeOff: '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/>',
+      Layout: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/>',
+      LayoutDashboard: '<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>',
+      Wand2: '<path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72Z"/><path d="m14 7 3 3"/>',
+      PanelLeft: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/>',
+      PanelRight: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M15 3v18"/>',
+      MoreHorizontal: '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
+      MoreVertical: '<circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>',
+      Trash: '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
+      Trash2: '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>',
+      Code: '<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>',
+      Code2: '<path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/>',
+      HelpCircle: '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+      MessageCircle: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
+      User: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+      UserCheck: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/>',
+      UserPlus: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>',
+      Download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+      Upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
+      ExternalLink: '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>',
+      Link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+      Square: '<rect width="18" height="18" x="3" y="3" rx="2"/>',
+      Circle: '<circle cx="12" cy="12" r="10"/>',
+      Activity: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+      Flame: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+      Pencil: '<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/>',
+      Edit: '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
+      XCircle: '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>',
+      Grid: '<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>',
+      PieChart: '<path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/>',
+      BarChart: '<line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>'
     };
 
     function createLucideComponent(name) {
@@ -440,7 +485,8 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
           }
         }
         if (!path) {
-          path = '<circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>';
+          // Clean subtle geometric component dot instead of an alarming AlertCircle exclamation mark!
+          path = '<circle cx="12" cy="12" r="4" fill="currentColor"/>';
         }
         return React.createElement('svg', {
           width: size,
@@ -1931,17 +1977,17 @@ export default function ProjectWorkspacePane({
             <div className="flex h-full w-full overflow-hidden">
 
               {/* Left Sub-sidebar: File Tree */}
-              <div className="w-60 flex-shrink-0 border-r border-[rgb(38,38,38)] bg-[rgb(21,21,21)] flex flex-col font-sans">
+              <div className="w-60 flex-shrink-0 border-r border-white/10 bg-[#0e0d0b] flex flex-col font-sans">
 
-                {/* Lovable Search Code input header */}
-                <div className="p-2.5 border-b border-[rgb(38,38,38)]">
+                {/* Calvras Search Code input header */}
+                <div className="p-2.5 border-b border-white/10">
                   <div className="relative flex items-center">
                     <Search size={13} className="absolute left-2.5 text-neutral-500 pointer-events-none" />
                     <input
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
                       placeholder="Search code"
-                      className="w-full bg-[rgb(28,28,28)] border border-[rgb(42,42,42)] rounded-md pl-8 pr-2.5 py-1.5 text-[12.5px] text-neutral-200 outline-none placeholder-neutral-500 focus:border-neutral-400 font-sans transition-colors"
+                      className="w-full bg-[#161512] border border-white/10 rounded-md pl-8 pr-2.5 py-1.5 text-[12.5px] text-neutral-200 outline-none placeholder-neutral-500 focus:border-white/20 font-sans transition-colors"
                     />
                   </div>
                 </div>
@@ -2074,26 +2120,9 @@ export default function ProjectWorkspacePane({
           {/* TAB: PREVIEW                                                       */}
           {/* ═══════════════════════════════════════════════════════════════════ */}
           {currentTab === 'preview' && (
-            <div className="relative flex-1 flex flex-col h-full w-full bg-[rgb(21,21,21)] overflow-hidden">
-              {/* Browser Address Bar Strip */}
-              <div className="flex items-center justify-between px-3.5 py-1.5 bg-[rgb(26,26,26)] border-b border-[rgb(40,40,40)] text-xs text-neutral-400 font-mono select-none flex-shrink-0">
-                <div className="flex items-center gap-2 flex-1 max-w-md bg-[rgb(16,16,16)] border border-[rgb(45,45,45)] rounded-lg px-2.5 py-1 text-[11px] text-neutral-300">
-                  <Lock size={10} className="text-emerald-400 flex-shrink-0" />
-                  <span className="text-neutral-300 truncate">https://calvras.app/preview</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-neutral-400">
-                  <button 
-                    onClick={() => setIframeKey(k => k + 1)}
-                    className="p-1 hover:bg-white/5 rounded-md hover:text-white transition-colors cursor-pointer"
-                    title="Reload live preview"
-                  >
-                    <RotateCw size={11} />
-                  </button>
-                </div>
-              </div>
-
+            <div className="relative flex-1 flex flex-col h-full w-full bg-[#0B0A08] overflow-hidden">
               {(Object.keys(files).length > 0 || previewPort) ? (
-                <div className="flex-1 overflow-auto flex items-center justify-center p-4 bg-[rgb(21,21,21)]">
+                <div className="flex-1 overflow-auto flex items-center justify-center p-0 bg-[#0B0A08]">
                   {deviceViewport === 'desktop' && (
                     <iframe
                       ref={iframeRef}
@@ -2101,7 +2130,7 @@ export default function ProjectWorkspacePane({
                       onLoad={sendVfsToIframe}
                       srcDoc={Object.keys(files).length > 0 ? generateLivePreviewSrcdoc(files) : undefined}
                       src={(!Object.keys(files).length && previewPort) ? `http://localhost:${previewPort}` : undefined}
-                      className="w-full h-full border-0 bg-[#0d0d12] shadow-xl"
+                      className="w-full h-full border-0 bg-[#0B0A08]"
                       title="App Desktop Preview"
                       sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups"
                     />

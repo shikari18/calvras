@@ -8,6 +8,23 @@ import LegalAndComplianceModal from './LegalAndComplianceModal';
 
 export const PRICING_PLANS = [
   {
+    id: 'free',
+    name: 'calvras free',
+    tagline: 'Basic search & coding',
+    monthlyPrice: 0.00,
+    annualPrice: 0.00,
+    priceIsText: false,
+    cta: 'Continue Free',
+    ctaType: 'free',
+    tier: 'Includes:',
+    features: [
+      '10 chat messages per day',
+      '3 image uploads per project',
+      'Standard response speed',
+      'Community support'
+    ]
+  },
+  {
     id: 'pro',
     name: 'calvras pro',
     tagline: 'Advanced answers and top AI models',
@@ -21,7 +38,7 @@ export const PRICING_PLANS = [
     features: [
       'built in web search',
       'high usage limit',
-      'early access to Calvras feaatures',
+      'early access to Calvras features',
       'priority access to new models'
     ]
   },
@@ -38,7 +55,7 @@ export const PRICING_PLANS = [
     features: [
       'everything in pro',
       'unlimited usage of api key',
-      '*2 more usage than pro',
+      '2x more usage than pro',
       'priority access to new models'
     ]
   }
@@ -91,60 +108,84 @@ export default function PricingOnboarding({
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#14120B] text-white font-sans selection:bg-white selection:text-black flex flex-col items-center">
+    <div className="min-h-screen w-full bg-[#0B0A08] text-white font-sans selection:bg-white selection:text-black flex flex-col items-center">
       
-      {/* ─── Clean Header ─── */}
-      <header className="w-full bg-[#14120B] border-b border-white/10 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={onBack}
-            className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white px-3 py-1.5 rounded-lg border border-white/10 hover:border-white/20 transition-colors cursor-pointer"
-          >
-            <ArrowLeft size={14} />
-            <span>Back</span>
-          </button>
-          <div className="flex items-center gap-2 ml-2">
-            <img src="/sidebar-logo.jpeg" alt="Calvras" className="w-6 h-6 rounded object-contain" />
-            <span className="font-bold text-base text-white tracking-tight uppercase">Calvras</span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4 text-xs text-neutral-400">
-          <button onClick={() => handleOpenLegal('privacy')} className="hover:text-white transition-colors cursor-pointer hidden sm:inline">Privacy Policy</button>
-          <button onClick={() => handleOpenLegal('refund')} className="hover:text-white transition-colors cursor-pointer hidden sm:inline">Refund Guarantee</button>
-          <button onClick={() => handleOpenLegal('terms')} className="hover:text-white transition-colors cursor-pointer hidden sm:inline">Terms</button>
-          <button
-            onClick={handleCloseToFree}
-            className="flex items-center gap-1.5 text-xs text-neutral-300 hover:text-white px-3 py-1.5 rounded-lg bg-white/5 border border-white/15 hover:border-white/30 transition-all cursor-pointer font-medium"
-            title="Close to Chat (Free Plan)"
-          >
-            <span>✕ Close</span>
-          </button>
-        </div>
+      {/* ─── Clean Header: Only Close on top right ─── */}
+      <header className="w-full bg-[#0B0A08] px-6 py-4 flex items-center justify-end">
+        <button
+          onClick={handleCloseToFree}
+          className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-all cursor-pointer font-medium"
+          title="Close to Chat (Free Plan)"
+        >
+          <span>✕ Close</span>
+        </button>
       </header>
 
       {/* ─── Main Content ─── */}
-      <main className="w-full max-w-5xl mx-auto px-6 py-16 flex flex-col items-center text-center">
+      <main className="w-full max-w-6xl mx-auto px-6 py-8 sm:py-12 flex flex-col items-center text-center">
         
-        {/* Header (Matching Image 4 Perplexity style) */}
-        <div className="max-w-xl mx-auto mb-14">
-          <h1 className="text-[40px] sm:text-[50px] font-serif font-normal text-white tracking-tight mb-3">
+        {/* Header */}
+        <div className="max-w-xl mx-auto mb-12">
+          <h1 className="text-[36px] sm:text-[46px] font-serif font-normal text-white tracking-tight mb-2.5">
             Select your plan
           </h1>
-          <p className="text-[15px] text-neutral-400">
+          <p className="text-[14px] text-neutral-400">
             Upgrade for a broader search experience and premium AI models.
           </p>
         </div>
 
-        {/* ─── 2 Cards Grid (Exact matching Perplexity Image 4, Subtle clean border) ─── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch w-full max-w-4xl mb-8 text-left">
+        {/* ─── 3 Cards Grid (Free $0, Pro $14, Max $40) ─── */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch w-full max-w-5xl mb-10 text-left">
           
-          {/* Card 1: $14 Pro */}
-          <div className="flex flex-col bg-[#14120B] rounded-3xl border border-white/20 p-8 hover:border-white/30 transition-all relative">
-            
-            {/* Title & Badge */}
+          {/* Card 0: $0 Free */}
+          <div className="flex flex-col bg-[#12110E] rounded-3xl border border-white/10 p-7 hover:border-white/20 transition-all relative">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-[26px] font-bold text-white tracking-tight">calvras <span className="font-normal text-white">pro</span></h2>
+              <h2 className="text-[22px] font-bold text-white tracking-tight">calvras <span className="font-normal text-white">free</span></h2>
+            </div>
+            <p className="text-[13px] text-neutral-400 leading-relaxed mb-6 min-h-[38px]">
+              Basic search & coding
+            </p>
+
+            <div className="mb-6 flex items-baseline gap-1.5 pb-6 border-b border-white/10">
+              <span className="text-[38px] font-bold text-white tracking-tight">$0</span>
+              <span className="text-[13px] text-neutral-400">/month</span>
+            </div>
+
+            <div className="text-[12px] font-medium text-neutral-300 mb-4">
+              Includes:
+            </div>
+            <ul className="space-y-3.5 flex-1 mb-8">
+              <li className="flex items-center gap-3 text-[13px] text-neutral-300">
+                <Check size={15} className="text-neutral-500 flex-shrink-0" />
+                <span>10 chat messages per day</span>
+              </li>
+              <li className="flex items-center gap-3 text-[13px] text-neutral-300">
+                <Check size={15} className="text-neutral-500 flex-shrink-0" />
+                <span>3 image uploads per project</span>
+              </li>
+              <li className="flex items-center gap-3 text-[13px] text-neutral-300">
+                <Check size={15} className="text-neutral-500 flex-shrink-0" />
+                <span>Standard response speed</span>
+              </li>
+              <li className="flex items-center gap-3 text-[13px] text-neutral-300">
+                <Check size={15} className="text-neutral-500 flex-shrink-0" />
+                <span>Community support</span>
+              </li>
+            </ul>
+
+            <button
+              type="button"
+              onClick={handleCloseToFree}
+              className="w-full py-3 rounded-2xl bg-white/10 hover:bg-white/15 text-white font-medium text-[13.5px] transition-all cursor-pointer border border-white/10 text-center"
+            >
+              Continue Free
+            </button>
+          </div>
+
+          {/* Card 1: $14 Pro */}
+          <div className="flex flex-col bg-[#12110E] rounded-3xl border border-white/25 p-7 hover:border-white/35 transition-all relative shadow-xl">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-[22px] font-bold text-white tracking-tight">calvras <span className="font-normal text-white">pro</span></h2>
               <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-white/10 text-white border border-white/20">
                 Popular
               </span>
@@ -153,13 +194,11 @@ export default function PricingOnboarding({
               Advanced answers and top AI models
             </p>
 
-            {/* Price */}
             <div className="mb-6 flex items-baseline gap-1.5 pb-6 border-b border-white/10">
-              <span className="text-[44px] font-bold text-white tracking-tight">$14</span>
+              <span className="text-[38px] font-bold text-white tracking-tight">$14</span>
               <span className="text-[13px] text-neutral-400">/month</span>
             </div>
 
-            {/* Features */}
             <div className="text-[12px] font-medium text-neutral-300 mb-4">
               Everything in Free and:
             </div>
@@ -174,7 +213,7 @@ export default function PricingOnboarding({
               </li>
               <li className="flex items-center gap-3 text-[13px] text-neutral-200">
                 <Sparkles size={15} className="text-neutral-400 flex-shrink-0" />
-                <span>early access to Calvras feaatures</span>
+                <span>early access to Calvras features</span>
               </li>
               <li className="flex items-center gap-3 text-[13px] text-neutral-200">
                 <Cpu size={15} className="text-neutral-400 flex-shrink-0" />
@@ -182,34 +221,29 @@ export default function PricingOnboarding({
               </li>
             </ul>
 
-            {/* Button */}
             <button
               type="button"
-              onClick={() => handleSelect(PRICING_PLANS[0])}
-              className="w-full py-3.5 rounded-2xl bg-neutral-200 hover:bg-white text-black font-bold text-[14px] transition-all cursor-pointer shadow-md text-center active:scale-95"
+              onClick={() => handleSelect(PRICING_PLANS[1])}
+              className="w-full py-3 rounded-2xl bg-white hover:bg-neutral-200 text-black font-bold text-[13.5px] transition-all cursor-pointer shadow-md text-center active:scale-95"
             >
               Get Pro
             </button>
           </div>
 
           {/* Card 2: $40 Max */}
-          <div className="flex flex-col bg-[#14120B] rounded-3xl border border-white/15 p-8 hover:border-white/25 transition-all text-left">
-            
-            {/* Title */}
+          <div className="flex flex-col bg-[#12110E] rounded-3xl border border-white/15 p-7 hover:border-white/25 transition-all text-left">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-[26px] font-bold text-white tracking-tight">calvras <span className="font-normal text-white">max</span></h2>
+              <h2 className="text-[22px] font-bold text-white tracking-tight">calvras <span className="font-normal text-white">max</span></h2>
             </div>
             <p className="text-[13px] text-neutral-400 leading-relaxed mb-6 min-h-[38px]">
               Unlimited usage and top performance
             </p>
 
-            {/* Price */}
             <div className="mb-6 flex items-baseline gap-1.5 pb-6 border-b border-white/10">
-              <span className="text-[44px] font-bold text-white tracking-tight">$40</span>
+              <span className="text-[38px] font-bold text-white tracking-tight">$40</span>
               <span className="text-[13px] text-neutral-400">/month</span>
             </div>
 
-            {/* Features */}
             <div className="text-[12px] font-medium text-neutral-300 mb-4">
               Everything in Pro and:
             </div>
@@ -224,7 +258,7 @@ export default function PricingOnboarding({
               </li>
               <li className="flex items-center gap-3 text-[13px] text-neutral-200">
                 <Zap size={15} className="text-emerald-400 flex-shrink-0" />
-                <span>*2 more usage than pro</span>
+                <span>2x more usage than pro</span>
               </li>
               <li className="flex items-center gap-3 text-[13px] text-neutral-200">
                 <Cpu size={15} className="text-white flex-shrink-0" />
@@ -232,17 +266,36 @@ export default function PricingOnboarding({
               </li>
             </ul>
 
-            {/* Button */}
             <button
               type="button"
-              onClick={() => handleSelect(PRICING_PLANS[1])}
-              className="w-full py-3.5 rounded-2xl bg-neutral-200 hover:bg-white text-black font-bold text-[14px] transition-all cursor-pointer shadow-md text-center active:scale-95"
+              onClick={() => handleSelect(PRICING_PLANS[2])}
+              className="w-full py-3 rounded-2xl bg-white hover:bg-neutral-200 text-black font-bold text-[13.5px] transition-all cursor-pointer shadow-md text-center active:scale-95"
             >
               Get Max
             </button>
           </div>
 
         </div>
+
+        {/* ─── Clean Agreement Line ─── */}
+        <p className="text-xs text-neutral-500">
+          By subscribing, you agree to our{' '}
+          <button 
+            type="button" 
+            onClick={() => handleOpenLegal('privacy')} 
+            className="underline hover:text-white transition-colors cursor-pointer"
+          >
+            Privacy Policy
+          </button>
+          {' '}and{' '}
+          <button 
+            type="button" 
+            onClick={() => handleOpenLegal('terms')} 
+            className="underline hover:text-white transition-colors cursor-pointer"
+          >
+            Terms of Service
+          </button>.
+        </p>
 
       </main>
 

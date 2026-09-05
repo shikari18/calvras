@@ -3,20 +3,23 @@ import {
   Search, ArrowLeft, ChevronRight, FileText, HelpCircle, 
   ShieldCheck, RefreshCw, Zap, BookOpen, ExternalLink, 
   MessageSquare, Key, Globe, CheckCircle2, ChevronLeft, Sparkles,
-  Lock, CreditCard, Terminal, Code2, Server, Check
+  Lock, CreditCard, Terminal, Code2, Server, Check, ChevronDown,
+  Layers, Database, Laptop, ArrowUpRight, Clock, ThumbsUp, ThumbsDown, Cpu
 } from 'lucide-react';
 
 export const SUPPORT_ARTICLES = [
   {
     id: 'usage-limits-best-practices',
-    collectionId: 'usage-limits',
-    title: 'Usage limit best practices',
+    collectionId: 'getting-started',
+    collectionName: 'Getting Started',
+    title: 'Usage limit best practices & project allocations',
     updatedAt: 'September 2026',
     readTime: '5 min read',
     summary: 'How to optimize your message allocations, plan limits, and project caching across Calvras.',
     content: `### 1. Overview of Usage Allocations
 The number of messages, vision analyses, and full-stack builds you can execute varies by your Calvras plan:
 
+- **Calvras Free ($0/mo):** 10 messages/day, 3 image uploads per project, standard speed, community support.
 - **Calvras Pro ($14/mo):** Built-in web search, high usage limit, early access to new features, and priority access to flagship models.
 - **Calvras Max ($40/mo):** Everything in Pro, **Unlimited API Key Usage (BYOK & platform inference)**, 2x higher usage limits than Pro, zero rate limits, and 24/7 dedicated engineering support.
 
@@ -41,12 +44,13 @@ Calvras features intelligent client and server caching:
 ### 4. Best Practices for Developers
 - **Be direct and descriptive:** Combine layout structure, color preferences, and state requirements in your initial prompt.
 - **Request surgical in-place edits:** Use specific prompts (e.g. *"In src/App.tsx, shift the CTA button 12px right and add border-white/20"*) rather than regenerating the entire project.
-- **Batch related adjustments:** Group 2–3 minor styling or copy adjustments into one prompt.`,
+- **Batch related adjustments:** Group 2–3 minor styling or copy adjustments into one prompt.`
   },
   {
     id: 'refund-shipping-policy',
     collectionId: 'billing-refunds',
-    title: 'Will Calvras refund my purchase? (Shipping & Refund Policy)',
+    collectionName: 'Billing & Refunds',
+    title: 'Will Calvras refund my purchase? (Shipping & 14-Day Refund Policy)',
     updatedAt: 'September 2026',
     readTime: '4 min read',
     summary: 'Our 14-day unconditional money-back guarantee, digital fulfillment, and Paystack settlement timeline.',
@@ -78,11 +82,12 @@ Requesting a refund is simple and immediate:
 ---
 
 ### 5. Subscription Cancellation
-You can cancel your subscription at any time with 1 click in your **Account Settings**. Upon cancellation, you will never be billed again, and you retain complete access until the end of your billing cycle.`,
+You can cancel your subscription at any time with 1 click in your **Account Settings**. Upon cancellation, you will never be billed again, and you retain complete access until the end of your billing cycle.`
   },
   {
     id: 'max-plan-unlimited-api-usage',
-    collectionId: 'api-developer',
+    collectionId: 'models-byok',
+    collectionName: 'AI Models & BYOK',
     title: 'What is included in the $40 Max plan with Unlimited API usage?',
     updatedAt: 'September 2026',
     readTime: '4 min read',
@@ -93,238 +98,228 @@ The **Calvras Max ($40/mo)** plan is purpose-built for high-volume developers, a
 ---
 
 ### 2. Bring Your Own Key (BYOK) & Cloud Inference
-- **Zero Rate Limits:** Connect your own Anthropic, OpenAI, or Google Cloud keys with zero artificial rate limits imposed by Calvras.
+- **Zero Rate Limits:** Connect your own OpenRouter, Anthropic, OpenAI, or Google Cloud keys with zero artificial rate limits imposed by Calvras.
 - **Client-Side Hardware Encryption:** Your custom API keys are encrypted client-side using AES-256 before transport. Keys are never logged or stored in plain text.
 - **Managed High-Speed Pool:** If you don't provide custom keys, you can run directly on our managed high-speed cluster with 2x more compute allocation than the Pro plan.
 
 ---
 
-### 3. Key Benefits of the Max Plan
-- **Everything in Pro:** Built-in web search, early feature access, and flagship model routing.
-- **Unlimited Usage of API Key:** Unlimited autonomous builds, code refactors, and test executions.
-- ***2 More Usage Than Pro:** Double the concurrent session capacity and workspace file limits.
-- **Priority Access to New Models:** Immediate day-one access to new reasoning architectures.
-- **Full API Access & Webhooks:** Connect Calvras autonomous agents directly into your GitHub Actions and CI/CD pipelines.`,
+### 3. High-Concurrency Generation
+- Up to 10 parallel subagents executing simultaneous code refactoring, database migrations, and UI generation.
+- Priority queue access during peak global usage hours.`
   },
   {
-    id: 'getting-started-sandboxes',
-    collectionId: 'calvras-basics',
-    title: 'Getting started with Calvras & Live Preview Sandboxes',
+    id: 'screenshot-to-code-duplication',
+    collectionId: 'getting-started',
+    collectionName: 'Getting Started',
+    title: 'How does Calvras duplicate screenshots with 10/10 pixel perfection?',
     updatedAt: 'September 2026',
-    readTime: '4 min read',
-    summary: 'How to build full-stack web applications, run live browser previews, and export clean code.',
-    content: `### 1. Autonomous Full-Stack Architecture
-Calvras isn't just an autocomplete tool. It is an autonomous full-stack software engineer that designs, writes, and bundles complete production applications:
-
-- **Frontend:** Modern React 18, Vite, TypeScript, Tailwind CSS, and Lucide icons.
-- **Backend:** Node.js Express REST APIs with live endpoints and request validation.
-- **Database:** Relational schemas and mock stores designed for SQLite or PostgreSQL.
-
----
-
-### 2. Interactive Live Preview
-Every code generation or modification automatically renders in the interactive right-side split screen workspace:
-- **Hot Module Reload:** Code changes reflect instantaneously without losing your application state.
-- **Responsive Viewport Controls:** Toggle between desktop, tablet, and mobile dimensions with 1 click.
-- **Console & Terminal:** Inspect real-time execution logs, network requests, and compile states.
+    readTime: '6 min read',
+    summary: 'Understanding multimodal vision inspection, font matching, and surgical UI duplication.',
+    content: `### 1. Multimodal Vision Pipeline
+When you upload a screenshot or wireframe to Calvras:
+1. **Geometric Layout Extraction:** The vision pipeline calculates exact flex/grid alignments, paddings, margins, and aspect ratios.
+2. **Typography & Color Harmonization:** Exact font weights, tracking, line heights, and hex color codes are mapped to Tailwind CSS utilities.
+3. **Interactive Component Synthesis:** Static UI elements are converted into dynamic React 19 components with Lucide icons and hover transitions.
+4. **Contextual Image Generation:** Banners, avatars, and media cards seen in the screenshot are generated directly into the project code.
 
 ---
 
-### 3. Exporting Your Work
-- **ZIP Download:** Export the entire workspace folder including \`package.json\`, \`vite.config.ts\`, and asset structures.
-- **Git Push:** Connect your GitHub account to push repositories directly to your personal or organization account.`,
-  },
-  {
-    id: 'screenshot-to-code-guide',
-    collectionId: 'ui-vision',
-    title: 'UI Screenshot duplication: 10/10 pixel accuracy guidelines',
-    updatedAt: 'September 2026',
-    readTime: '4 min read',
-    summary: 'Best practices for uploading design mockups, mobile screenshots, and matching typography.',
-    content: `### 1. How UI Duplication Works
-When you paste or drag-and-drop an image into Calvras, our multimodal vision models dissect the design at the token level:
-- **Geometry & Alignment:** Extracts exact flexbox/grid hierarchies, padding, and zero-phantom margins.
-- **Color Extraction:** Identifies exact hex palettes and dark obsidian undertones.
-- **Typography:** Maps header and body text to modern sans-serif scales (Inter, SF Pro) with correct weights.
-- **Iconography:** Emits clean, functional Lucide icons or inline SVGs matching the visual reference.
-
----
-
-### 2. Tips for 10/10 Duplication Accuracy
-1. **Provide Clear, High-Resolution Images:** Ensure text, button borders, and navigation items are crisp and uncompressed.
-2. **Crop to Relevant Regions:** If you only want to change or duplicate a specific card or navbar, crop the screenshot to that region.
-3. **Specify Interaction Details:** State what actions should occur when a user clicks buttons or inputs (e.g. *"When the search input is focused, show the filter dropdown"*).`,
+### 2. Tips for Best Duplication Results
+- Upload uncompressed, high-resolution PNG or WebP screenshots.
+- Specify if you want exact desktop (1280px+) or responsive mobile views.
+- Prompt with any specific library preferences (e.g. Tailwind, Lucide icons, Framer Motion).`
   },
   {
     id: 'privacy-soc2-compliance',
-    collectionId: 'privacy-legal',
-    title: 'Data privacy, security standards & zero training policy',
+    collectionId: 'privacy-security',
+    collectionName: 'Privacy & Security',
+    title: 'Data privacy, security standards & Zero Training Policy',
     updatedAt: 'September 2026',
     readTime: '5 min read',
-    summary: 'How Calvras protects your proprietary source code, credentials, and business IP.',
+    summary: 'How Calvras protects your proprietary source code, secrets, and customer data.',
     content: `### 1. Zero Code Training Policy
-Your source code and designs are your confidential intellectual property. Calvras enforces a strict zero-data-retention policy:
-- **No Training on Customer Data:** We do not train, fine-tune, or evaluate public models on your proprietary code, prompts, or uploaded images.
-- **Ephemeral Processing:** Prompts and context files are processed transiently during generation and stored only in your private workspace.
+Calvras **never trains** public foundation models on your private prompts, code files, uploaded screenshots, or business logic. Your Intellectual Property remains 100% yours.
 
 ---
 
-### 2. SOC2 & PCI-DSS Compliance
-- **Payment Security:** Calvras does not store credit card numbers. All billing and card processing is handled by **Paystack**, a certified PCI-DSS Level 1 service provider.
-- **Transport Encryption:** All data in transit is protected using TLS 1.3 encryption with modern forward-secret cipher suites.
-- **Data at Rest:** Workspaces and account metadata are encrypted using AES-256 at rest.`,
+### 2. Encryption at Rest & In Transit
+- All data in transit is encrypted using **TLS 1.3**.
+- Codebases and session state are secured with **AES-256 encryption at rest**.
+- API keys provided via BYOK are isolated client-side and never saved to persistent server databases.`
+  },
+  {
+    id: 'troubleshooting-preview-errors',
+    collectionId: 'troubleshooting',
+    collectionName: 'Troubleshooting',
+    title: 'Fixing preview runtime errors and Vite sandbox issues',
+    updatedAt: 'September 2026',
+    readTime: '3 min read',
+    summary: 'How to recover from syntax faults, unimported symbols, and iframe build errors.',
+    content: `### 1. 1-Click Error Recovery
+If your live preview encounters a syntax or runtime error:
+- Look for the **"Fix with Calvras"** recovery banner in the preview header.
+- Calvras automatically captures the browser console error stack and applies a surgical patch in seconds.
+
+---
+
+### 2. Manual Diagnostics
+- Click **Terminal / Logs** in the bottom workspace bar to inspect raw bundling output.
+- Ensure all custom imports point to valid files in your project directory.`
   }
 ];
 
-const COLLECTIONS = [
-  { id: 'all', name: 'All Articles', count: 6 },
-  { id: 'calvras-basics', name: 'Calvras Basics', count: 1 },
-  { id: 'billing-refunds', name: 'Billing & Refunds', count: 1 },
-  { id: 'api-developer', name: 'Developer & API', count: 1 },
-  { id: 'ui-vision', name: 'UI & Screenshot Duplication', count: 1 },
-  { id: 'usage-limits', name: 'Usage Limits & Best Practices', count: 1 },
-  { id: 'privacy-legal', name: 'Privacy & Security', count: 1 },
+export const CATEGORIES = [
+  {
+    id: 'getting-started',
+    title: 'Getting Started & Builds',
+    icon: Laptop,
+    description: 'Autonomous React builds, prompt best practices, and screenshot duplication.'
+  },
+  {
+    id: 'billing-refunds',
+    title: 'Billing & 14-Day Refunds',
+    icon: CreditCard,
+    description: 'Paystack payments, instant digital delivery, and unconditional money-back policy.'
+  },
+  {
+    id: 'models-byok',
+    title: 'AI Models & Unlimited BYOK',
+    icon: Cpu,
+    description: 'Bring Your Own Key, zero rate limits, and 4-tier model failover clusters.'
+  },
+  {
+    id: 'web-research',
+    title: 'Autonomous Web Research',
+    icon: Globe,
+    description: 'Real-time npm crawling, live API testing, and deep technical inspection.'
+  },
+  {
+    id: 'privacy-security',
+    title: 'Privacy & Security Standards',
+    icon: ShieldCheck,
+    description: 'Zero code training policy, client-side encryption, and GDPR compliance.'
+  },
+  {
+    id: 'troubleshooting',
+    title: 'Troubleshooting & Debugging',
+    icon: Terminal,
+    description: 'Live sandbox diagnostics, error recovery, and terminal console logs.'
+  }
 ];
 
-function formatInline(text) {
-  if (!text) return '';
-  return text
-    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-white">$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em class="italic text-neutral-300">$1</em>')
-    .replace(/`(.*?)`/g, '<code class="bg-white/10 text-emerald-300 px-1.5 py-0.5 rounded text-[12px] font-mono">$1</code>');
-}
+export const FAQS = [
+  {
+    q: 'How does the 14-day refund guarantee work?',
+    a: 'Every Calvras subscription ($14 Pro and $40 Max) comes with an unconditional 14-day money-back guarantee. If you are not satisfied for any reason, email support@calvras.ai with your receipt, and we will refund 100% of your payment via Paystack within 24 hours.'
+  },
+  {
+    q: 'Is there a Free plan available?',
+    a: 'Yes! Calvras provides a 100% Free plan with 10 chat messages per day, 3 image uploads per project, standard model execution, and community support.'
+  },
+  {
+    q: 'What is included in Unlimited API Key Usage on the Max plan?',
+    a: 'The $40 Max plan allows you to input your own OpenRouter, Anthropic, or OpenAI keys with zero rate limits, zero throttling, and unlimited tokens from your own provider, plus 2x more compute than Pro.'
+  },
+  {
+    q: 'Are any physical products shipped?',
+    a: 'No. Calvras is 100% digital cloud software. All subscriptions and workspace compute are fulfilled electronically within 5 seconds of payment verification.'
+  },
+  {
+    q: 'Does Calvras train AI models on my code?',
+    a: 'Never. Calvras enforces a strict Zero Code Training Policy. Your code, prompts, and designs remain exclusively your private property.'
+  }
+];
 
-function renderFormattedContent(text) {
-  if (!text) return null;
-  const blocks = text.split('\n\n');
-
-  return blocks.map((block, idx) => {
-    const trimmed = block.trim();
-    if (!trimmed) return null;
-
-    if (trimmed.startsWith('### ')) {
-      return (
-        <h3 key={idx} className="text-lg sm:text-xl font-bold text-white mt-8 mb-3 tracking-tight">
-          {trimmed.replace('### ', '')}
-        </h3>
-      );
-    }
-    if (trimmed.startsWith('## ')) {
-      return (
-        <h2 key={idx} className="text-xl sm:text-2xl font-bold text-white mt-9 mb-4 tracking-tight">
-          {trimmed.replace('## ', '')}
-        </h2>
-      );
-    }
-    if (trimmed === '---') {
-      return <hr key={idx} className="my-6 border-white/10" />;
-    }
-    if (trimmed.startsWith('- ')) {
-      const items = trimmed.split('\n').filter(l => l.trim().startsWith('- '));
-      return (
-        <ul key={idx} className="list-disc pl-5 space-y-2.5 my-4 text-neutral-300 text-sm sm:text-base leading-relaxed">
-          {items.map((item, i) => {
-            const line = item.replace(/^- /, '');
-            return (
-              <li key={i} dangerouslySetInnerHTML={{ __html: formatInline(line) }} />
-            );
-          })}
-        </ul>
-      );
-    }
-    if (/^\d+\.\s/.test(trimmed)) {
-      const items = trimmed.split('\n').filter(l => /^\d+\.\s/.test(l.trim()));
-      return (
-        <ol key={idx} className="list-decimal pl-5 space-y-2.5 my-4 text-neutral-300 text-sm sm:text-base leading-relaxed">
-          {items.map((item, i) => {
-            const line = item.replace(/^\d+\.\s/, '');
-            return (
-              <li key={i} dangerouslySetInnerHTML={{ __html: formatInline(line) }} />
-            );
-          })}
-        </ol>
-      );
-    }
-
-    return (
-      <p 
-        key={idx} 
-        className="text-neutral-300 leading-relaxed my-3.5 text-sm sm:text-base"
-        dangerouslySetInnerHTML={{ __html: formatInline(trimmed) }} 
-      />
-    );
-  });
-}
-
-export default function SupportCenterPage({ onBack, onNavigateLegal, onNavigatePricing, initialArticleId = null }) {
+export default function SupportCenterPage({
+  initialArticleId = null,
+  onBack,
+  onNavigateLegal,
+  onNavigatePricing
+}) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCollection, setSelectedCollection] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [activeArticleId, setActiveArticleId] = useState(initialArticleId);
+  const [expandedFaq, setExpandedFaq] = useState(null);
+  const [feedbackGiven, setFeedbackGiven] = useState(null);
 
   useEffect(() => {
-    if (initialArticleId) {
-      setActiveArticleId(initialArticleId);
-    }
-  }, [initialArticleId]);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [activeArticleId, selectedCategory]);
 
   const filteredArticles = useMemo(() => {
     let list = SUPPORT_ARTICLES;
-    if (selectedCollection !== 'all') {
-      list = list.filter(a => a.collectionId === selectedCollection);
+    if (selectedCategory) {
+      list = list.filter(a => a.collectionId === selectedCategory);
     }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       list = list.filter(a => 
         a.title.toLowerCase().includes(q) || 
-        a.summary.toLowerCase().includes(q) || 
+        a.summary.toLowerCase().includes(q) ||
         a.content.toLowerCase().includes(q)
       );
     }
     return list;
-  }, [selectedCollection, searchQuery]);
+  }, [selectedCategory, searchQuery]);
 
   const activeArticle = useMemo(() => {
     return SUPPORT_ARTICLES.find(a => a.id === activeArticleId) || null;
   }, [activeArticleId]);
 
   return (
-    <div className="min-h-screen w-full bg-[#14120B] text-white font-sans selection:bg-white selection:text-black flex flex-col">
+    <div className="min-h-screen w-full bg-[#0B0A08] text-white font-sans selection:bg-white selection:text-black flex flex-col overflow-y-auto">
       
-      {/* ─── Top Header on #14120B ─── */}
-      <header className="sticky top-0 z-40 bg-[#14120B] border-b border-white/10 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          
+      {/* ─── Top Apple/Claude-Style Navigation Bar ─── */}
+      <header className="sticky top-0 z-40 bg-[#0B0A08]/90 backdrop-blur-xl border-b border-white/10 px-6 py-4">
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
-              onClick={onBack}
+              type="button"
+              onClick={activeArticleId ? () => setActiveArticleId(null) : onBack}
               className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer flex items-center gap-1 text-xs font-semibold"
             >
               <ArrowLeft size={16} />
               <span>Back</span>
             </button>
-            <div className="h-4 w-px bg-white/15" />
+            <div className="h-4 w-px bg-white/10" />
             <div 
-              onClick={() => { setActiveArticleId(null); setSelectedCollection('all'); setSearchQuery(''); }}
-              className="flex items-center gap-2 cursor-pointer"
+              onClick={() => { setActiveArticleId(null); setSelectedCategory(null); setSearchQuery(''); }}
+              className="flex items-center gap-2 cursor-pointer select-none"
             >
               <img src="/sidebar-logo.jpeg" alt="Calvras" className="w-6 h-6 rounded-md object-contain" />
-              <span className="font-bold text-base text-white tracking-tight uppercase">Calvras Support</span>
+              <span className="font-bold text-sm text-white tracking-tight">Calvras Support</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-5 text-xs text-neutral-400 font-medium">
-            <button onClick={() => onNavigateLegal && onNavigateLegal('terms')} className="hover:text-white transition-colors cursor-pointer hidden md:inline">
+          <div className="flex items-center gap-5 text-xs text-neutral-400">
+            <button 
+              onClick={() => onNavigateLegal && onNavigateLegal('terms')} 
+              className="hover:text-white transition-colors cursor-pointer hidden md:inline"
+            >
               Terms
             </button>
-            <button onClick={() => onNavigateLegal && onNavigateLegal('refund')} className="hover:text-white transition-colors cursor-pointer hidden md:inline">
-              Refund Policy
+            <button 
+              onClick={() => onNavigateLegal && onNavigateLegal('privacy')} 
+              className="hover:text-white transition-colors cursor-pointer hidden md:inline"
+            >
+              Privacy Policy
             </button>
-            <button onClick={onNavigatePricing} className="hover:text-white transition-colors cursor-pointer hidden md:inline">
-              Pricing & Plans
+            <button 
+              onClick={() => onNavigateLegal && onNavigateLegal('refund')} 
+              className="hover:text-white transition-colors cursor-pointer hidden md:inline"
+            >
+              14-Day Refunds
+            </button>
+            <button 
+              onClick={onNavigatePricing} 
+              className="hover:text-white transition-colors cursor-pointer hidden md:inline"
+            >
+              Pricing
             </button>
             <a 
               href="mailto:support@calvras.ai"
-              className="px-3.5 py-1.5 rounded-full bg-white text-black font-semibold hover:bg-neutral-200 transition-colors shadow-sm"
+              className="px-3.5 py-1.5 rounded-full bg-white text-black font-semibold text-xs hover:bg-neutral-200 transition-colors shadow-sm"
             >
               Contact Support
             </a>
@@ -332,221 +327,292 @@ export default function SupportCenterPage({ onBack, onNavigateLegal, onNavigateP
         </div>
       </header>
 
-      {/* ─── Body: 2-Column Knowledge Base ─── */}
-      <div className="max-w-7xl mx-auto w-full px-6 py-10 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 text-left">
-        
-        {/* Left Sidebar */}
-        <aside className="lg:col-span-3 space-y-6">
-          <div className="border border-white/10 rounded-2xl p-4 bg-[#14120B]">
-            <div className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 mb-3 font-semibold">
-              Knowledge Collections
-            </div>
-            <nav className="space-y-1 text-xs font-medium">
-              {COLLECTIONS.map(col => {
-                const isSelected = selectedCollection === col.id && !activeArticleId;
-                return (
-                  <button
-                    key={col.id}
-                    onClick={() => {
-                      setSelectedCollection(col.id);
-                      setActiveArticleId(null);
-                    }}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-colors text-left cursor-pointer ${
-                      isSelected 
-                        ? 'bg-white text-black font-bold shadow-sm' 
-                        : 'text-neutral-300 hover:text-white hover:bg-white/5'
-                    }`}
-                  >
-                    <span>{col.name}</span>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
-                      isSelected ? 'bg-black/10 text-black' : 'bg-white/10 text-neutral-400'
-                    }`}>
-                      {col.count}
-                    </span>
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
+      {/* ─── Detail Article View (When an article is clicked) ─── */}
+      {activeArticle ? (
+        <main className="flex-1 w-full max-w-4xl mx-auto px-6 py-12 text-left">
+          <button
+            type="button"
+            onClick={() => setActiveArticleId(null)}
+            className="inline-flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white mb-8 transition-colors cursor-pointer font-medium"
+          >
+            <ChevronLeft size={14} />
+            <span>Back to Help Center</span>
+          </button>
 
-          <div className="border border-white/10 rounded-2xl p-5 bg-[#14120B] text-xs text-neutral-400 space-y-3">
-            <div className="flex items-center gap-2 text-white font-semibold">
-              <HelpCircle size={15} className="text-emerald-400" />
-              <span>Need merchant assistance?</span>
+          <article className="bg-[#12110E] border border-white/10 rounded-3xl p-8 sm:p-12 space-y-8 shadow-2xl animate-in fade-in duration-150">
+            <div className="space-y-3 border-b border-white/10 pb-6">
+              <div className="flex items-center gap-2 text-xs font-mono text-neutral-400">
+                <span className="text-white font-medium">{activeArticle.collectionName}</span>
+                <span>•</span>
+                <span>{activeArticle.updatedAt}</span>
+                <span>•</span>
+                <span>{activeArticle.readTime}</span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                {activeArticle.title}
+              </h1>
+              <p className="text-neutral-400 text-sm leading-relaxed">
+                {activeArticle.summary}
+              </p>
             </div>
-            <p className="leading-relaxed text-[11.5px]">
-              Our technical engineering and Paystack billing desk is online 24/7.
-            </p>
-            <div className="font-mono text-emerald-400 font-semibold text-[12px]">
-              support@calvras.ai
-            </div>
-          </div>
-        </aside>
 
-        {/* Right Main Article / List View */}
-        <main className="lg:col-span-9 space-y-6">
+            <div className="space-y-5 text-neutral-300 text-sm leading-relaxed font-normal whitespace-pre-line">
+              {activeArticle.content}
+            </div>
+
+            {/* Was this helpful feedback dock */}
+            <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <span className="text-xs text-neutral-400">
+                {feedbackGiven ? 'Thank you for your feedback!' : 'Was this guide helpful?'}
+              </span>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setFeedbackGiven('yes')}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border text-xs font-semibold transition-colors cursor-pointer ${
+                    feedbackGiven === 'yes' ? 'bg-white text-black border-white' : 'border-white/10 text-neutral-300 hover:border-white/25 hover:text-white'
+                  }`}
+                >
+                  <ThumbsUp size={13} />
+                  <span>Yes</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFeedbackGiven('no')}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border text-xs font-semibold transition-colors cursor-pointer ${
+                    feedbackGiven === 'no' ? 'bg-white text-black border-white' : 'border-white/10 text-neutral-300 hover:border-white/25 hover:text-white'
+                  }`}
+                >
+                  <ThumbsDown size={13} />
+                  <span>No</span>
+                </button>
+              </div>
+            </div>
+          </article>
+        </main>
+      ) : (
+        /* ─── Main Claude/Apple Help Center Homepage ─── */
+        <main className="flex-1 w-full max-w-6xl mx-auto px-6 py-12 flex flex-col items-center">
           
-          {/* Search Bar */}
-          <div className="relative w-full">
-            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search articles, refund timeline, BYOK, or vision duplication..."
-              className="w-full pl-11 pr-4 py-3 bg-[#14120B] border border-white/10 rounded-2xl text-xs sm:text-sm text-white placeholder-neutral-500 outline-none focus:border-white/30 transition-all shadow-inner"
-            />
+          {/* Hero Section */}
+          <div className="w-full max-w-2xl text-center space-y-4 mb-10">
+            <h1 className="text-3xl sm:text-5xl font-serif font-normal text-white tracking-tight">
+              How can we help?
+            </h1>
+            <p className="text-sm text-neutral-400">
+              Search knowledge guides, 14-day refund policy, API keys, or technical specifications.
+            </p>
+
+            {/* Apple-style Centered Search Input */}
+            <div className="relative w-full mt-6">
+              <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search articles, refund timeline, BYOK, or vision duplication..."
+                className="w-full pl-12 pr-10 py-3.5 bg-[#12110E] border border-white/15 rounded-2xl text-sm text-white placeholder-neutral-500 outline-none focus:border-white/40 shadow-[0_8px_30px_rgba(0,0,0,0.5)] transition-all"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white p-1 text-xs cursor-pointer"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* Quick Suggestion Chips */}
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-2 text-xs">
+              <span className="text-neutral-500">Popular:</span>
+              {[
+                '14-Day Refund Guarantee',
+                'Unlimited API Keys',
+                'Paystack Settlement',
+                'Vision Duplication'
+              ].map(chip => (
+                <button
+                  key={chip}
+                  type="button"
+                  onClick={() => setSearchQuery(chip)}
+                  className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 transition-colors cursor-pointer"
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {activeArticle ? (
-            /* Detailed Article View */
-            <div className="border border-white/10 rounded-3xl p-6 sm:p-10 bg-[#14120B] space-y-6 animate-in fade-in duration-150">
-              <button
-                onClick={() => setActiveArticleId(null)}
-                className="inline-flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white transition-colors cursor-pointer font-medium"
-              >
-                <ChevronLeft size={14} />
-                <span>Back to all guides</span>
-              </button>
-
-              <div className="space-y-2 border-b border-white/10 pb-6">
-                <div className="flex items-center gap-3 text-[11px] font-mono text-neutral-400">
-                  <span>{activeArticle.updatedAt}</span>
-                  <span>•</span>
-                  <span>{activeArticle.readTime}</span>
-                </div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-                  {activeArticle.title}
-                </h1>
-                <p className="text-neutral-400 text-sm">
-                  {activeArticle.summary}
-                </p>
+          {/* ─── Categorized Cards Grid (Claude / Apple Style) ─── */}
+          {!searchQuery && (
+            <div className="w-full mb-16 text-left">
+              <div className="text-xs font-mono uppercase tracking-wider text-neutral-400 mb-4 font-semibold">
+                Browse by Topic
               </div>
-
-              <div className="article-body">
-                {renderFormattedContent(activeArticle.content)}
-              </div>
-
-              <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <span className="text-xs text-neutral-400">Was this guide helpful?</span>
-                <div className="flex gap-2">
-                  <button className="px-3.5 py-1.5 rounded-xl border border-white/10 hover:border-white/20 text-xs font-semibold text-white transition-colors">
-                    Yes, helpful
-                  </button>
-                  <button className="px-3.5 py-1.5 rounded-xl border border-white/10 hover:border-white/20 text-xs font-semibold text-white transition-colors">
-                    Needs update
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            /* Articles Cards List */
-            <div className="space-y-4">
-              <div className="border border-white/10 rounded-3xl p-6 sm:p-8 bg-[#14120B] space-y-2 mb-6">
-                <h2 className="text-2xl font-bold text-white tracking-tight">Calvras Knowledge Base</h2>
-                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed max-w-2xl">
-                  Official engineering documentation, Paystack merchant compliance details, 14-day refund policies, and unlimited API usage architectures.
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                {filteredArticles.map(art => (
-                  <div
-                    key={art.id}
-                    onClick={() => setActiveArticleId(art.id)}
-                    className="p-5 sm:p-6 rounded-2xl border border-white/10 bg-[#14120B] hover:border-white/25 transition-all cursor-pointer group flex items-start justify-between gap-4 shadow-sm"
-                  >
-                    <div className="space-y-1.5 max-w-2xl">
-                      <div className="flex items-center gap-2 text-[11px] font-mono text-neutral-400">
-                        <FileText size={12} className="text-neutral-400" />
-                        <span>{art.readTime}</span>
-                        <span>•</span>
-                        <span>{art.updatedAt}</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {CATEGORIES.map(cat => {
+                  const Icon = cat.icon;
+                  const isSelected = selectedCategory === cat.id;
+                  return (
+                    <div
+                      key={cat.id}
+                      onClick={() => setSelectedCategory(isSelected ? null : cat.id)}
+                      className={`p-6 rounded-3xl border transition-all cursor-pointer select-none flex flex-col justify-between ${
+                        isSelected 
+                          ? 'bg-[#1A1812] border-white/40 ring-1 ring-white/20' 
+                          : 'bg-[#12110E] border-white/10 hover:border-white/25 hover:bg-[#161510]'
+                      }`}
+                    >
+                      <div className="space-y-3">
+                        <div className="w-9 h-9 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white">
+                          <Icon size={18} />
+                        </div>
+                        <h3 className="text-base font-semibold text-white tracking-tight">
+                          {cat.title}
+                        </h3>
+                        <p className="text-xs text-neutral-400 leading-relaxed">
+                          {cat.description}
+                        </p>
                       </div>
-                      <h3 className="text-base sm:text-lg font-semibold text-white group-hover:text-emerald-400 transition-colors">
-                        {art.title}
-                      </h3>
-                      <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
-                        {art.summary}
-                      </p>
+                      <div className="pt-4 flex items-center gap-1 text-xs text-neutral-400 font-medium group-hover:text-white">
+                        <span>{isSelected ? 'Viewing topic' : 'Explore articles'}</span>
+                        <ChevronRight size={13} />
+                      </div>
                     </div>
-                    <ChevronRight size={18} className="text-neutral-500 group-hover:text-white group-hover:translate-x-1 transition-all mt-3 flex-shrink-0" />
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
 
+          {/* ─── Articles List ─── */}
+          <div className="w-full mb-16 text-left space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-white tracking-tight">
+                {selectedCategory 
+                  ? `Articles in ${CATEGORIES.find(c => c.id === selectedCategory)?.title}` 
+                  : (searchQuery ? `Search Results (${filteredArticles.length})` : 'Popular Articles')}
+              </h2>
+              {selectedCategory && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategory(null)}
+                  className="text-xs text-neutral-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  Show all
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {filteredArticles.map(article => (
+                <div
+                  key={article.id}
+                  onClick={() => setActiveArticleId(article.id)}
+                  className="p-5 rounded-2xl bg-[#12110E] border border-white/10 hover:border-white/25 hover:bg-[#161510] transition-all cursor-pointer group flex items-start justify-between gap-4 select-none"
+                >
+                  <div className="space-y-1.5 flex-1">
+                    <div className="flex items-center gap-2 text-[11px] font-mono text-neutral-400">
+                      <span>{article.collectionName}</span>
+                      <span>•</span>
+                      <span>{article.readTime}</span>
+                    </div>
+                    <h4 className="text-sm font-semibold text-white group-hover:text-white transition-colors">
+                      {article.title}
+                    </h4>
+                    <p className="text-xs text-neutral-400 line-clamp-2 leading-relaxed">
+                      {article.summary}
+                    </p>
+                  </div>
+                  <ChevronRight size={16} className="text-neutral-500 group-hover:text-white transition-transform group-hover:translate-x-0.5 flex-shrink-0 mt-2" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ─── Interactive FAQ Accordion ─── */}
+          <div className="w-full max-w-3xl mb-16 text-left space-y-4">
+            <h2 className="text-lg font-bold text-white tracking-tight text-center mb-6">
+              Frequently Asked Questions
+            </h2>
+            <div className="space-y-2.5">
+              {FAQS.map((faq, i) => {
+                const isOpen = expandedFaq === i;
+                return (
+                  <div
+                    key={i}
+                    className="rounded-2xl bg-[#12110E] border border-white/10 overflow-hidden transition-colors"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setExpandedFaq(isOpen ? null : i)}
+                      className="w-full px-5 py-4 flex items-center justify-between text-left text-xs sm:text-sm font-semibold text-white hover:text-neutral-200 cursor-pointer"
+                    >
+                      <span>{faq.q}</span>
+                      <ChevronDown size={16} className={`text-neutral-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {isOpen && (
+                      <div className="px-5 pb-4 text-xs text-neutral-400 leading-relaxed border-t border-white/5 pt-3 animate-in fade-in duration-100">
+                        {faq.a}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ─── Contact Desk Banner ─── */}
+          <div className="w-full max-w-3xl p-8 rounded-3xl bg-gradient-to-b from-[#14120D] to-[#0E0D0A] border border-white/10 text-center space-y-3 mb-8">
+            <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white mx-auto">
+              <HelpCircle size={20} className="text-emerald-400" />
+            </div>
+            <h3 className="text-lg font-bold text-white tracking-tight">Still have questions?</h3>
+            <p className="text-xs text-neutral-400 max-w-md mx-auto leading-relaxed">
+              Our engineering team and Paystack merchant billing desk are available 24/7.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+              <a
+                href="mailto:support@calvras.ai"
+                className="px-4 py-2 rounded-xl bg-white text-black font-semibold text-xs hover:bg-neutral-200 transition-colors shadow-md"
+              >
+                Email Technical Support
+              </a>
+              <a
+                href="mailto:billing@calvras.ai"
+                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white font-medium text-xs border border-white/10 transition-colors"
+              >
+                Billing & Refunds Desk
+              </a>
+            </div>
+          </div>
+
         </main>
-      </div>
+      )}
 
-      {/* ─── Massive Cursor-Style 5-Column Footer (Increased Height) ─── */}
-      <footer className="py-20 px-6 sm:px-12 border-t border-white/[0.08] bg-[#14120B] text-neutral-400 text-[13px] mt-20">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-10 pb-16 border-b border-white/[0.08] text-left">
-          
-          <div className="space-y-3.5">
-            <h4 className="text-[13px] font-semibold text-white tracking-wider">Product</h4>
-            <ul className="space-y-2.5 text-[12.5px] text-neutral-400">
-              <li><button onClick={onBack} className="hover:text-white transition-colors cursor-pointer">Autonomous Studio</button></li>
-              <li><button onClick={onNavigatePricing} className="hover:text-white transition-colors cursor-pointer">Pricing ($14 / $40)</button></li>
-              <li><button onClick={onBack} className="hover:text-white transition-colors cursor-pointer">Live Preview Sandbox</button></li>
-              <li><button onClick={onBack} className="hover:text-white transition-colors cursor-pointer">UI Vision Duplicator</button></li>
-              <li><button onClick={onBack} className="hover:text-white transition-colors cursor-pointer">BYOK API Gateway</button></li>
-            </ul>
-          </div>
-
-          <div className="space-y-3.5">
-            <h4 className="text-[13px] font-semibold text-white tracking-wider">Resources</h4>
-            <ul className="space-y-2.5 text-[12.5px] text-neutral-400">
-              <li><button onClick={() => { setActiveArticleId(null); setSelectedCollection('all'); }} className="hover:text-white transition-colors cursor-pointer">Knowledge Base</button></li>
-              <li><button onClick={() => setActiveArticleId('usage-limits-best-practices')} className="hover:text-white transition-colors cursor-pointer">Usage Limits</button></li>
-              <li><button onClick={() => setActiveArticleId('max-plan-unlimited-api-usage')} className="hover:text-white transition-colors cursor-pointer">Unlimited API Guide</button></li>
-              <li><button onClick={() => setActiveArticleId('screenshot-to-code-guide')} className="hover:text-white transition-colors cursor-pointer">Vision Cloning Guide</button></li>
-              <li><button onClick={() => setActiveArticleId('getting-started-sandboxes')} className="hover:text-white transition-colors cursor-pointer">Sandbox Quickstart</button></li>
-            </ul>
-          </div>
-
-          <div className="space-y-3.5">
-            <h4 className="text-[13px] font-semibold text-white tracking-wider">Company</h4>
-            <ul className="space-y-2.5 text-[12.5px] text-neutral-400">
-              <li><button onClick={() => onNavigateLegal && onNavigateLegal('about')} className="hover:text-white transition-colors cursor-pointer">About Calvras</button></li>
-              <li><button onClick={onBack} className="hover:text-white transition-colors cursor-pointer">Engineering Philosophy</button></li>
-              <li><button onClick={onBack} className="hover:text-white transition-colors cursor-pointer">Research Lab</button></li>
-              <li><button onClick={onBack} className="hover:text-white transition-colors cursor-pointer">Brand Assets</button></li>
-              <li><a href="mailto:support@calvras.ai" className="hover:text-white transition-colors">support@calvras.ai</a></li>
-            </ul>
-          </div>
-
-          <div className="space-y-3.5">
-            <h4 className="text-[13px] font-semibold text-white tracking-wider">Legal & Compliance</h4>
-            <ul className="space-y-2.5 text-[12.5px] text-neutral-400">
-              <li><button onClick={() => onNavigateLegal && onNavigateLegal('terms')} className="hover:text-white transition-colors cursor-pointer">Terms of Service</button></li>
-              <li><button onClick={() => onNavigateLegal && onNavigateLegal('privacy')} className="hover:text-white transition-colors cursor-pointer">Privacy Policy</button></li>
-              <li><button onClick={() => onNavigateLegal && onNavigateLegal('refund')} className="hover:text-white transition-colors cursor-pointer">Shipping & Refunds</button></li>
-              <li><button onClick={() => setActiveArticleId('privacy-soc2-compliance')} className="hover:text-white transition-colors cursor-pointer">Zero Training Policy</button></li>
-            </ul>
-          </div>
-
-          <div className="space-y-3.5">
-            <h4 className="text-[13px] font-semibold text-white tracking-wider">Connect</h4>
-            <ul className="space-y-2.5 text-[12.5px] text-neutral-400">
-              <li><a href="https://twitter.com" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">X (Twitter)</a></li>
-              <li><a href="https://linkedin.com" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">LinkedIn</a></li>
-              <li><a href="https://github.com/shikari18/calvras" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">GitHub</a></li>
-              <li><a href="mailto:billing@calvras.ai" className="hover:text-white transition-colors">billing@calvras.ai</a></li>
-            </ul>
-          </div>
-
-        </div>
-
-        <div className="max-w-7xl mx-auto pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11.5px] text-neutral-500">
-          <div className="flex items-center gap-2">
-            <img src="/sidebar-logo.jpeg" alt="Calvras" className="w-4 h-4 rounded object-contain" />
-            <span className="text-white font-medium">Calvras Technologies</span>
+      {/* ─── Comprehensive Footer ─── */}
+      <footer className="w-full border-t border-white/10 bg-[#0E0D0A] px-6 py-12 mt-auto">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6 text-xs text-neutral-400">
+          <div className="flex items-center gap-2.5">
+            <img src="/sidebar-logo.jpeg" alt="Calvras" className="w-5 h-5 rounded object-contain" />
+            <span className="font-semibold text-white">Calvras Technologies</span>
             <span>© {new Date().getFullYear()} All rights reserved.</span>
           </div>
-          <div>
-            All subscriptions and cloud services are distributed digitally with electronic provisioning and a 14-day refund guarantee processed via Paystack.
+          <div className="flex items-center gap-6">
+            <button onClick={() => onNavigateLegal && onNavigateLegal('terms')} className="hover:text-white transition-colors cursor-pointer">
+              Terms of Service
+            </button>
+            <button onClick={() => onNavigateLegal && onNavigateLegal('privacy')} className="hover:text-white transition-colors cursor-pointer">
+              Privacy Policy
+            </button>
+            <button onClick={() => onNavigateLegal && onNavigateLegal('refund')} className="hover:text-white transition-colors cursor-pointer">
+              14-Day Refund Policy
+            </button>
+            <button onClick={onNavigatePricing} className="hover:text-white transition-colors cursor-pointer">
+              Pricing Plans
+            </button>
           </div>
         </div>
       </footer>

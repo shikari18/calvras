@@ -12,9 +12,9 @@ import {
 export default function SlimSidebar({ activeTab, setActiveTab, onNewChat, onOpenTools }) {
   return (
     <aside className="relative flex flex-col items-center justify-between w-[52px] h-screen bg-[#0e0e12] border-r border-[#1a1a22] py-3.5 z-30 select-none">
-      {/* Top Section: Lovable Brand Logo + Navigation */}
+      {/* Top Section: Calvras Brand Logo + Navigation */}
       <div className="flex flex-col items-center gap-3 w-full">
-        {/* Brand Logo matching Lovable */}
+        {/* Brand Logo matching Calvras */}
         <button 
           onClick={onNewChat}
           className="relative w-7 h-7 flex items-center justify-center hover:opacity-80 transition-opacity"

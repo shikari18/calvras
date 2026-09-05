@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 
 const INITIAL_PROJECT_FILES = {
-  '.lovable/project.json': `{\n  "id": "coded-saas-core",\n  "framework": "react-19-vite",\n  "autonomous": true,\n  "agentVersion": "2.5.0"\n}`,
+  '.calvras/project.json': `{\n  "id": "calvras-core",\n  "framework": "react-19-vite",\n  "autonomous": true,\n  "agentVersion": "2.5.0"\n}`,
   'public/favicon.ico': `[Binary Icon File]`,
   'public/robots.txt': `User-agent: *\nAllow: /\nSitemap: https://coded.ai/sitemap.xml`,
   'src/components/dashboard/Shell.tsx': `import { Link, useRouterState } from "@tanstack/react-router";
@@ -135,7 +135,7 @@ export default function CodeStudioModal({ isOpen, onClose, initialFile = 'src/co
 
   // Folder open/closed states
   const [openFolders, setOpenFolders] = useState({
-    '.lovable': true,
+    '.calvras': true,
     'public': true,
     'src': true,
     'src/components': true,
@@ -248,21 +248,21 @@ export default function CodeStudioModal({ isOpen, onClose, initialFile = 'src/co
                 ))
               ) : (
                 <>
-                  {/* .lovable */}
+                  {/* .calvras */}
                   <div>
                     <button 
-                      onClick={() => toggleFolder('.lovable')}
+                      onClick={() => toggleFolder('.calvras')}
                       className="flex items-center gap-1.5 w-full px-1.5 py-1 rounded hover:bg-[#18181e] text-neutral-400 font-medium"
                     >
-                      {openFolders['.lovable'] ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
-                      <span className="text-[12px]">.lovable</span>
+                      {openFolders['.calvras'] ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+                      <span className="text-[12px]">.calvras</span>
                     </button>
-                    {openFolders['.lovable'] && (
+                    {openFolders['.calvras'] && (
                       <div className="ml-4 space-y-0.5">
                         <button
-                          onClick={() => handleSelectFile('.lovable/project.json')}
+                          onClick={() => handleSelectFile('.calvras/project.json')}
                           className={`flex items-center gap-2 w-full px-2 py-1 rounded text-left truncate ${
-                            activeTab === '.lovable/project.json' ? 'bg-[#202028] text-white font-medium' : 'hover:bg-[#18181e] text-neutral-400'
+                            activeTab === '.calvras/project.json' ? 'bg-[#202028] text-white font-medium' : 'hover:bg-[#18181e] text-neutral-400'
                           }`}
                         >
                           <FileText size={12} className="text-yellow-400" />

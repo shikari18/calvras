@@ -62,13 +62,24 @@ CORE COMPETENCIES:
   * AUTONOMOUS IN-PREVIEW API CONNECTION & BYOK:
     - When the user asks to connect an API key (e.g. OpenRouter key sk-or-v1-..., OpenAI, Anthropic, or Hugging Face) or give their app a custom system prompt to chat for real, NEVER lecture or refuse.
     - Wire the API key and system prompt directly in src/App.tsx using direct client-side fetch to https://openrouter.ai/api/v1/chat/completions so the preview chat app actually sends and receives real responses.
+  * DYNAMIC ASSISTANT PERSONA (NO HARDCODED CALVRAS IDENTITY IN USER APPS):
+    - When building chat applications or AI tools for the user, DO NOT hardcode "You are Calvras" or Calvras's internal system prompt into the generated application!
+    - Provide an editable prompt input box, customizable question/settings modal, or persona selector so the end-user can customize what their assistant does, or use a clean general assistant default that they can modify anytime.
+  * DEEP RESEARCH & WEB CHECKING ("research", "check X and build"):
+    - When the user says "research", "check X", or "check X and build exactly for me":
+      * Think harder, analyze deeply, and do comprehensive technical research before building.
+      * Verify API specs, design tokens, UI layouts, and domain logic.
+      * Produce complete, production-grade solutions that reflect thorough research and verification.
+  * RIGOROUS TESTING & ERROR RESILIENCE:
+    - Always test code logic, API endpoints, error states, and edge cases.
+    - Build testable code with input validation, error boundaries, and mock/live API verification utilities so apps run with zero uncaught exceptions.
   * 100% MOBILE RESPONSIVE BY DEFAULT: Every single website and component MUST look great and function seamlessly on mobile phones, tablets, and desktops. Use Tailwind responsive classes: grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4, responsive padding px-4 sm:px-6 lg:px-8, and mobile hamburger menu navigation toggles (with Lucide Menu / X icons).
   * Smooth animations, transitions, and hover states.
 
-2. ALWAYS FULLSTACK BY DEFAULT:
+2. ALWAYS FULLSTACK BY DEFAULT WITH PERSISTENT DATABASE:
 - Unless the user explicitly asks for frontend-only or a specific single language, ALWAYS build a complete, ready-for-production FULLSTACK application:
   * FRONTEND: Modern React (Vite, Tailwind CSS, Lucide / custom SVGs, responsive layout).
-  * BACKEND: Production-grade Express / Node API with complete REST routes, validation, and working CRUD operations.
+  * BACKEND & DATABASE: Production-grade Express / Node API with complete REST routes, validation, working CRUD operations, and persistent data storage schemas (e.g. src/db/database.ts or database models with typed schemas and seed data).
   * Know and select the exact optimal languages, frameworks, and packages from the thousands available.
 
 3. NATURAL THINKING & EXPLANATION (NO CANNED RESPONSES):
@@ -405,7 +416,7 @@ export async function generateAIResponse({ messages, mode = 'build' }) {
     if (backendRes.ok) {
       const data = await backendRes.json();
       const content = data?.choices?.[0]?.message?.content;
-      if (content && content.trim()) return content.trim();
+      if (content && content.trim()) return maskSensitiveKeys(content.trim());
     }
   } catch (backendErr) {
     console.warn('[AI Service] Local backend endpoint bypassed, calling cloud engines directly:', backendErr.message);
@@ -435,7 +446,7 @@ export async function generateAIResponse({ messages, mode = 'build' }) {
         const data = await res.json();
         const content = data?.choices?.[0]?.message?.content;
         if (content && content.trim()) {
-          return content.trim();
+          return maskSensitiveKeys(content.trim());
         }
       }
     } catch (err) {
@@ -453,6 +464,17 @@ export function generateSmartAutonomousSynthesis(messages = []) {
   return `<think>
 AI generation connection error.
 </think>[Error: AI model endpoints were unable to complete the generation for this request. Please try again with a clearer image or directive.]`;
+}
+
+/**
+ * Mask raw API tokens from exposed logs and conversational output
+ */
+export function maskSensitiveKeys(text = '') {
+  if (!text || typeof text !== 'string') return text;
+  return text
+    .replace(/\b(sk-or-v1-[a-zA-Z0-9]{4})[a-zA-Z0-9]{16,}([a-zA-Z0-9]{4})\b/g, '$1••••••••$2')
+    .replace(/\b(sk-[a-zA-Z0-9]{4})[a-zA-Z0-9]{16,}([a-zA-Z0-9]{4})\b/g, '$1••••••••$2')
+    .replace(/\b(hf_[a-zA-Z0-9]{4})[a-zA-Z0-9]{16,}([a-zA-Z0-9]{4})\b/g, '$1••••••••$2');
 }
 
 /**
@@ -725,7 +747,7 @@ export async function streamAIResponse({ messages, onThinkingChunk, onContentChu
                 accumulatedReasoning = parsed.thinking;
                 if (onThinkingChunk) onThinkingChunk(parsed.thinking, accumulatedReasoning);
               }
-              const displayContent = parsed.content || accumulatedContent;
+              const displayContent = maskSensitiveKeys(parsed.content || accumulatedContent);
               if (onContentChunk) onContentChunk(contentToken, displayContent);
             }
           } catch { /* ignore parse error on partial chunks */ }
@@ -739,7 +761,7 @@ export async function streamAIResponse({ messages, onThinkingChunk, onContentChu
 
   let finalParsed = splitThinkingAndContent(accumulatedContent || rawAccumulator);
   let finalThinking = (accumulatedReasoning || finalParsed.thinking || '').trim();
-  let finalContent = (finalParsed.content || accumulatedContent || rawAccumulator).trim();
+  let finalContent = maskSensitiveKeys((finalParsed.content || accumulatedContent || rawAccumulator).trim());
 
   // If code blocks are unclosed/truncated, safely close them
   const hasUnclosedCodeBlock = finalContent.includes('```') && (finalContent.match(/```/g) || []).length % 2 !== 0;
