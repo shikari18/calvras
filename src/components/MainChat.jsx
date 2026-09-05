@@ -2432,9 +2432,16 @@ DIRECTIVES FOR WIRING THIS KEY IN USER APP:
     // 4. System prompt generation request
     const isPromptContext = /^(?:write|generate|craft|create|give\s+me)\s+(?:a\s+)?(?:system\s+prompt|meta\s+prompt)/i.test(trimmedQuery);
 
-    // 5. Conversational question — ONLY when user is asking a purely explanatory question without build intent
+    // 4b. Workspace-related query check (bug reports, form issues, button clicks, routing questions on active project)
+    const isWorkspaceRelated = hasExistingWorkspace && (
+      isPreviewFix ||
+      isCropOrPartialEdit ||
+      /\b(?:code|form|button|input|submit|route|routing|nav|navigate|page|screen|modal|card|api|key|login|signin|sign-in|signup|sign-up|error|bug|issue|broken|work|working|fix|solve|repair|not\s+submitting|not\s+changing|not\s+showing|why\s+is|how\s+to|change|update|add|remove|prevent|handle|noValidate)\b/i.test(trimmedQuery)
+    );
+
+    // 5. Conversational question — ONLY when user is asking a purely explanatory question without build/code intent
     const isConversationalQuestion =
-      !isPreviewFix && !isCropOrPartialEdit && (
+      !isPreviewFix && !isCropOrPartialEdit && !isWorkspaceRelated && (
         isPastedImageOnly ||
         (!hasBuildKeyword && (
           trimmedQuery.endsWith('?') ||
@@ -2449,6 +2456,7 @@ DIRECTIVES FOR WIRING THIS KEY IN USER APP:
     const isWorkspaceEdit = !isConversationalQuestion && !isPromptContext && !isExplicitRebuild && (
       isPreviewFix ||
       isCropOrPartialEdit ||
+      isWorkspaceRelated ||
       hasExistingWorkspace ||
       /\b(?:change|update|modify|edit|fix|adjust|shift|move|put|place|style|color|button|navbar|header|footer|sidebar|make\s+it|make\s+this|remove|replace|add|better|responsive|mobile|align|numbers|image|images)\b/i.test(trimmedQuery)
     );
@@ -2575,21 +2583,23 @@ CRITICAL FIX & REPAIR INSTRUCTIONS FOR CALVRAS:
           .map(([k, v]) => `File: ${k.replace('Calvras/', '')}\n\`\`\`\n${v}\n\`\`\``)
           .join('\n\n');
 
-        const editPrompt = `The user is requesting an IN-PLACE SURGICAL EDIT to their active application: "${query}".
+        const editPrompt = `The user is requesting an IN-PLACE SURGICAL EDIT OR BUG FIX to their active application: "${query}".
 
 Active Project Files:
 ${filesContext}
 
-CRITICAL MANDATES FOR SURGICAL EDIT:
-1. DO NOT discard, redesign, or regenerate the rest of the application into something else! The existing site (navigation, layout, header, sidebars, main content, cards, audio players, state, and mock data) is already working and must remain completely intact.
-2. Read the active src/App.tsx above carefully. Identify the exact component, section, or layout element the user wants updated based on their prompt "${query}"${hasImageAttachment ? ' and attached image/crop' : ''}.
-3. Apply the requested modification AS A SURGICAL EDIT in src/App.tsx:
-   - For layout shift or alignment requests (e.g. "shift Explore Premium Install App user to the right"): adjust ONLY the container or flexbox alignment classes for those specific items in the header. Keep all other header elements (such as logo, search bar, home button) and all other page sections (library, player, cards) completely intact.
-   - For styling or component tweaks: modify ONLY that specific component or property while preserving the rest of src/App.tsx unchanged.
-4. Output the complete updated src/App.tsx in:
+CRITICAL MANDATES FOR SURGICAL EDIT / BUG FIX:
+1. State your diagnosis or summary in 1 concise sentence, then IMMEDIATELY output the complete updated code in:
 \`\`\`tsx file=src/App.tsx
-// Complete updated code preserving the entire application with the surgical edit applied
+// Complete updated code preserving the entire application with the fix applied
 \`\`\`
+DO NOT EVER output only conversational text saying "Surgical fix: add X" or "I will do X" without the code! You are an autonomous software engineer—you MUST output the complete updated src/App.tsx code block with the fix applied now.
+2. DO NOT discard, redesign, or regenerate the rest of the application into something else! The existing site (navigation, layout, header, sidebars, main content, cards, audio players, state, and mock data) is already working and must remain completely intact.
+3. Read the active src/App.tsx above carefully. Identify the exact component, section, or layout element the user wants updated based on their prompt "${query}"${hasImageAttachment ? ' and attached image/crop' : ''}.
+4. Apply the requested modification or bug fix AS A SURGICAL EDIT in src/App.tsx:
+   - For bug fixes, routing issues, or form validation: fix the handler, attributes (e.g. noValidate), state, or navigation directly in src/App.tsx.
+   - For layout shift or alignment requests (e.g. "shift Explore Premium Install App user to the right"): adjust ONLY the container or flexbox alignment classes for those specific items in the header. Keep all other header elements (such as logo, search bar, home button) and all other page sections completely intact.
+   - For styling or component tweaks: modify ONLY that specific component or property while preserving the rest of src/App.tsx unchanged.
 5. Lucide icons must always be imported from 'lucide-react' (never output icon names as plain text strings).`;
 
         messagesForAI = [
@@ -2684,12 +2694,13 @@ CRITICAL MANDATES FOR SURGICAL EDIT:
             }
 
             // ── Autonomous Self-Healing Code Generation ──
-            // If the model gave a conversational promise without code, IMMEDIATELY generate the complete code
-            if ((isExplicitBuild || isWorkspaceEdit) && Object.keys(extractedFiles).length === 0) {
-              setStreamingText('Synthesizing application components & logic…');
+            // If the model gave a conversational promise or diagnosis without code, IMMEDIATELY generate the complete code
+            const hasConversationalFixPromise = hasExistingWorkspace && /(?:surgical\s+fix|here('s| is) the fix|add\s+`|change\s+`|update\s+`|to fix this|you can fix|the fix is|i will|let's fix|fix:|issue:|cause:)/i.test(finalContent);
+            if ((isExplicitBuild || isWorkspaceEdit || hasConversationalFixPromise) && Object.keys(extractedFiles).length === 0) {
+              setStreamingText(extractLiveActionDescription('', isWorkspaceEdit ? 'Applying surgical fix to code' : 'Synthesizing application components', query));
               try {
-                const promptInstruction = isWorkspaceEdit 
-                  ? `Update the active project code to fulfill this request: "${query}". Output the FULL, COMPLETE runnable React 18 TypeScript code for src/App.tsx including all imports, real high-resolution Unsplash images (never number placeholders), and mobile-responsive styling. Wrap in:\n\`\`\`tsx file=src/App.tsx\n// Complete code\n\`\`\``
+                const promptInstruction = (isWorkspaceEdit || hasConversationalFixPromise) 
+                  ? `Your diagnosis/plan was: "${finalContent.slice(0, 350)}...". As an autonomous engineer, do not just explain it—EXECUTE the fix right now in src/App.tsx! Output the FULL, COMPLETE runnable React 18 TypeScript code for src/App.tsx with the fix applied, preserving all existing layout and components. Wrap in:\n\`\`\`tsx file=src/App.tsx\n// Complete code\n\`\`\``
                   : `Generate the complete, runnable production-ready React 18 TypeScript code for src/App.tsx to duplicate this UI with 10/10 pixel-perfect design, colors, cards with real Unsplash images (never numbers or blank boxes), mobile responsiveness, and Lucide icons now. Wrap in:\n\`\`\`tsx file=src/App.tsx\n// Complete code\n\`\`\``;
 
                 const codeGenMessages = [

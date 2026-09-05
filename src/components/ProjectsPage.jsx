@@ -111,7 +111,7 @@ export default function ProjectsPage({
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.08] pb-6">
             <div>
               <div className="flex items-center gap-2.5 mb-1.5">
-                <div className="w-8 h-8 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400">
+                <div className="w-8 h-8 rounded-xl bg-white/[0.06] border border-white/[0.1] flex items-center justify-center text-white">
                   <Box size={18} />
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
@@ -126,7 +126,7 @@ export default function ProjectsPage({
             <button
               type="button"
               onClick={onCreateProject}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-lg shadow-blue-600/20 transition-all hover:scale-[1.02] cursor-pointer self-start md:self-auto"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-neutral-200 text-black text-xs font-semibold shadow-lg shadow-white/5 transition-all hover:scale-[1.02] cursor-pointer self-start md:self-auto"
             >
               <Plus size={16} strokeWidth={2.5} />
               <span>New Project</span>
@@ -162,11 +162,11 @@ export default function ProjectsPage({
               <div className="space-y-1">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">Security & Isolation</span>
                 <div className="flex items-center gap-1.5 text-sm font-semibold text-neutral-200">
-                  <ShieldCheck size={16} className="text-blue-400" />
+                  <ShieldCheck size={16} className="text-emerald-400" />
                   <span>Zero-Retention SOC-2</span>
                 </div>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+              <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-neutral-300">
                 <Globe size={18} />
               </div>
             </div>
@@ -182,7 +182,7 @@ export default function ProjectsPage({
               type="button"
               onClick={() => setSelectedCategory('all')}
               className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
-                selectedCategory === 'all' ? 'bg-blue-600 text-white font-medium shadow-sm' : 'text-neutral-400 hover:text-white'
+                selectedCategory === 'all' ? 'bg-white text-black font-semibold shadow-sm' : 'text-neutral-400 hover:text-white'
               }`}
             >
               All Projects ({userProjects.length})
@@ -191,7 +191,7 @@ export default function ProjectsPage({
               type="button"
               onClick={() => setSelectedCategory('blueprints')}
               className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
-                selectedCategory === 'blueprints' ? 'bg-blue-600 text-white font-medium shadow-sm' : 'text-neutral-400 hover:text-white'
+                selectedCategory === 'blueprints' ? 'bg-white text-black font-semibold shadow-sm' : 'text-neutral-400 hover:text-white'
               }`}
             >
               Starter Blueprints ({BLUEPRINTS.length})
@@ -279,7 +279,7 @@ export default function ProjectsPage({
                 <button
                   type="button"
                   onClick={onCreateProject}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-md transition-all cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white hover:bg-neutral-200 text-black text-xs font-semibold shadow-md transition-all cursor-pointer"
                 >
                   <Plus size={14} />
                   <span>Start New Project</span>
@@ -315,10 +315,10 @@ export default function ProjectsPage({
                           </div>
 
                           <div className="space-y-1 text-left text-neutral-400 py-1">
-                            <div><span className="text-blue-400">export default</span> <span className="text-amber-300">function</span> <span className="text-white">Workspace()</span> &#123;</div>
-                            <div className="pl-3 text-neutral-300">&lt;<span className="text-cyan-400">MainView</span> active=&#123;<span className="text-emerald-300">true</span>&#125;&gt;</div>
-                            <div className="pl-6 text-neutral-400">&lt;<span className="text-purple-400">LiveComponent</span> /&gt;</div>
-                            <div className="pl-3 text-neutral-300">&lt;/<span className="text-cyan-400">MainView</span>&gt;</div>
+                            <div><span className="text-amber-300">export default</span> <span className="text-neutral-300">function</span> <span className="text-white">Workspace()</span> &#123;</div>
+                            <div className="pl-3 text-neutral-300">&lt;<span className="text-white">MainView</span> active=&#123;<span className="text-emerald-300">true</span>&#125;&gt;</div>
+                            <div className="pl-6 text-neutral-400">&lt;<span className="text-neutral-300">LiveComponent</span> /&gt;</div>
+                            <div className="pl-3 text-neutral-300">&lt;/<span className="text-white">MainView</span>&gt;</div>
                             <div>&#125;</div>
                           </div>
 
@@ -358,7 +358,7 @@ export default function ProjectsPage({
                     {/* Card Content Footer */}
                     <div className="p-4 space-y-2.5 text-left">
                       <div className="flex items-start justify-between gap-2">
-                        <h3 className="text-sm font-semibold text-white truncate group-hover:text-blue-400 transition-colors">
+                        <h3 className="text-sm font-semibold text-white truncate group-hover:text-amber-200 transition-colors">
                           {project.title}
                         </h3>
                         <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 flex-shrink-0 flex items-center gap-1">
@@ -372,7 +372,7 @@ export default function ProjectsPage({
                           <Clock size={12} className="text-neutral-500" />
                           <span>{project.date}</span>
                         </span>
-                        <span className="text-[11px] text-blue-400 group-hover:underline flex items-center gap-1 font-medium">
+                        <span className="text-[11px] text-white/80 group-hover:text-white group-hover:underline flex items-center gap-1 font-medium">
                           <span>Launch</span>
                           <ArrowRight size={12} />
                         </span>
@@ -391,11 +391,11 @@ export default function ProjectsPage({
                     className="p-4 flex items-center justify-between gap-4 hover:bg-white/[0.02] transition-colors cursor-pointer group"
                   >
                     <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-10 h-10 rounded-xl bg-[#11100F] border border-white/[0.08] flex items-center justify-center text-blue-400 flex-shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-[#11100F] border border-white/[0.08] flex items-center justify-center text-white flex-shrink-0">
                         <Code2 size={18} />
                       </div>
                       <div className="min-w-0">
-                        <h4 className="text-sm font-semibold text-white truncate group-hover:text-blue-400 transition-colors">
+                        <h4 className="text-sm font-semibold text-white truncate group-hover:text-amber-200 transition-colors">
                           {project.title}
                         </h4>
                         <div className="flex items-center gap-3 text-xs text-neutral-400 mt-0.5">
@@ -456,16 +456,16 @@ export default function ProjectsPage({
               >
                 <div className="space-y-3 relative z-10">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-blue-400 px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-200 px-2.5 py-0.5 rounded-full bg-white/[0.05] border border-white/10">
                       {bp.category}
                     </span>
-                    <span className="w-8 h-8 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-neutral-400 group-hover:text-white group-hover:bg-blue-600 transition-all">
+                    <span className="w-8 h-8 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-neutral-400 group-hover:text-black group-hover:bg-white transition-all">
                       <ArrowRight size={14} />
                     </span>
                   </div>
 
                   <div>
-                    <h3 className="text-base font-bold text-white tracking-tight group-hover:text-blue-300 transition-colors">
+                    <h3 className="text-base font-bold text-white tracking-tight group-hover:text-neutral-200 transition-colors">
                       {bp.title}
                     </h3>
                     <p className="text-xs text-neutral-400 mt-1 leading-relaxed line-clamp-2">
@@ -483,7 +483,7 @@ export default function ProjectsPage({
                     ))}
                   </div>
 
-                  <span className="text-xs font-semibold text-blue-400 group-hover:underline flex items-center gap-1">
+                  <span className="text-xs font-semibold text-white/80 group-hover:text-white group-hover:underline flex items-center gap-1">
                     Launch Blueprint
                   </span>
                 </div>

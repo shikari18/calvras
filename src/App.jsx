@@ -138,6 +138,13 @@ export default function App() {
 
   const [messages, setMessages] = useState(() => {
     try {
+      const isExplicitNew = typeof window !== 'undefined' && (
+        window.location.pathname === '/' || 
+        window.location.pathname === '/new' || 
+        localStorage.getItem('calvras_is_new_chat') === 'true'
+      );
+      if (isExplicitNew) return [];
+
       const pathSessionId = getSessionIdFromPath();
       const currentUser = (() => {
         try {
@@ -148,20 +155,14 @@ export default function App() {
       const email = (currentUser?.email || 'guest').toLowerCase().trim().replace(/[^a-z0-9_]/g, '_');
       const activeId = pathSessionId || localStorage.getItem(`calvras_active_session_${email}`) || localStorage.getItem('coded_active_session');
       const savedSessions = localStorage.getItem(`calvras_sessions_${email}`) || localStorage.getItem('coded_sessions');
-      if (savedSessions) {
+      if (savedSessions && activeId) {
         const parsed = JSON.parse(savedSessions);
-        if (activeId) {
-          const active = parsed.find(s => s.id === activeId);
-          if (active && active.messages && active.messages.length > 0) {
-            return active.messages;
-          }
-        }
-        if (parsed.length > 0 && parsed[0].messages && parsed[0].messages.length > 0) {
-          return parsed[0].messages;
+        const active = parsed.find(s => s.id === activeId);
+        if (active && active.messages && active.messages.length > 0) {
+          return active.messages;
         }
       }
-      const savedDirect = localStorage.getItem(`calvras_active_messages_${email}`) || localStorage.getItem('malvos_active_messages');
-      return savedDirect ? JSON.parse(savedDirect) : [];
+      return [];
     } catch {
       return [];
     }
@@ -185,6 +186,13 @@ export default function App() {
   });
 
   const [activeSession, setActiveSession] = useState(() => {
+    const isExplicitNew = typeof window !== 'undefined' && (
+      window.location.pathname === '/' || 
+      window.location.pathname === '/new' || 
+      localStorage.getItem('calvras_is_new_chat') === 'true'
+    );
+    if (isExplicitNew) return null;
+
     const pathSessionId = getSessionIdFromPath();
     if (pathSessionId) return pathSessionId;
     const currentUser = (() => {
@@ -275,24 +283,31 @@ export default function App() {
   useEffect(() => {
     if (!user) return;
     try {
+      const isExplicitNew = typeof window !== 'undefined' && (
+        window.location.pathname === '/' || 
+        window.location.pathname === '/new' || 
+        localStorage.getItem('calvras_is_new_chat') === 'true'
+      );
       const email = (user.email || 'guest').toLowerCase().trim().replace(/[^a-z0-9_]/g, '_');
       const savedSessions = localStorage.getItem(`calvras_sessions_${email}`);
-      const savedActiveId = localStorage.getItem(`calvras_active_session_${email}`);
-      const savedDirect = localStorage.getItem(`calvras_active_messages_${email}`);
+      const savedActiveId = isExplicitNew ? null : localStorage.getItem(`calvras_active_session_${email}`);
 
       if (savedSessions) {
         const parsed = JSON.parse(savedSessions);
         setSessions(parsed);
-        if (savedActiveId) {
+        if (savedActiveId && !isExplicitNew) {
           const act = parsed.find(s => s.id === savedActiveId);
-          setMessages(act?.messages || []);
-          setActiveSession(savedActiveId);
-        } else if (parsed.length > 0 && parsed[0].messages) {
-          setMessages(parsed[0].messages);
-          setActiveSession(parsed[0].id);
+          if (act && act.messages) {
+            setMessages(act.messages);
+            setActiveSession(savedActiveId);
+            return;
+          }
         }
-      } else if (savedDirect) {
-        setMessages(JSON.parse(savedDirect));
+        if (isExplicitNew) {
+          setMessages([]);
+          setActiveSession(null);
+          return;
+        }
       }
     } catch {}
   }, [user?.email]);
@@ -329,6 +344,7 @@ export default function App() {
 
   useEffect(() => {
     if (messages.length > 0) {
+      localStorage.removeItem('calvras_is_new_chat');
       if (activeSession) {
         setSessions(prev => prev.map(s => s.id === activeSession ? { ...s, messages, updatedAt: Date.now() } : s));
       } else {
@@ -383,6 +399,10 @@ export default function App() {
     try {
       window.history.pushState(null, '', '/new');
     } catch {}
+    const email = (user?.email || 'guest').toLowerCase().trim().replace(/[^a-z0-9_]/g, '_');
+    localStorage.setItem('calvras_is_new_chat', 'true');
+    localStorage.removeItem(`calvras_active_session_${email}`);
+    localStorage.removeItem(`calvras_active_messages_${email}`);
     localStorage.removeItem('malvos_active_messages');
     localStorage.removeItem('coded_active_session');
     localStorage.removeItem('malvos_active_workspace');
@@ -409,6 +429,7 @@ export default function App() {
   };
 
   const handleSelectSession = (sessionId) => {
+    localStorage.removeItem('calvras_is_new_chat');
     const sess = sessions.find(s => s.id === sessionId);
     if (sess) {
       setActiveSession(sessionId);

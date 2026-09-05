@@ -10,7 +10,8 @@ import {
   Sparkles,
   ShieldCheck,
   Code2,
-  HelpCircle
+  HelpCircle,
+  FileText
 } from 'lucide-react';
 
 export default function Sidebar({ 
@@ -29,6 +30,7 @@ export default function Sidebar({
 }) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [learnMoreOpen, setLearnMoreOpen] = useState(false);
+  const [legalMenuOpen, setLegalMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
 
   useEffect(() => {
@@ -36,6 +38,7 @@ export default function Sidebar({
       if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
         setUserMenuOpen(false);
         setLearnMoreOpen(false);
+        setLegalMenuOpen(false);
       }
     };
     if (userMenuOpen) {
@@ -45,6 +48,8 @@ export default function Sidebar({
   }, [userMenuOpen]);
 
   const displayName = user?.name || 'User';
+  const userDisplayName = displayName;
+  const userEmail = user?.email || 'user@calvras.dev';
   const displayPlan = user?.plan || 'Free Plan';
   const avatarUrl = user?.avatar || null;
   const initial = displayName.charAt(0).toUpperCase() || 'U';
@@ -95,7 +100,7 @@ export default function Sidebar({
           title="New Chat"
         >
           {/* Upgraded Modern SVG icon for New Chat */}
-          <div className="w-5 h-5 flex items-center justify-center text-blue-400">
+          <div className="w-5 h-5 flex items-center justify-center text-white">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
               <path d="M18.375 2.625a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4Z" />
@@ -120,13 +125,13 @@ export default function Sidebar({
           onClick={() => setActiveNav('projects')}
           className={`flex items-center gap-2.5 w-full px-2.5 py-2 rounded-xl text-[13.5px] font-medium transition-colors cursor-pointer ${
             activeNav === 'projects'
-              ? 'bg-[#0084ff]/15 text-blue-400 border border-blue-500/30'
+              ? 'bg-white/[0.1] text-white border border-white/10 shadow-sm'
               : 'text-neutral-300 hover:text-white hover:bg-white/[0.06] border border-transparent'
           } ${collapsed ? 'justify-center' : ''}`}
           title="Projects"
         >
           <div className="w-5 h-5 flex items-center justify-center">
-            <FolderGit2 size={16} className={activeNav === 'projects' ? 'text-blue-400' : 'text-neutral-400'} />
+            <FolderGit2 size={16} className={activeNav === 'projects' ? 'text-white' : 'text-neutral-400'} />
           </div>
           {!collapsed && <span>Projects</span>}
         </button>
@@ -137,13 +142,13 @@ export default function Sidebar({
           onClick={() => setActiveNav('developer')}
           className={`flex items-center gap-2.5 w-full px-2.5 py-2 rounded-xl text-[13.5px] font-medium transition-colors cursor-pointer ${
             activeNav === 'developer'
-              ? 'bg-[#0084ff]/15 text-blue-400 border border-blue-500/30'
+              ? 'bg-white/[0.1] text-white border border-white/10 shadow-sm'
               : 'text-neutral-300 hover:text-white hover:bg-white/[0.06] border border-transparent'
           } ${collapsed ? 'justify-center' : ''}`}
           title="Developer"
         >
           <div className="w-5 h-5 flex items-center justify-center">
-            <Code2 size={16} className={activeNav === 'developer' ? 'text-blue-400' : 'text-neutral-400'} />
+            <Code2 size={16} className={activeNav === 'developer' ? 'text-white' : 'text-neutral-400'} />
           </div>
           {!collapsed && <span>Developer</span>}
         </button>
