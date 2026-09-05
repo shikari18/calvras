@@ -93,10 +93,10 @@ export default function CustomerServiceWidget({ isOpen, onClose, onNavigateHelp,
     : helpArticles;
 
   return (
-    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-[calc(100vw-32px)] sm:w-[400px] h-[580px] max-h-[85vh] bg-[#121232] text-white rounded-2xl sm:rounded-3xl border border-white/10 shadow-[0_24px_70px_rgba(0,0,0,0.9)] flex flex-col z-50 overflow-hidden font-sans animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-[calc(100vw-32px)] sm:w-[400px] h-[580px] max-h-[85vh] bg-[#171615] text-white rounded-2xl sm:rounded-3xl border border-white/10 shadow-[0_24px_70px_rgba(0,0,0,0.9)] flex flex-col z-50 overflow-hidden font-sans animate-in fade-in zoom-in-95 duration-200">
       
       {/* ── Top Header ── */}
-      <div className="p-4 bg-[#0D0D24] border-b border-white/[0.08] flex items-center justify-between flex-shrink-0">
+      <div className="p-4 bg-[#11100F] border-b border-white/[0.08] flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
             <Bot size={18} />
@@ -126,14 +126,14 @@ export default function CustomerServiceWidget({ isOpen, onClose, onNavigateHelp,
       </div>
 
       {/* ── Main Tab Content ── */}
-      <div className="flex-1 overflow-y-auto min-h-0 bg-[#121232]">
+      <div className="flex-1 overflow-y-auto min-h-0 bg-[#171615]">
         
         {/* ── TAB: HOME ── */}
         {activeTab === 'home' && (
           <div className="p-4 space-y-4">
             
             {/* Welcome Greeting Banner */}
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-[#16163A] to-[#0D0D24] border border-white/[0.08]">
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-[#1E1D1B] to-[#11100F] border border-white/[0.08]">
               <h3 className="text-base font-bold text-white mb-1">How can we help today?</h3>
               <p className="text-xs text-neutral-300 leading-relaxed">
                 Connect directly with Calvras AI support, search our knowledge base, or submit technical feedback.
@@ -144,7 +144,7 @@ export default function CustomerServiceWidget({ isOpen, onClose, onNavigateHelp,
             <div className="space-y-2">
               <button
                 onClick={() => setActiveTab('messages')}
-                className="w-full flex items-center justify-between p-3.5 rounded-xl bg-[#16163A] hover:bg-white/[0.06] border border-white/[0.08] transition-colors text-left cursor-pointer group"
+                className="w-full flex items-center justify-between p-3.5 rounded-xl bg-[#1E1D1B] hover:bg-white/[0.06] border border-white/[0.08] transition-colors text-left cursor-pointer group"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center text-blue-400">
@@ -160,7 +160,7 @@ export default function CustomerServiceWidget({ isOpen, onClose, onNavigateHelp,
 
               <button
                 onClick={() => setActiveTab('help')}
-                className="w-full flex items-center justify-between p-3.5 rounded-xl bg-[#16163A] hover:bg-white/[0.06] border border-white/[0.08] transition-colors text-left cursor-pointer group"
+                className="w-full flex items-center justify-between p-3.5 rounded-xl bg-[#1E1D1B] hover:bg-white/[0.06] border border-white/[0.08] transition-colors text-left cursor-pointer group"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center text-emerald-400">
@@ -188,7 +188,7 @@ export default function CustomerServiceWidget({ isOpen, onClose, onNavigateHelp,
                   <button
                     key={idx}
                     onClick={() => handleSendMessage(q)}
-                    className="w-full p-2.5 rounded-lg bg-[#16163A] hover:bg-white/[0.06] border border-white/[0.06] text-left text-xs text-neutral-300 hover:text-white transition-colors flex items-center justify-between cursor-pointer"
+                    className="w-full p-2.5 rounded-lg bg-[#1E1D1B] hover:bg-white/[0.06] border border-white/[0.06] text-left text-xs text-neutral-300 hover:text-white transition-colors flex items-center justify-between cursor-pointer"
                   >
                     <span>{q}</span>
                     <ChevronRight size={13} className="text-neutral-500" />
@@ -224,7 +224,7 @@ export default function CustomerServiceWidget({ isOpen, onClose, onNavigateHelp,
                     className={`max-w-[85%] p-3 rounded-2xl text-xs leading-relaxed ${
                       msg.role === 'user'
                         ? 'bg-blue-600 text-white rounded-br-none'
-                        : 'bg-[#16163A] text-neutral-200 border border-white/10 rounded-bl-none'
+                        : 'bg-[#1E1D1B] text-neutral-200 border border-white/10 rounded-bl-none'
                     }`}
                   >
                     {msg.content}
@@ -232,7 +232,7 @@ export default function CustomerServiceWidget({ isOpen, onClose, onNavigateHelp,
                 </div>
               ))}
               {isReplying && (
-                <div className="flex items-center gap-2 p-3 bg-[#16163A] rounded-2xl rounded-bl-none border border-white/10 w-fit text-xs text-neutral-400">
+                <div className="flex items-center gap-2 p-3 bg-[#1E1D1B] rounded-2xl rounded-bl-none border border-white/10 w-fit text-xs text-neutral-400">
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: '0ms' }} />
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: '150ms' }} />
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: '300ms' }} />
@@ -243,7 +243,7 @@ export default function CustomerServiceWidget({ isOpen, onClose, onNavigateHelp,
             </div>
 
             {/* Chat Input Dock */}
-            <div className="p-3 bg-[#0D0D24] border-t border-white/[0.08] flex-shrink-0">
+            <div className="p-3 bg-[#11100F] border-t border-white/[0.08] flex-shrink-0">
               <form 
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -256,7 +256,7 @@ export default function CustomerServiceWidget({ isOpen, onClose, onNavigateHelp,
                   value={inputMsg}
                   onChange={(e) => setInputMsg(e.target.value)}
                   placeholder="Ask customer service..."
-                  className="flex-1 bg-[#16163A] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500/60"
+                  className="flex-1 bg-[#1E1D1B] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500/60"
                 />
                 <button
                   type="submit"
@@ -281,7 +281,7 @@ export default function CustomerServiceWidget({ isOpen, onClose, onNavigateHelp,
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search help articles..."
-                className="w-full pl-9 pr-3 py-2 bg-[#16163A] border border-white/10 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500"
+                className="w-full pl-9 pr-3 py-2 bg-[#1E1D1B] border border-white/10 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500"
               />
             </div>
 
@@ -296,7 +296,7 @@ export default function CustomerServiceWidget({ isOpen, onClose, onNavigateHelp,
                       onClose();
                     }
                   }}
-                  className="p-3 rounded-xl bg-[#16163A] hover:bg-white/[0.06] border border-white/[0.08] cursor-pointer transition-colors group"
+                  className="p-3 rounded-xl bg-[#1E1D1B] hover:bg-white/[0.06] border border-white/[0.08] cursor-pointer transition-colors group"
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[10px] font-semibold text-blue-400 uppercase tracking-wider">{article.category}</span>
@@ -324,7 +324,7 @@ export default function CustomerServiceWidget({ isOpen, onClose, onNavigateHelp,
       </div>
 
       {/* ── Bottom Navigation Dock (Home, Messages, Help) ── */}
-      <div className="grid grid-cols-3 bg-[#0D0D24] border-t border-white/[0.08] p-1.5 flex-shrink-0">
+      <div className="grid grid-cols-3 bg-[#11100F] border-t border-white/[0.08] p-1.5 flex-shrink-0">
         <button
           onClick={() => setActiveTab('home')}
           className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition-colors cursor-pointer ${

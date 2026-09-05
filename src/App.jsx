@@ -613,7 +613,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#0D0D24] text-[#ececed]">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#11100F] text-[#ececed]">
       {/* Mobile sidebar overlay backdrop */}
       {!sidebarCollapsed && (
         <div
@@ -654,8 +654,8 @@ export default function App() {
       </div>
 
       {/* Main Chat / Projects / Developer Frame — Kimi-style rounded connected frame */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0 bg-[#0D0D24] p-1.5 sm:p-2 sm:pl-0.5">
-        <div className="relative flex flex-col flex-1 h-full overflow-hidden rounded-2xl border border-white/[0.09] bg-[#121232] shadow-2xl">
+      <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0 bg-[#11100F] p-1.5 sm:p-2 sm:pl-0.5">
+        <div className="relative flex flex-col flex-1 h-full overflow-hidden rounded-2xl border border-white/[0.09] bg-[#171615] shadow-2xl">
           {activeNav === 'projects' ? (
             <ProjectsPage
               sessions={sessions}
@@ -782,7 +782,7 @@ export class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-[#121232] text-white p-6 text-center">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-[#171615] text-white p-6 text-center">
           <h2 className="text-xl font-bold text-red-400 mb-2">Something went wrong</h2>
           <p className="text-sm text-neutral-400 max-w-md mb-4">{this.state.error?.message || 'Unknown render error'}</p>
           <button

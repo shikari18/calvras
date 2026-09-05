@@ -130,13 +130,15 @@ export default function ChatMessage({ message, onRegenerate, onOpenDetails, onOp
             return (
               <div
                 ref={userBubbleRef}
-                onClick={() => isLongMessage && setIsUserExpanded(p => !p)}
-                className={`relative bg-[#18183E] text-neutral-200 px-5 py-3.5 rounded-2xl text-[15.5px] font-normal shadow-sm break-all break-words max-w-full overflow-hidden whitespace-pre-wrap leading-relaxed transition-all hover:bg-[#1E1E4C] border border-white/[0.08] ${isLongMessage ? 'cursor-pointer' : ''} ${isLongMessage && !isUserExpanded ? 'max-h-[82px] overflow-hidden' : 'max-h-none'}`}
+                onClick={() => {
+                  if (isLongMessage) setIsUserExpanded(prev => !prev);
+                }}
+                className={`relative bg-[#1E1D1B] text-neutral-200 px-5 py-3.5 rounded-2xl text-[15.5px] font-normal shadow-sm break-all break-words max-w-full overflow-hidden whitespace-pre-wrap leading-relaxed transition-all hover:bg-[#252422] border border-white/[0.08] ${isLongMessage ? 'cursor-pointer' : ''} ${isLongMessage && !isUserExpanded ? 'max-h-[82px] overflow-hidden' : 'max-h-none'}`}
                 title={isLongMessage ? (isUserExpanded ? "Click to collapse" : "Click to expand message") : undefined}
               >
                 {renderUserTextWithLinks(displayText)}
                 {isLongMessage && !isUserExpanded && (
-                  <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#18183E] via-[#18183E]/85 to-transparent pointer-events-none rounded-b-2xl" />
+                  <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#1E1D1B] via-[#1E1D1B]/85 to-transparent pointer-events-none rounded-b-2xl" />
                 )}
               </div>
             );
@@ -408,7 +410,7 @@ export default function ChatMessage({ message, onRegenerate, onOpenDetails, onOp
               />
             </div>
             {imgMatch[1] && (
-              <div className="px-4 py-2 bg-[#16163A] border-t border-white/[0.08] flex items-center justify-between text-xs text-neutral-300 select-none">
+              <div className="px-4 py-2 bg-[#1E1D1B] border-t border-white/[0.08] flex items-center justify-between text-xs text-neutral-300 select-none">
                 <span className="font-medium truncate max-w-[400px]">{imgMatch[1]}</span>
                 <span className="text-[10px] uppercase font-bold text-blue-400 tracking-wider bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">Live Snapshot</span>
               </div>

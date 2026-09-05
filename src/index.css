@@ -2,14 +2,14 @@ html {
   min-height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  background-color: #121232;
+  background-color: #171615;
 }
 
 body {
   min-height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  background-color: #121232 !important;
+  background-color: #171615 !important;
 }
 
 #root {
@@ -52,7 +52,7 @@ body {
   }
 
   body {
-    background-color: #121232;
+    background-color: #171615;
     color: #e5e5e5;
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     margin: 0;

@@ -51,7 +51,7 @@ export default function Sidebar({
 
   return (
     <aside 
-      className={`relative flex flex-col h-full bg-[#0D0D24] text-[#b4b4b8] border-r border-white/[0.04] transition-all duration-200 z-30 select-none overflow-hidden ${
+      className={`relative flex flex-col h-full bg-[#11100F] text-[#b4b4b8] border-r border-white/[0.04] transition-all duration-200 z-30 select-none overflow-hidden ${
         collapsed ? 'w-14' : 'w-[230px]'
       }`}
     >
@@ -188,89 +188,81 @@ export default function Sidebar({
       <div className="flex-1" />
 
       {/* ── Bottom User Profile Card & Redesigned Dropdown Popover ── */}
-      <div ref={userMenuRef} className="relative p-2.5 border-t border-white/[0.06] bg-[#0D0D24]">
+      <div ref={userMenuRef} className="relative p-2.5 border-t border-white/[0.06] bg-[#11100F]">
         
-        {/* Exact Claude-Style Floating User Menu */}
+        {/* User profile popover menu */}
         {userMenuOpen && (
-          <div className="fixed bottom-16 left-3 w-[240px] rounded-2xl bg-[#141436] border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.85)] p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150 select-none text-[13px] text-neutral-200">
-            {/* Top user email header */}
-            <div className="px-3 py-2 text-[12px] text-neutral-400 font-normal truncate border-b border-white/[0.08] mb-1">
-              {user?.email || 'user@calvras.ai'}
+          <div className="fixed bottom-16 left-3 w-[240px] rounded-2xl bg-[#1E1D1B] border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.85)] p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150 select-none text-[13px] text-neutral-200">
+            {/* Header info */}
+            <div className="px-3 py-2 border-b border-white/[0.06] mb-1">
+              <div className="font-semibold text-white truncate">{userDisplayName}</div>
+              <div className="text-[11px] text-neutral-400 truncate">{userEmail}</div>
             </div>
 
-            {/* Settings with Ctrl , */}
-            <button
-              type="button"
-              onClick={() => {
-                setUserMenuOpen(false);
-                if (onOpenAccount) onOpenAccount();
-              }}
-              className="flex items-center justify-between w-full px-3 py-2 rounded-xl text-neutral-200 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer text-left"
-            >
-              <span>Settings</span>
-              <span className="text-[10px] text-neutral-400 font-mono bg-white/[0.06] px-1.5 py-0.5 rounded border border-white/10">Ctrl ,</span>
-            </button>
-
-            {/* Language with English */}
-            <button
-              type="button"
-              onClick={() => {
-                alert('Language: English (Default)');
-              }}
-              className="flex items-center justify-between w-full px-3 py-2 rounded-xl text-neutral-200 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer text-left"
-            >
-              <span>Language</span>
-              <span className="text-[12px] text-neutral-400">English</span>
-            </button>
-
-            {/* Get help */}
-            <button
-              type="button"
-              onClick={() => {
-                setUserMenuOpen(false);
-                if (onOpenHelp) onOpenHelp();
-              }}
-              className="flex items-center justify-between w-full px-3 py-2 rounded-xl text-neutral-200 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer text-left"
-            >
-              <span>Get help</span>
-            </button>
-
-            <div className="border-t border-white/[0.08] my-1" />
-
-            {/* Upgrade plan */}
+            {/* Menu Items */}
             <button
               type="button"
               onClick={() => {
                 setUserMenuOpen(false);
                 if (onOpenUpgrade) onOpenUpgrade();
               }}
-              className="flex items-center justify-between w-full px-3 py-2 rounded-xl text-neutral-200 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer text-left font-medium"
+              className="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-white/[0.06] text-amber-300 transition-colors text-left cursor-pointer"
             >
-              <span>Upgrade plan</span>
+              <div className="flex items-center gap-2">
+                <Sparkles size={15} />
+                <span className="font-medium">Upgrade Plan</span>
+              </div>
+              <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30">Pro</span>
             </button>
 
-            {/* Learn more > with flyout */}
+            <button
+              type="button"
+              onClick={() => {
+                setUserMenuOpen(false);
+                if (onOpenDeveloper) onOpenDeveloper();
+              }}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-white/[0.06] text-neutral-200 hover:text-white transition-colors text-left cursor-pointer"
+            >
+              <Code2 size={15} className="text-neutral-400" />
+              <span>Developer Portal</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setUserMenuOpen(false);
+                if (onOpenHelp) onOpenHelp();
+              }}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-white/[0.06] text-neutral-200 hover:text-white transition-colors text-left cursor-pointer"
+            >
+              <HelpCircle size={15} className="text-neutral-400" />
+              <span>Support & Docs</span>
+            </button>
+
+            {/* Legal Submenu Trigger */}
             <div className="relative">
               <button
                 type="button"
-                onClick={() => setLearnMoreOpen(prev => !prev)}
-                onMouseEnter={() => setLearnMoreOpen(true)}
-                className="flex items-center justify-between w-full px-3 py-2 rounded-xl text-neutral-200 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer text-left"
+                onClick={() => setLegalMenuOpen(prev => !prev)}
+                className="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-white/[0.06] text-neutral-200 hover:text-white transition-colors text-left cursor-pointer"
               >
-                <span>Learn more</span>
-                <ChevronRight size={14} className={`text-neutral-400 transition-transform ${learnMoreOpen ? 'rotate-90 sm:rotate-0' : ''}`} />
+                <div className="flex items-center gap-2">
+                  <FileText size={15} className="text-neutral-400" />
+                  <span>Legal & Compliance</span>
+                </div>
+                <ChevronRight size={13} className={`text-neutral-500 transition-transform ${legalMenuOpen ? 'rotate-90 sm:rotate-0' : ''}`} />
               </button>
 
-              {learnMoreOpen && (
+              {/* Legal Flyout submenu */}
+              {legalMenuOpen && (
                 <div 
-                  onMouseLeave={() => setLearnMoreOpen(false)}
-                  className="sm:absolute sm:left-full sm:bottom-0 sm:ml-1.5 w-full sm:w-[220px] rounded-2xl bg-[#141436] border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.85)] p-1.5 space-y-0.5 z-50 animate-in fade-in zoom-in-95 duration-100"
+                  className="sm:absolute sm:left-full sm:bottom-0 sm:ml-1.5 w-full sm:w-[220px] rounded-2xl bg-[#1E1D1B] border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.85)] p-1.5 space-y-0.5 z-50 animate-in fade-in zoom-in-95 duration-100"
                 >
                   <button
                     type="button"
                     onClick={() => {
                       setUserMenuOpen(false);
-                      setLearnMoreOpen(false);
+                      setLegalMenuOpen(false);
                       if (onNavigateLegal) onNavigateLegal('about');
                     }}
                     className="flex items-center w-full px-3 py-1.5 rounded-lg text-[12.5px] text-neutral-200 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer text-left"

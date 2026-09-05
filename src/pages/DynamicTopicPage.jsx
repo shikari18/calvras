@@ -63,10 +63,10 @@ export default function DynamicTopicPage({
   const secondaryImage = SECONDARY_IMAGES[category] || SECONDARY_IMAGES['Default'];
 
   return (
-    <div className="min-h-screen w-full bg-[#121232] text-white font-sans flex flex-col selection:bg-white selection:text-black overflow-y-auto">
+    <div className="min-h-screen w-full bg-[#171615] text-white font-sans flex flex-col selection:bg-white selection:text-black overflow-y-auto">
       
       {/* ── Top Apple Frosted Glass Header Bar ── */}
-      <header className="sticky top-0 z-50 bg-[#121232]/85 backdrop-blur-xl border-b border-white/[0.06] px-6 py-3.5 transition-all">
+      <header className="sticky top-0 z-50 bg-[#171615]/85 backdrop-blur-xl border-b border-white/[0.06] px-6 py-3.5 transition-all">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
@@ -151,14 +151,14 @@ export default function DynamicTopicPage({
           </div>
 
           {/* ── Full Editorial Hero Image Banner (Zero Code Boxes) ── */}
-          <div className="w-full mt-14 rounded-3xl overflow-hidden border border-white/[0.1] bg-[#16163A] shadow-2xl relative group">
+          <div className="w-full mt-14 rounded-3xl overflow-hidden border border-white/[0.1] bg-[#1E1D1B] shadow-2xl relative group">
             <div className="aspect-[16/9] sm:aspect-[21/9] w-full overflow-hidden relative">
               <img 
                 src={heroImage} 
                 alt={topicTitle}
                 className="w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-700 opacity-80"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#121232] via-transparent to-black/30 pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#171615] via-transparent to-black/30 pointer-events-none" />
               
               {/* Floating Overlay Badge */}
               <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between flex-wrap gap-4 text-left">
@@ -188,7 +188,7 @@ export default function DynamicTopicPage({
                 Unlike generic language models that produce superficial recommendations, Calvras operates through a deeply orchestrated agent loop. It continuously validates structural assertions, cross-verifies dependencies, and ensures that every synthesized workflow conforms strictly to modern security standards.
               </p>
 
-              <div className="p-6 rounded-2xl bg-[#16163A] border border-white/[0.08] space-y-3 mt-6">
+              <div className="p-6 rounded-2xl bg-[#1E1D1B] border border-white/[0.08] space-y-3 mt-6">
                 <div className="text-xs font-bold uppercase tracking-wider text-blue-400 flex items-center gap-1.5">
                   <Award size={14} />
                   <span>Key Architectural Milestone</span>
@@ -200,7 +200,7 @@ export default function DynamicTopicPage({
             </div>
 
             <div className="lg:col-span-5 space-y-4">
-              <div className="rounded-2xl overflow-hidden border border-white/[0.1] bg-[#16163A] shadow-xl">
+              <div className="rounded-2xl overflow-hidden border border-white/[0.1] bg-[#1E1D1B] shadow-xl">
                 <img 
                   src={secondaryImage} 
                   alt="Architecture In Action" 
@@ -230,7 +230,7 @@ export default function DynamicTopicPage({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
               {/* Bento Card 1: Full Autonomy */}
-              <div className="p-7 rounded-3xl bg-[#16163A] border border-white/[0.08] hover:border-white/20 transition-all space-y-4 group shadow-lg">
+              <div className="p-7 rounded-3xl bg-[#1E1D1B] border border-white/[0.08] hover:border-white/20 transition-all space-y-4 group shadow-lg">
                 <div className="w-11 h-11 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 group-hover:scale-105 transition-transform">
                   <Cpu size={22} />
                 </div>
@@ -245,7 +245,7 @@ export default function DynamicTopicPage({
               </div>
 
               {/* Bento Card 2: Deep Context Retention */}
-              <div className="p-7 rounded-3xl bg-[#16163A] border border-white/[0.08] hover:border-white/20 transition-all space-y-4 group shadow-lg">
+              <div className="p-7 rounded-3xl bg-[#1E1D1B] border border-white/[0.08] hover:border-white/20 transition-all space-y-4 group shadow-lg">
                 <div className="w-11 h-11 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-105 transition-transform">
                   <Layers size={22} />
                 </div>
@@ -270,7 +270,7 @@ export default function DynamicTopicPage({
               </div>
 
               {/* Bento Card 3: Deterministic Safety */}
-              <div className="p-7 rounded-3xl bg-[#16163A] border border-white/[0.08] hover:border-white/20 transition-all space-y-4 group shadow-lg">
+              <div className="p-7 rounded-3xl bg-[#1E1D1B] border border-white/[0.08] hover:border-white/20 transition-all space-y-4 group shadow-lg">
                 <div className="w-11 h-11 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-105 transition-transform">
                   <ShieldCheck size={22} />
                 </div>
@@ -285,7 +285,7 @@ export default function DynamicTopicPage({
               </div>
 
               {/* Bento Card 4: Paystack Protection */}
-              <div className="p-7 rounded-3xl bg-[#16163A] border border-white/[0.08] hover:border-white/20 transition-all space-y-4 group shadow-lg">
+              <div className="p-7 rounded-3xl bg-[#1E1D1B] border border-white/[0.08] hover:border-white/20 transition-all space-y-4 group shadow-lg">
                 <div className="w-11 h-11 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400 group-hover:scale-105 transition-transform">
                   <Lock size={22} />
                 </div>
@@ -308,7 +308,7 @@ export default function DynamicTopicPage({
               Platform Specifications
             </h2>
 
-            <div className="rounded-3xl border border-white/[0.08] overflow-hidden divide-y divide-white/[0.06] text-xs sm:text-sm bg-[#16163A]">
+            <div className="rounded-3xl border border-white/[0.08] overflow-hidden divide-y divide-white/[0.06] text-xs sm:text-sm bg-[#1E1D1B]">
               <div className="grid grid-cols-1 sm:grid-cols-3 p-5">
                 <div className="font-semibold text-white">Agent Execution Environment</div>
                 <div className="sm:col-span-2 text-neutral-300">Isolated micro-container sandboxes with automated live validation</div>
@@ -333,7 +333,7 @@ export default function DynamicTopicPage({
           </div>
 
           {/* ── Apple Shimmering Glass CTA Card ── */}
-          <div className="w-full mt-20 p-8 sm:p-12 rounded-3xl bg-gradient-to-br from-white/[0.08] via-[#16163A] to-[#141436] border border-white/[0.12] shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6 text-left relative overflow-hidden">
+          <div className="w-full mt-20 p-8 sm:p-12 rounded-3xl bg-gradient-to-br from-white/[0.08] via-[#1E1D1B] to-[#181716] border border-white/[0.12] shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6 text-left relative overflow-hidden">
             <div className="space-y-2 relative z-10 max-w-xl">
               <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
                 Experience {topicTitle} with Calvras

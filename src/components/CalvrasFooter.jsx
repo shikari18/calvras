@@ -16,7 +16,7 @@ export default function CalvrasFooter({ onNavigate, onOpenCustomerService }) {
   };
 
   return (
-    <footer className="w-full bg-[#121232] text-neutral-300 border-t border-white/[0.08] select-none font-sans mt-auto">
+    <footer className="w-full bg-[#171615] text-neutral-300 border-t border-white/[0.08] select-none font-sans mt-auto">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 pt-16 pb-12">
         
         {/* ── 4 Primary Column Tracks matching reference layout ── */}
