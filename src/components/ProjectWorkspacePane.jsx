@@ -34,10 +34,13 @@ import {
   ArrowUpRight,
   CheckCircle2,
   Sparkles,
-  FolderArchive
+  FolderArchive,
+  Table,
+  Trash2
 } from 'lucide-react';
 import JSZip from 'jszip';
 import GitHubTokenModal from './GitHubTokenModal';
+import { parseProjectCodeSchema, generateSqlSchema } from '../utils/schemaParser';
 
 const API = 'http://localhost:3001';
 
@@ -342,6 +345,43 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
       try { window.parent.postMessage({ type: 'CALVRAS_IFRAME_READY' }, '*'); } catch (e) {}
     });
 
+    // Live Embedded Database Engine for REST APIs & Real-time State Sync
+    window.__CALVRAS_STORE__ = window.__CALVRAS_STORE__ || {};
+    try {
+      var savedDb = localStorage.getItem('__calvras_db_data__');
+      if (savedDb) {
+        window.__CALVRAS_STORE__ = JSON.parse(savedDb);
+      }
+    } catch (e) {}
+
+    function saveCalvrasStore() {
+      try {
+        localStorage.setItem('__calvras_db_data__', JSON.stringify(window.__CALVRAS_STORE__));
+      } catch (e) {}
+    }
+
+    // Bidirectional sync: Listen for mutations dispatched from Calvras Database tab
+    window.addEventListener('message', function(event) {
+      if (event.data && event.data.type === 'CALVRAS_DB_MUTATE') {
+        var table = event.data.table;
+        var action = event.data.action;
+        var record = event.data.record;
+        var id = event.data.id;
+        if (!table) return;
+        if (!window.__CALVRAS_STORE__[table]) window.__CALVRAS_STORE__[table] = [];
+        if (action === 'insert' && record) {
+          window.__CALVRAS_STORE__[table] = [record].concat(window.__CALVRAS_STORE__[table].filter(function(r) { return String(r.id) !== String(record.id); }));
+        } else if (action === 'delete' && id) {
+          window.__CALVRAS_STORE__[table] = window.__CALVRAS_STORE__[table].filter(function(r) { return String(r.id) !== String(id); });
+        } else if (action === 'update' && record) {
+          window.__CALVRAS_STORE__[table] = window.__CALVRAS_STORE__[table].map(function(r) { return String(r.id) === String(record.id) ? record : r; });
+        } else if (action === 'set_all') {
+          window.__CALVRAS_STORE__[table] = Array.isArray(record) ? record : [];
+        }
+        saveCalvrasStore();
+      }
+    });
+
     // Mock Backend Network Interceptor for /api routes & Live Chatbots
     const originalFetch = window.fetch;
     window.fetch = async (url, options = {}) => {
@@ -405,12 +445,73 @@ export function generateLivePreviewSrcdoc(filesObj = {}) {
       }
 
       if (urlStr.includes('/api/')) {
-        console.log('[DevServer:Backend] HTTP Request ->', urlStr);
+        console.log('[DevServer:Database] HTTP Request ->', urlStr);
         try {
           const res = await originalFetch(url, options);
           if (res.ok) return res;
         } catch (e) {}
-        return new Response(JSON.stringify({ status: 'ok', success: true, data: [], items: [], timestamp: Date.now() }), {
+
+        const parsedPath = urlStr.replace(/^[a-z]+:\/\/[^/]+/i, '');
+        const match = parsedPath.match(/\/api\/([a-zA-Z0-9_-]+)(?:\/([a-zA-Z0-9_-]+))?/);
+        const table = match ? match[1] : 'records';
+        const rowId = match ? match[2] : null;
+        const method = (options.method || 'GET').toUpperCase();
+
+        if (!window.__CALVRAS_STORE__[table]) {
+          window.__CALVRAS_STORE__[table] = [];
+        }
+
+        const store = window.__CALVRAS_STORE__[table];
+        let responseData = null;
+
+        if (method === 'GET') {
+          if (rowId) {
+            responseData = store.find(function(r) { return String(r.id) === String(rowId); }) || null;
+          } else {
+            responseData = store;
+          }
+        } else if (method === 'POST') {
+          let body = {};
+          try { body = typeof options.body === 'string' ? JSON.parse(options.body) : (options.body || {}); } catch (e) {}
+          if (!body.id) body.id = 'rec_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4);
+          window.__CALVRAS_STORE__[table] = [body].concat(store);
+          saveCalvrasStore();
+          try { window.parent.postMessage({ type: 'CALVRAS_DB_SYNC', table: table, action: 'insert', record: body }, '*'); } catch (e) {}
+          responseData = body;
+        } else if (method === 'PUT' || method === 'PATCH') {
+          let updateData = {};
+          try { updateData = typeof options.body === 'string' ? JSON.parse(options.body) : (options.body || {}); } catch (e) {}
+          const targetId = rowId || updateData.id;
+          window.__CALVRAS_STORE__[table] = store.map(function(r) {
+            if (String(r.id) === String(targetId)) {
+              return Object.assign({}, r, updateData);
+            }
+            return r;
+          });
+          saveCalvrasStore();
+          const updated = window.__CALVRAS_STORE__[table].find(function(r) { return String(r.id) === String(targetId); }) || updateData;
+          try { window.parent.postMessage({ type: 'CALVRAS_DB_SYNC', table: table, action: 'update', record: updated }, '*'); } catch (e) {}
+          responseData = updated;
+        } else if (method === 'DELETE') {
+          let deleteId = rowId;
+          if (!deleteId && options.body) {
+            try { const pb = typeof options.body === 'string' ? JSON.parse(options.body) : options.body; deleteId = pb.id; } catch (e) {}
+          }
+          window.__CALVRAS_STORE__[table] = store.filter(function(r) { return String(r.id) !== String(deleteId); });
+          saveCalvrasStore();
+          try { window.parent.postMessage({ type: 'CALVRAS_DB_SYNC', table: table, action: 'delete', id: deleteId }, '*'); } catch (e) {}
+          responseData = { success: true, deletedId: deleteId };
+        }
+
+        const resultPayload = {
+          status: 'ok',
+          success: true,
+          data: responseData,
+          items: Array.isArray(responseData) ? responseData : (responseData ? [responseData] : []),
+          count: Array.isArray(responseData) ? responseData.length : (responseData ? 1 : 0)
+        };
+
+        return new Response(JSON.stringify(resultPayload), {
           status: 200,
           headers: { 'Content-Type': 'application/json' }
         });
@@ -1517,137 +1618,127 @@ function TreeNode({ node, pathPrefix = '', activeFileKey, onSelectFile, expanded
   );
 }
 
-// ─── Interactive Embedded Database Manager (Supabase / Lovable Style) ───────────
+// ─── Interactive Real-time Embedded Database Manager (Supabase / Neon Style) ───────────
 function DatabaseManager({ files = {} }) {
-  const fileContentString = Object.values(files).join(' ').toLowerCase();
-  const isRestaurant = /restaurant|menu|food|dish|reservation|bistro|cafe/i.test(fileContentString);
-  const isChatbot = /chat|bot|conversation|message|prompt|assistant/i.test(fileContentString);
+  const parsedTables = useMemo(() => parseProjectCodeSchema(files), [files]);
+  const [tables, setTables] = useState(() => parsedTables);
+  const [activeTable, setActiveTable] = useState(() => Object.keys(parsedTables)[0] || '');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [subTab, setSubTab] = useState('data'); // 'data' | 'schema' | 'sql'
+  const [showAddRowModal, setShowAddRowModal] = useState(false);
+  const [showCreateTableModal, setShowCreateTableModal] = useState(false);
+  const [newRowData, setNewRowData] = useState({});
+  const [newTableName, setNewTableName] = useState('');
+  const [newCols, setNewCols] = useState([
+    { key: 'name', label: 'Name', type: 'TEXT' },
+    { key: 'status', label: 'Status', type: 'TEXT' }
+  ]);
+  const [copiedSql, setCopiedSql] = useState(false);
 
-  const initialTables = useMemo(() => {
-    if (isRestaurant) {
-      return {
-        menu_items: {
-          columns: [
-            { key: 'id', label: 'ID', type: 'UUID', pk: true },
-            { key: 'name', label: 'Item Name', type: 'TEXT' },
-            { key: 'category', label: 'Category', type: 'TEXT' },
-            { key: 'price', label: 'Price', type: 'TEXT' },
-            { key: 'available', label: 'Available', type: 'BOOLEAN' },
-            { key: 'updated_at', label: 'Last Updated', type: 'TIMESTAMP' }
-          ],
-          rows: [
-            { id: 'itm_001', name: 'Truffle Tagliolini', category: 'Primi', price: '$28.00', available: 'true', updated_at: '2026-09-05 18:30' },
-            { id: 'itm_002', name: 'Wood-Fired Branzino', category: 'Secondi', price: '$36.00', available: 'true', updated_at: '2026-09-05 18:30' },
-            { id: 'itm_003', name: 'Burrata di Puglia', category: 'Antipasti', price: '$19.00', available: 'true', updated_at: '2026-09-05 18:30' },
-            { id: 'itm_004', name: 'Artisanal Tiramisu', category: 'Dolci', price: '$14.00', available: 'true', updated_at: '2026-09-05 18:30' }
-          ]
-        },
-        reservations: {
-          columns: [
-            { key: 'id', label: 'ID', type: 'UUID', pk: true },
-            { key: 'guest_name', label: 'Guest Name', type: 'TEXT' },
-            { key: 'party_size', label: 'Party Size', type: 'INTEGER' },
-            { key: 'time', label: 'Time', type: 'TEXT' },
-            { key: 'status', label: 'Status', type: 'TEXT' },
-            { key: 'notes', label: 'Special Requests', type: 'TEXT' }
-          ],
-          rows: [
-            { id: 'res_101', guest_name: 'Elena Rostova', party_size: '2', time: '19:30', status: 'Confirmed', notes: 'Anniversary table' },
-            { id: 'res_102', guest_name: 'Marcus Vance', party_size: '4', time: '20:00', status: 'Pending', notes: 'Window seating preferred' },
-            { id: 'res_103', guest_name: 'Sarah Chen', party_size: '6', time: '18:45', status: 'Confirmed', notes: 'Birthday celebration' }
-          ]
-        },
-        orders: {
-          columns: [
-            { key: 'id', label: 'Order ID', type: 'UUID', pk: true },
-            { key: 'table_number', label: 'Table', type: 'TEXT' },
-            { key: 'items_count', label: 'Items', type: 'INTEGER' },
-            { key: 'total', label: 'Total', type: 'TEXT' },
-            { key: 'status', label: 'Status', type: 'TEXT' }
-          ],
-          rows: [
-            { id: 'ord_501', table_number: 'Table 4', items_count: '3', total: '$83.00', status: 'In Kitchen' },
-            { id: 'ord_502', table_number: 'Table 12', items_count: '5', total: '$142.50', status: 'Served' }
-          ]
+  // Sync schema when project files change (preserving live user-added rows)
+  useEffect(() => {
+    setTables(prev => {
+      const next = { ...prev };
+      let changed = false;
+      for (const [tblName, cfg] of Object.entries(parsedTables)) {
+        if (!next[tblName]) {
+          next[tblName] = cfg;
+          changed = true;
+        } else {
+          const existingKeys = new Set(next[tblName].columns.map(c => c.key));
+          const updatedCols = [...next[tblName].columns];
+          for (const col of cfg.columns) {
+            if (!existingKeys.has(col.key)) {
+              updatedCols.push(col);
+              existingKeys.add(col.key);
+            }
+          }
+          const rows = next[tblName].rows.length === 0 && cfg.rows.length > 0 ? cfg.rows : next[tblName].rows;
+          if (updatedCols.length !== next[tblName].columns.length || rows !== next[tblName].rows) {
+            next[tblName] = {
+              ...next[tblName],
+              columns: updatedCols,
+              rows
+            };
+            changed = true;
+          }
         }
-      };
-    }
+      }
+      return changed ? next : prev;
+    });
+  }, [parsedTables]);
 
-    if (isChatbot) {
-      return {
-        conversations: {
-          columns: [
-            { key: 'id', label: 'Message ID', type: 'UUID', pk: true },
-            { key: 'session_id', label: 'Session ID', type: 'TEXT' },
-            { key: 'user_query', label: 'User Query', type: 'TEXT' },
-            { key: 'ai_response', label: 'AI Response', type: 'TEXT' },
-            { key: 'created_at', label: 'Timestamp', type: 'TIMESTAMP' }
-          ],
-          rows: [
-            { id: 'msg_001', session_id: 'sess_live_1', user_query: 'Can you show me the features?', ai_response: 'Here are our core capabilities...', created_at: 'Just now' },
-            { id: 'msg_002', session_id: 'sess_live_1', user_query: 'What is the pricing?', ai_response: 'We offer flexible tiers to suit your needs.', created_at: '3m ago' }
-          ]
-        },
-        chat_sessions: {
-          columns: [
-            { key: 'id', label: 'Session ID', type: 'UUID', pk: true },
-            { key: 'user_id', label: 'User ID', type: 'TEXT' },
-            { key: 'message_count', label: 'Messages', type: 'INTEGER' },
-            { key: 'status', label: 'Status', type: 'TEXT' },
-            { key: 'last_active', label: 'Last Active', type: 'TIMESTAMP' }
-          ],
-          rows: [
-            { id: 'sess_live_1', user_id: 'guest_user', message_count: '4', status: 'Active', last_active: 'Just now' },
-            { id: 'sess_live_2', user_id: 'member_44', message_count: '12', status: 'Idle', last_active: '24m ago' }
-          ]
-        }
-      };
+  // Ensure activeTable points to a valid table
+  useEffect(() => {
+    const tableKeys = Object.keys(tables);
+    if (!activeTable || !tables[activeTable]) {
+      if (tableKeys.length > 0) {
+        setActiveTable(tableKeys[0]);
+      }
     }
+  }, [tables, activeTable]);
 
-    return {
-      users: {
-        columns: [
-          { key: 'id', label: 'User ID', type: 'UUID', pk: true },
-          { key: 'name', label: 'Full Name', type: 'TEXT' },
-          { key: 'email', label: 'Email Address', type: 'TEXT' },
-          { key: 'role', label: 'Role', type: 'TEXT' },
-          { key: 'status', label: 'Status', type: 'TEXT' },
-          { key: 'created_at', label: 'Joined', type: 'TIMESTAMP' }
-        ],
-        rows: [
-          { id: 'usr_001', name: 'Alex Rivera', email: 'alex@example.com', role: 'Owner', status: 'Active', created_at: '2026-09-01' },
-          { id: 'usr_002', name: 'Jordan Lee', email: 'jordan@example.com', role: 'Developer', status: 'Active', created_at: '2026-09-03' }
-        ]
-      },
-      items: {
-        columns: [
-          { key: 'id', label: 'Item ID', type: 'UUID', pk: true },
-          { key: 'title', label: 'Title', type: 'TEXT' },
-          { key: 'category', label: 'Category', type: 'TEXT' },
-          { key: 'status', label: 'Status', type: 'TEXT' },
-          { key: 'updated_at', label: 'Updated', type: 'TIMESTAMP' }
-        ],
-        rows: [
-          { id: 'itm_101', title: 'Main Dashboard UI', category: 'Frontend', status: 'Live', updated_at: 'Just now' },
-          { id: 'itm_102', title: 'Payment Integration', category: 'Backend', status: 'Ready', updated_at: '2h ago' }
-        ]
+  // Two-way sync: Listen for mutations dispatched from preview iframe sandbox
+  useEffect(() => {
+    const handleSync = (event) => {
+      if (event.data && event.data.type === 'CALVRAS_DB_SYNC') {
+        const { table, action, record, id } = event.data;
+        if (!table) return;
+        setTables(prev => {
+          const existing = prev[table] || {
+            name: table,
+            columns: Object.keys(record || {}).map(k => ({
+              key: k,
+              label: k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' '),
+              type: 'TEXT',
+              pk: k === 'id'
+            })),
+            rows: []
+          };
+          let updatedRows = [...existing.rows];
+          if (action === 'insert' && record) {
+            updatedRows = [record, ...updatedRows.filter(r => String(r.id) !== String(record.id))];
+          } else if (action === 'delete' && id) {
+            updatedRows = updatedRows.filter(r => String(r.id) !== String(id));
+          } else if (action === 'update' && record) {
+            updatedRows = updatedRows.map(r => String(r.id) === String(record.id) ? { ...r, ...record } : r);
+          }
+          return {
+            ...prev,
+            [table]: {
+              ...existing,
+              rows: updatedRows
+            }
+          };
+        });
       }
     };
-  }, [fileContentString, isRestaurant, isChatbot]);
+    window.addEventListener('message', handleSync);
+    return () => window.removeEventListener('message', handleSync);
+  }, []);
 
-  const [tables, setTables] = useState(initialTables);
-  const [activeTable, setActiveTable] = useState(Object.keys(initialTables)[0]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [subTab, setSubTab] = useState('data');
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [newRowData, setNewRowData] = useState({});
-
+  // Broadcast initial rows into iframe on table updates
   useEffect(() => {
-    setTables(initialTables);
-    setActiveTable(Object.keys(initialTables)[0]);
-  }, [initialTables]);
+    const iframes = document.querySelectorAll('iframe');
+    iframes.forEach(iframe => {
+      if (iframe.contentWindow) {
+        for (const [tbl, cfg] of Object.entries(tables)) {
+          if (cfg.rows && cfg.rows.length > 0) {
+            try {
+              iframe.contentWindow.postMessage({
+                type: 'CALVRAS_DB_MUTATE',
+                table: tbl,
+                action: 'set_all',
+                record: cfg.rows
+              }, '*');
+            } catch (e) {}
+          }
+        }
+      }
+    });
+  }, [tables]);
 
-  const currentTableConfig = tables[activeTable] || Object.values(tables)[0];
+  const currentTableConfig = tables[activeTable] || null;
   const columns = currentTableConfig?.columns || [];
   const rows = (currentTableConfig?.rows || []).filter(row => {
     if (!searchQuery.trim()) return true;
@@ -1656,216 +1747,405 @@ function DatabaseManager({ files = {} }) {
   });
 
   const handleAddRow = () => {
-    const newId = `rec_${Date.now().toString().slice(-4)}`;
+    if (!activeTable) return;
+    const newId = `rec_${Date.now().toString(36)}`;
     const row = { id: newId, ...newRowData };
     setTables(prev => ({
       ...prev,
       [activeTable]: {
         ...prev[activeTable],
-        rows: [row, ...prev[activeTable].rows]
+        rows: [row, ...(prev[activeTable]?.rows || [])]
       }
     }));
     setNewRowData({});
-    setShowAddModal(false);
+    setShowAddRowModal(false);
+
+    // Notify iframe sandbox
+    const iframes = document.querySelectorAll('iframe');
+    iframes.forEach(iframe => {
+      try {
+        iframe.contentWindow?.postMessage({
+          type: 'CALVRAS_DB_MUTATE',
+          table: activeTable,
+          action: 'insert',
+          record: row
+        }, '*');
+      } catch (e) {}
+    });
   };
 
   const handleDeleteRow = (id) => {
+    if (!activeTable) return;
     setTables(prev => ({
       ...prev,
       [activeTable]: {
         ...prev[activeTable],
-        rows: prev[activeTable].rows.filter(r => r.id !== id)
+        rows: (prev[activeTable]?.rows || []).filter(r => r.id !== id)
       }
     }));
+
+    // Notify iframe sandbox
+    const iframes = document.querySelectorAll('iframe');
+    iframes.forEach(iframe => {
+      try {
+        iframe.contentWindow?.postMessage({
+          type: 'CALVRAS_DB_MUTATE',
+          table: activeTable,
+          action: 'delete',
+          id
+        }, '*');
+      } catch (e) {}
+    });
   };
+
+  const handleCreateTable = () => {
+    if (!newTableName.trim()) return;
+    const cleanName = newTableName.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_');
+    const cols = [
+      { key: 'id', label: 'ID', type: 'UUID', pk: true },
+      ...newCols.filter(c => c.key.trim()).map(c => ({
+        key: c.key.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_'),
+        label: c.label || c.key,
+        type: c.type || 'TEXT',
+        pk: false
+      }))
+    ];
+    setTables(prev => ({
+      ...prev,
+      [cleanName]: {
+        name: cleanName,
+        columns: cols,
+        rows: []
+      }
+    }));
+    setActiveTable(cleanName);
+    setNewTableName('');
+    setNewCols([
+      { key: 'name', label: 'Name', type: 'TEXT' },
+      { key: 'status', label: 'Status', type: 'TEXT' }
+    ]);
+    setShowCreateTableModal(false);
+  };
+
+  const handleExportSql = () => {
+    const sql = generateSqlSchema(tables);
+    const blob = new Blob([sql], { type: 'text/sql' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'schema.sql';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportJson = () => {
+    const data = {};
+    for (const [t, cfg] of Object.entries(tables)) {
+      data[t] = cfg.rows || [];
+    }
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'database.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const sqlSchemaCode = useMemo(() => generateSqlSchema(tables), [tables]);
+
+  const copySql = () => {
+    navigator.clipboard.writeText(sqlSchemaCode);
+    setCopiedSql(true);
+    setTimeout(() => setCopiedSql(false), 2000);
+  };
+
+  const tableNames = Object.keys(tables);
 
   return (
     <div className="flex-1 flex flex-col h-full bg-[#121216] text-neutral-200 font-sans select-none overflow-hidden">
-      {/* Top Database Status Header */}
+      {/* Top Database Status & Actions Header */}
       <div className="h-12 border-b border-[#26262e] px-4 flex items-center justify-between bg-[#16161c]">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+          <div className="w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-sm">
             <Database size={15} />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-white tracking-wide">Calvras Embedded Database</span>
+              <span className="text-xs font-semibold text-white tracking-wide">Calvras Relational Database</span>
               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                Active & Synced
+                Live VFS Synced
               </span>
             </div>
-            <p className="text-[10px] text-neutral-400">Local VFS Persistent Store • REST API endpoints auto-generated at <span className="font-mono text-neutral-300">/api/{activeTable}</span></p>
+            <p className="text-[10px] text-neutral-400">
+              {tableNames.length > 0 
+                ? `Auto-parsed from codebase • REST endpoints active at /api/${activeTable || 'resource'}` 
+                : 'Scans models, interfaces, and state arrays directly from codebase'}
+            </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="flex rounded-lg bg-[#202028] p-0.5 border border-[#2e2e38] text-[11px]">
-            <button
-              onClick={() => setSubTab('data')}
-              className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer ${subTab === 'data' ? 'bg-[#2a2a36] text-white shadow-sm font-medium' : 'text-neutral-400 hover:text-white'}`}
-            >
-              Records ({currentTableConfig?.rows?.length || 0})
-            </button>
-            <button
-              onClick={() => setSubTab('schema')}
-              className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer ${subTab === 'schema' ? 'bg-[#2a2a36] text-white shadow-sm font-medium' : 'text-neutral-400 hover:text-white'}`}
-            >
-              Schema ({columns.length} cols)
-            </button>
-          </div>
+          {tableNames.length > 0 && (
+            <div className="flex rounded-lg bg-[#202028] p-0.5 border border-[#2e2e38] text-[11px]">
+              <button
+                onClick={() => setSubTab('data')}
+                className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer ${subTab === 'data' ? 'bg-[#2a2a36] text-white shadow-sm font-medium' : 'text-neutral-400 hover:text-white'}`}
+              >
+                Records ({currentTableConfig?.rows?.length || 0})
+              </button>
+              <button
+                onClick={() => setSubTab('schema')}
+                className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer ${subTab === 'schema' ? 'bg-[#2a2a36] text-white shadow-sm font-medium' : 'text-neutral-400 hover:text-white'}`}
+              >
+                Schema ({columns.length} cols)
+              </button>
+              <button
+                onClick={() => setSubTab('sql')}
+                className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer ${subTab === 'sql' ? 'bg-[#2a2a36] text-white shadow-sm font-medium' : 'text-neutral-400 hover:text-white'}`}
+              >
+                SQL DDL
+              </button>
+            </div>
+          )}
+
+          {tableNames.length > 0 && (
+            <>
+              <button
+                onClick={handleExportSql}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-[#22222c] hover:bg-[#2c2c38] text-neutral-300 hover:text-white transition-colors cursor-pointer border border-[#30303e]"
+                title="Download PostgreSQL / SQLite schema file"
+              >
+                <Download size={12} />
+                SQL
+              </button>
+              <button
+                onClick={handleExportJson}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-[#22222c] hover:bg-[#2c2c38] text-neutral-300 hover:text-white transition-colors cursor-pointer border border-[#30303e]"
+                title="Download full JSON dataset"
+              >
+                <Download size={12} />
+                JSON
+              </button>
+            </>
+          )}
+
           <button
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 hover:bg-emerald-500 text-white transition-colors cursor-pointer shadow-sm"
+            onClick={() => setShowCreateTableModal(true)}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-[#20202a] hover:bg-[#2a2a36] text-neutral-200 hover:text-white transition-colors cursor-pointer border border-[#323242]"
           >
             <Plus size={13} />
-            Insert Row
+            New Table
           </button>
-        </div>
-      </div>
 
-      {/* Main Split Layout: Sidebar Table Selector & Table View */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Table Selector Sidebar */}
-        <div className="w-48 border-r border-[#26262e] bg-[#14141a] p-3 flex flex-col gap-1">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 px-2 py-1">Tables</span>
-          {Object.entries(tables).map(([tableName, cfg]) => {
-            const isActive = activeTable === tableName;
-            return (
-              <button
-                key={tableName}
-                onClick={() => { setActiveTable(tableName); setSearchQuery(''); }}
-                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-colors cursor-pointer text-left ${
-                  isActive ? 'bg-[#22222c] text-white font-medium shadow-sm border border-[#2e2e3a]' : 'text-neutral-400 hover:text-white hover:bg-[#1a1a22]'
-                }`}
-              >
-                <div className="flex items-center gap-2 truncate">
-                  <Database size={12} className={isActive ? 'text-emerald-400' : 'text-neutral-500'} />
-                  <span className="truncate font-mono">{tableName}</span>
-                </div>
-                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-[#1c1c24] text-neutral-400 border border-[#2a2a34]">
-                  {cfg.rows.length}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Table Content Area */}
-        <div className="flex-1 flex flex-col overflow-hidden bg-[#121216]">
-          {/* Controls Bar: Search & Table Info */}
-          <div className="h-10 border-b border-[#22222a] px-4 flex items-center justify-between bg-[#15151b]">
-            <div className="flex items-center gap-2 flex-1 max-w-xs">
-              <Search size={13} className="text-neutral-500" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder={`Search records in ${activeTable}...`}
-                className="w-full bg-transparent border-0 text-xs text-white placeholder-neutral-500 focus:outline-none"
-              />
-            </div>
-            <div className="text-[11px] text-neutral-400 flex items-center gap-3">
-              <span>Showing {rows.length} of {currentTableConfig?.rows?.length || 0} rows</span>
-            </div>
-          </div>
-
-          {/* Subtab View */}
-          {subTab === 'data' ? (
-            <div className="flex-1 overflow-auto">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="border-b border-[#262630] bg-[#16161e] text-neutral-400 font-mono text-[11px]">
-                    {columns.map(col => (
-                      <th key={col.key} className="px-3 py-2 font-medium">
-                        <div className="flex items-center gap-1.5">
-                          <span>{col.label}</span>
-                          <span className="text-[9px] px-1 py-0.2 rounded bg-[#22222c] text-neutral-500">{col.type}</span>
-                        </div>
-                      </th>
-                    ))}
-                    <th className="px-3 py-2 w-12 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#1e1e26] font-mono text-[11px]">
-                  {rows.length === 0 ? (
-                    <tr>
-                      <td colSpan={columns.length + 1} className="text-center py-10 text-neutral-500">
-                        No matching records found.
-                      </td>
-                    </tr>
-                  ) : (
-                    rows.map((row, idx) => (
-                      <tr key={row.id || idx} className="hover:bg-[#1a1a24] transition-colors group">
-                        {columns.map(col => (
-                          <td key={col.key} className="px-3 py-2.5 truncate max-w-xs text-neutral-200">
-                            {col.key === 'status' || col.key === 'available' ? (
-                              <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] ${
-                                String(row[col.key]).toLowerCase() === 'confirmed' || String(row[col.key]).toLowerCase() === 'true' || String(row[col.key]).toLowerCase() === 'active' || String(row[col.key]).toLowerCase() === 'live'
-                                  ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                                  : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
-                              }`}>
-                                {String(row[col.key])}
-                              </span>
-                            ) : (
-                              <span>{String(row[col.key] || '')}</span>
-                            )}
-                          </td>
-                        ))}
-                        <td className="px-3 py-2.5 text-right">
-                          <button
-                            onClick={() => handleDeleteRow(row.id)}
-                            className="opacity-0 group-hover:opacity-100 text-neutral-500 hover:text-red-400 transition-opacity p-1 cursor-pointer"
-                            title="Delete row"
-                          >
-                            <X size={13} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            /* Schema & Types View */
-            <div className="flex-1 p-5 overflow-auto">
-              <div className="max-w-2xl bg-[#16161e] border border-[#282834] rounded-xl overflow-hidden shadow-sm">
-                <div className="p-3 border-b border-[#262630] bg-[#1a1a24] flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Code2 size={14} className="text-emerald-400" />
-                    <span className="text-xs font-semibold text-white font-mono">{activeTable} Schema Definition</span>
-                  </div>
-                  <span className="text-[10px] text-neutral-400 font-mono">PostgreSQL / SQLite Compatible</span>
-                </div>
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-[#14141a] text-neutral-400 font-mono text-[10px] border-b border-[#242430]">
-                    <tr>
-                      <th className="px-3 py-2">Column</th>
-                      <th className="px-3 py-2">Data Type</th>
-                      <th className="px-3 py-2">Primary Key</th>
-                      <th className="px-3 py-2">Nullable</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#20202a] font-mono text-[11px]">
-                    {columns.map(col => (
-                      <tr key={col.key} className="hover:bg-[#1c1c26]">
-                        <td className="px-3 py-2 text-white font-semibold">{col.key}</td>
-                        <td className="px-3 py-2 text-emerald-400">{col.type}</td>
-                        <td className="px-3 py-2 text-neutral-400">{col.pk ? 'YES (PK)' : 'NO'}</td>
-                        <td className="px-3 py-2 text-neutral-400">{col.pk ? 'NO' : 'YES'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+          {activeTable && (
+            <button
+              onClick={() => setShowAddRowModal(true)}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 hover:bg-emerald-500 text-white transition-colors cursor-pointer shadow-sm"
+            >
+              <Plus size={13} />
+              Insert Row
+            </button>
           )}
         </div>
       </div>
 
-      {/* Add Row Modal */}
-      {showAddModal && (
+      {/* Main Split Layout or Clean Empty State */}
+      {tableNames.length === 0 ? (
+        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-[#121216]">
+          <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-4 shadow-inner">
+            <Database size={28} />
+          </div>
+          <h3 className="text-sm font-semibold text-white mb-1">No Database Tables Detected</h3>
+          <p className="text-xs text-neutral-400 max-w-md mb-6 leading-relaxed">
+            Calvras automatically extracts real tables, schemas, and records from your project's TypeScript interfaces, data models, state arrays, and API routes.
+          </p>
+          <button
+            onClick={() => setShowCreateTableModal(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-lg shadow-emerald-900/30 cursor-pointer"
+          >
+            <Plus size={14} />
+            Create First Table
+          </button>
+        </div>
+      ) : (
+        <div className="flex-1 flex overflow-hidden">
+          {/* Table Selector Sidebar */}
+          <div className="w-48 border-r border-[#26262e] bg-[#14141a] p-3 flex flex-col gap-1 overflow-y-auto">
+            <div className="flex items-center justify-between px-2 py-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Tables</span>
+              <button
+                onClick={() => setShowCreateTableModal(true)}
+                className="text-neutral-400 hover:text-emerald-400 transition-colors p-0.5 cursor-pointer"
+                title="Add Table"
+              >
+                <Plus size={12} />
+              </button>
+            </div>
+            {tableNames.map(tableName => {
+              const cfg = tables[tableName];
+              const isActive = activeTable === tableName;
+              return (
+                <button
+                  key={tableName}
+                  onClick={() => { setActiveTable(tableName); setSearchQuery(''); }}
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-colors cursor-pointer text-left ${
+                    isActive ? 'bg-[#22222c] text-white font-medium shadow-sm border border-[#2e2e3a]' : 'text-neutral-400 hover:text-white hover:bg-[#1a1a22]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 truncate">
+                    <Table size={12} className={isActive ? 'text-emerald-400' : 'text-neutral-500'} />
+                    <span className="truncate font-mono">{tableName}</span>
+                  </div>
+                  <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-[#1c1c24] text-neutral-400 border border-[#2a2a34]">
+                    {cfg.rows?.length || 0}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Table Content Area */}
+          <div className="flex-1 flex flex-col overflow-hidden bg-[#121216]">
+            {subTab === 'data' && (
+              <>
+                {/* Search Bar */}
+                <div className="h-10 border-b border-[#22222a] px-4 flex items-center justify-between bg-[#15151b]">
+                  <div className="flex items-center gap-2 flex-1 max-w-xs">
+                    <Search size={13} className="text-neutral-500" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                      placeholder={`Search records in ${activeTable}...`}
+                      className="w-full bg-transparent border-0 text-xs text-white placeholder-neutral-500 focus:outline-none"
+                    />
+                  </div>
+                  <div className="text-[11px] text-neutral-400 flex items-center gap-3">
+                    <span>Showing {rows.length} of {currentTableConfig?.rows?.length || 0} rows</span>
+                  </div>
+                </div>
+
+                {/* Table Data View */}
+                <div className="flex-1 overflow-auto">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="border-b border-[#262630] bg-[#16161e] text-neutral-400 font-mono text-[11px] sticky top-0 z-10">
+                        {columns.map(col => (
+                          <th key={col.key} className="px-3 py-2 font-medium">
+                            <div className="flex items-center gap-1.5">
+                              <span>{col.label}</span>
+                              <span className="text-[9px] px-1 py-0.2 rounded bg-[#22222c] text-neutral-500">{col.type}</span>
+                            </div>
+                          </th>
+                        ))}
+                        <th className="px-3 py-2 w-12 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#1e1e26] font-mono text-[11px]">
+                      {rows.length === 0 ? (
+                        <tr>
+                          <td colSpan={columns.length + 1} className="text-center py-12 text-neutral-500">
+                            {searchQuery ? 'No matching records found.' : 'No records yet in this table. Click "Insert Row" to add one.'}
+                          </td>
+                        </tr>
+                      ) : (
+                        rows.map((row, idx) => (
+                          <tr key={row.id || idx} className="hover:bg-[#1a1a24] transition-colors group">
+                            {columns.map(col => (
+                              <td key={col.key} className="px-3 py-2.5 truncate max-w-xs text-neutral-200">
+                                {col.key === 'status' || col.key === 'available' || col.key === 'is_special' || col.key === 'completed' ? (
+                                  <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] ${
+                                    String(row[col.key]).toLowerCase() === 'confirmed' || String(row[col.key]).toLowerCase() === 'true' || String(row[col.key]).toLowerCase() === 'active' || String(row[col.key]).toLowerCase() === 'live' || String(row[col.key]).toLowerCase() === 'ready'
+                                      ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                                      : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                                  }`}>
+                                    {String(row[col.key])}
+                                  </span>
+                                ) : (
+                                  <span>{String(row[col.key] ?? '')}</span>
+                                )}
+                              </td>
+                            ))}
+                            <td className="px-3 py-2.5 text-right">
+                              <button
+                                onClick={() => handleDeleteRow(row.id)}
+                                className="opacity-0 group-hover:opacity-100 text-neutral-500 hover:text-red-400 transition-opacity p-1 cursor-pointer"
+                                title="Delete row"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+
+            {subTab === 'schema' && (
+              <div className="flex-1 p-5 overflow-auto">
+                <div className="max-w-2xl bg-[#16161e] border border-[#282834] rounded-xl overflow-hidden shadow-sm">
+                  <div className="p-3 border-b border-[#262630] bg-[#1a1a24] flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Code2 size={14} className="text-emerald-400" />
+                      <span className="text-xs font-semibold text-white font-mono">{activeTable} Schema Definition</span>
+                    </div>
+                    <span className="text-[10px] text-neutral-400 font-mono">PostgreSQL / SQLite Compatible</span>
+                  </div>
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#14141a] text-neutral-400 font-mono text-[10px] border-b border-[#242430]">
+                      <tr>
+                        <th className="px-3 py-2">Column</th>
+                        <th className="px-3 py-2">Data Type</th>
+                        <th className="px-3 py-2">Primary Key</th>
+                        <th className="px-3 py-2">Nullable</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#20202a] font-mono text-[11px]">
+                      {columns.map(col => (
+                        <tr key={col.key} className="hover:bg-[#1c1c26]">
+                          <td className="px-3 py-2 text-white font-semibold">{col.key}</td>
+                          <td className="px-3 py-2 text-emerald-400">{col.type}</td>
+                          <td className="px-3 py-2 text-neutral-400">{col.pk ? 'YES (PK)' : 'NO'}</td>
+                          <td className="px-3 py-2 text-neutral-400">{col.pk ? 'NO' : 'YES'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {subTab === 'sql' && (
+              <div className="flex-1 p-5 overflow-auto flex flex-col">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Code2 size={14} className="text-emerald-400" />
+                    <span className="text-xs font-semibold text-white">Generated SQL DDL Schema</span>
+                  </div>
+                  <button
+                    onClick={copySql}
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs bg-[#22222c] hover:bg-[#2a2a36] text-neutral-200 border border-[#30303e] cursor-pointer transition-colors"
+                  >
+                    {copiedSql ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+                    <span>{copiedSql ? 'Copied' : 'Copy SQL'}</span>
+                  </button>
+                </div>
+                <pre className="flex-1 p-4 rounded-xl bg-[#0c0c10] border border-[#242430] text-emerald-300 font-mono text-xs overflow-auto leading-relaxed select-text">
+                  {sqlSchemaCode}
+                </pre>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Insert Record Modal */}
+      {showAddRowModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-in fade-in duration-150">
           <div className="w-full max-w-md bg-[#181820] border border-[#323240] rounded-2xl p-5 shadow-2xl space-y-4 text-left font-sans">
             <div className="flex items-center justify-between border-b border-[#262630] pb-3">
@@ -1874,7 +2154,7 @@ function DatabaseManager({ files = {} }) {
                 <h3 className="text-sm font-bold text-white">Insert Record into {activeTable}</h3>
               </div>
               <button
-                onClick={() => setShowAddModal(false)}
+                onClick={() => setShowAddRowModal(false)}
                 className="p-1 rounded-lg text-neutral-400 hover:text-white hover:bg-[#262632] transition-colors cursor-pointer"
               >
                 <X size={14} />
@@ -1900,7 +2180,7 @@ function DatabaseManager({ files = {} }) {
 
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#262630]">
               <button
-                onClick={() => setShowAddModal(false)}
+                onClick={() => setShowAddRowModal(false)}
                 className="px-3 py-1.5 rounded-lg text-xs text-neutral-400 hover:text-white hover:bg-[#262632] transition-colors cursor-pointer"
               >
                 Cancel
@@ -1910,6 +2190,112 @@ function DatabaseManager({ files = {} }) {
                 className="px-3.5 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 hover:bg-emerald-500 text-white transition-colors cursor-pointer shadow-sm"
               >
                 Insert Record
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Table Modal */}
+      {showCreateTableModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-md bg-[#181820] border border-[#323240] rounded-2xl p-5 shadow-2xl space-y-4 text-left font-sans">
+            <div className="flex items-center justify-between border-b border-[#262630] pb-3">
+              <div className="flex items-center gap-2">
+                <Table size={15} className="text-emerald-400" />
+                <h3 className="text-sm font-bold text-white">Create New Table</h3>
+              </div>
+              <button
+                onClick={() => setShowCreateTableModal(false)}
+                className="p-1 rounded-lg text-neutral-400 hover:text-white hover:bg-[#262632] transition-colors cursor-pointer"
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+              <div>
+                <label className="block text-[11px] font-medium text-neutral-300 mb-1">Table Name</label>
+                <input
+                  type="text"
+                  value={newTableName}
+                  onChange={e => setNewTableName(e.target.value)}
+                  placeholder="e.g. products, customers, bookings"
+                  className="w-full px-2.5 py-1.5 rounded-lg bg-[#20202a] border border-[#30303e] text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500 font-mono"
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-[11px] font-medium text-neutral-300">Columns</label>
+                  <button
+                    onClick={() => setNewCols(prev => [...prev, { key: '', label: '', type: 'TEXT' }])}
+                    className="text-[10px] text-emerald-400 hover:text-emerald-300 flex items-center gap-1 cursor-pointer"
+                  >
+                    <Plus size={11} /> Add Column
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-[10px] font-mono text-neutral-500 px-1">
+                    <span className="w-1/2">Name</span>
+                    <span className="w-1/3">Type</span>
+                    <span className="w-8"></span>
+                  </div>
+                  {newCols.map((c, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={c.key}
+                        onChange={e => {
+                          const val = e.target.value;
+                          setNewCols(prev => prev.map((item, idx) => idx === i ? { ...item, key: val, label: val } : item));
+                        }}
+                        placeholder="column_name"
+                        className="w-1/2 px-2 py-1 rounded bg-[#20202a] border border-[#30303e] text-xs text-white placeholder-neutral-600 focus:outline-none font-mono"
+                      />
+                      <select
+                        value={c.type}
+                        onChange={e => {
+                          const val = e.target.value;
+                          setNewCols(prev => prev.map((item, idx) => idx === i ? { ...item, type: val } : item));
+                        }}
+                        className="w-1/3 px-2 py-1 rounded bg-[#20202a] border border-[#30303e] text-xs text-white focus:outline-none font-mono"
+                      >
+                        <option value="TEXT">TEXT</option>
+                        <option value="INTEGER">INTEGER</option>
+                        <option value="NUMERIC">NUMERIC</option>
+                        <option value="BOOLEAN">BOOLEAN</option>
+                        <option value="TIMESTAMP">TIMESTAMP</option>
+                        <option value="JSONB">JSONB</option>
+                        <option value="UUID">UUID</option>
+                      </select>
+                      <button
+                        onClick={() => setNewCols(prev => prev.filter((_, idx) => idx !== i))}
+                        className="p-1 text-neutral-500 hover:text-red-400 transition-colors cursor-pointer"
+                        title="Remove column"
+                      >
+                        <X size={13} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#262630]">
+              <button
+                onClick={() => setShowCreateTableModal(false)}
+                className="px-3 py-1.5 rounded-lg text-xs text-neutral-400 hover:text-white hover:bg-[#262632] transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateTable}
+                disabled={!newTableName.trim()}
+                className="px-3.5 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors cursor-pointer shadow-sm"
+              >
+                Create Table
               </button>
             </div>
           </div>
