@@ -292,20 +292,20 @@ export default function PricingOnboarding({ user, onCompletePlan, onSkip, onNavi
             return (
               <div
                 key={plan.id}
-                className={`flex flex-col bg-[#161618] rounded-[24px] overflow-hidden border transition-all duration-200 hover:border-white/25 ${
+                className={`flex flex-col bg-[#14120B] rounded-[24px] overflow-hidden border transition-all duration-200 hover:border-white/25 ${
                   isHighlighted 
-                    ? 'border-indigo-500/60 shadow-[0_12px_40px_rgba(99,102,241,0.15)] relative' 
+                    ? 'border-white/40 shadow-2xl relative' 
                     : 'border-white/10 shadow-xl'
                 }`}
               >
                 {isHighlighted && (
-                  <div className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-[10px] font-bold uppercase tracking-widest text-center py-1">
+                  <div className="bg-white text-black text-[10px] font-bold uppercase tracking-widest text-center py-1">
                     Most Popular for Developers
                   </div>
                 )}
 
                 {/* Top Box */}
-                <div className="p-6 sm:p-7 flex flex-col justify-between border-b border-white/5 bg-[#121214]">
+                <div className="p-6 sm:p-7 flex flex-col justify-between border-b border-white/5 bg-[#14120B]">
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
                       <h2 className="text-[22px] font-bold text-white tracking-tight">
@@ -346,8 +346,8 @@ export default function PricingOnboarding({ user, onCompletePlan, onSkip, onNavi
                       isHighlighted
                         ? 'bg-white text-black hover:bg-neutral-200'
                         : plan.ctaType === 'team'
-                        ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-95 text-black font-extrabold'
-                        : 'bg-[#252528] hover:bg-[#2e2e32] text-white border border-white/10'
+                        ? 'bg-white text-black font-extrabold hover:bg-neutral-200'
+                        : 'bg-white/[0.06] hover:bg-white/[0.12] text-white border border-white/10'
                     }`}
                   >
                     <span>{plan.cta}</span>
@@ -413,7 +413,7 @@ export default function PricingOnboarding({ user, onCompletePlan, onSkip, onNavi
               return (
                 <div
                   key={idx}
-                  className="rounded-xl border border-white/10 bg-[#141417] overflow-hidden transition-colors"
+                  className="rounded-xl border border-white/10 bg-[#14120B] overflow-hidden transition-colors"
                 >
                   <button
                     type="button"
@@ -458,7 +458,7 @@ export default function PricingOnboarding({ user, onCompletePlan, onSkip, onNavi
             {REVIEWS.map((rev, idx) => (
               <div
                 key={idx}
-                className="p-6 rounded-2xl bg-[#141417] border border-white/10 flex flex-col justify-between space-y-4 hover:border-white/20 transition-all shadow-md"
+                className="p-6 rounded-2xl bg-[#14120B] border border-white/10 flex flex-col justify-between space-y-4 hover:border-white/20 transition-all shadow-md"
               >
                 <div className="space-y-3">
                   <div className="flex items-center gap-1 text-amber-400">
@@ -488,7 +488,7 @@ export default function PricingOnboarding({ user, onCompletePlan, onSkip, onNavi
         </section>
 
         {/* ─── PAYSTACK COMPLIANCE SECTION 3: ABOUT & BUSINESS ACTIVITIES ─── */}
-        <section className="w-full max-w-4xl mb-16 p-8 rounded-2xl bg-[#141418] border border-white/10 space-y-4">
+        <section className="w-full max-w-4xl mb-16 p-8 rounded-2xl bg-[#14120B] border border-white/10 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
             <div>
               <h3 className="text-lg font-bold text-white">About Calvras Technologies</h3>
@@ -525,7 +525,7 @@ export default function PricingOnboarding({ user, onCompletePlan, onSkip, onNavi
       </main>
 
       {/* ─── Compliance & Legal Footer ─── */}
-      <footer className="w-full border-t border-white/10 bg-[#0b0b0d] py-10 px-6 text-xs text-neutral-500">
+      <footer className="w-full border-t border-white/10 bg-[#14120B] py-10 px-6 text-xs text-neutral-500">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
             <img src="/sidebar-logo.jpeg" alt="Calvras" className="w-6 h-6 rounded object-contain" />
